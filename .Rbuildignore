@@ -3,3 +3,4 @@
 ^glex\.Rcheck$
 ^glex.*\.tar\.gz$
 ^glex.*\.tgz$
+^\.github$
