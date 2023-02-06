@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![check-standard](https://github.com/PlantedML/glex/workflows/R-CMD-check/badge.svg)](https://github.com/PlantedML/glex/actions)
+[![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 # Global explanations for tree-based models

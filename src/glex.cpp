@@ -4,7 +4,7 @@
 // [[Rcpp::export]]
 Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split,
                             Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality,
-                            Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int>>& U, unsigned int node) {
+                            Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node) {
 
   // Start with all 0
   unsigned int n = x.nrow();
