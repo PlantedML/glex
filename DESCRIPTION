@@ -19,14 +19,17 @@ BugReports: https://github.com/PlantedML/glex/issues
 Imports: 
     data.table,
     foreach,
-    Rcpp (>= 1.0.8),
-    xgboost
+    Rcpp (>= 1.0.8)
 Suggests: 
     doParallel,
-    testthat (>= 3.0.0)
+    randomPlantedForest,
+    testthat (>= 3.0.0),
+    xgboost
 LinkingTo: 
     Rcpp
+Remotes:
+    PlantedML/randomPlantedForest
 Config/testthat/edition: 3
 Encoding: UTF-8
-RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3

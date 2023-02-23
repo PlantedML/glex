@@ -17,9 +17,9 @@
 #'
 #' @return Decomposition of the regression or classification function.
 #' A `list` with elements:
-#' * `shap`: SHAP values.
+#' * `shap`: SHAP values (`xgboost` method only).
 #' * `m`: Functional decomposition, i.e., all main and interaction
-#'   components in the model.
+#'   components in the model, up to the degree specified by `max_interaction`.
 #' * `intercept`: Intercept, i.e., expected value of the prediction.
 #' @export
 #'
@@ -52,18 +52,40 @@ glex.default <- function(object, ...) {
 
 #' @rdname glex
 #' @export
+glex.rpf <- function(object, x, max_interaction = NULL, ...) {
+  if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
+    stop(paste0("randomPlantedForest needs to be installed: ",
+                "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
+  }
+
+  randomPlantedForest::extract_components(
+    object = object, new_data = x, max_interaction = max_interaction,
+    predictors = NULL
+  )
+
+}
+
+#' @rdname glex
+#' @export
 #' @useDynLib glex, .registration = TRUE
 #' @import Rcpp
 #' @import data.table
 #' @import foreach
 #' @importFrom stats predict
 #' @importFrom utils combn
-#' @importFrom xgboost xgb.model.dt.tree
-glex.xgb.Booster <- function(object, x, max_interaction = Inf, ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
+
+  if (!requireNamespace("xgboost", quietly = TRUE)) {
+    stop("xgboost needs to be installed: install.packages(\"xgboost\")")
+  }
+
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
   Feature_num <- NULL
+
+  # If max_interaction is not specified, we set it to max
+  if (is.null(max_interaction)) max_interaction <- Inf
 
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)

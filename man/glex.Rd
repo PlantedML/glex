@@ -2,12 +2,15 @@
 % Please edit documentation in R/glex.R
 \name{glex}
 \alias{glex}
+\alias{glex.rpf}
 \alias{glex.xgb.Booster}
 \title{Global explanations for tree-based models.}
 \usage{
 glex(object, x, ...)
 
-\method{glex}{xgb.Booster}(object, x, max_interaction = Inf, ...)
+\method{glex}{rpf}(object, x, max_interaction = NULL, ...)
+
+\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
 }
 \arguments{
 \item{object}{Model to be explained.}
@@ -23,9 +26,9 @@ Defaults to using all possible interactions.}
 Decomposition of the regression or classification function.
 A \code{list} with elements:
 \itemize{
-\item \code{shap}: SHAP values.
+\item \code{shap}: SHAP values (\code{xgboost} method only).
 \item \code{m}: Functional decomposition, i.e., all main and interaction
-components in the model.
+components in the model, up to the degree specified by \code{max_interaction}.
 \item \code{intercept}: Intercept, i.e., expected value of the prediction.
 }
 }
