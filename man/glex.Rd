@@ -2,16 +2,22 @@
 % Please edit documentation in R/glex.R
 \name{glex}
 \alias{glex}
+\alias{glex.xgb.Booster}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(xg, x, max_interaction = Inf)
+glex(object, x, ...)
+
+\method{glex}{xgb.Booster}(object, x, max_interaction = Inf, ...)
 }
 \arguments{
-\item{xg}{xgboost model to be explained.}
+\item{object}{Model to be explained.}
 
 \item{x}{Data to be explained.}
 
-\item{max_interaction}{Maximum interaction size to consider.}
+\item{...}{Further arguments passed to methods.}
+
+\item{max_interaction}{Maximum interaction size to consider.
+Defaults to using all possible interactions.}
 }
 \value{
 Decomposition of the regression or classification function. Object
@@ -22,9 +28,9 @@ with elements:
   \item{intercept}{Intercept, i.e., expected value of the prediction.}
 }
 \description{
-Global explanations for tree-based models by decomposing 
-regression or classification functions into the sum of main components and 
-interaction components of arbitrary order. Calculates SHAP values and 
+Global explanations for tree-based models by decomposing
+regression or classification functions into the sum of main components and
+interaction components of arbitrary order. Calculates SHAP values and
 q-interaction SHAP for all values of q for tree-based models such as xgboost.
 }
 \details{
