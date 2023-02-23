@@ -20,12 +20,14 @@ glex(object, x, ...)
 Defaults to using all possible interactions.}
 }
 \value{
-Decomposition of the regression or classification function. Object
-with elements:
-  \item{shap}{SHAP values.}
-  \item{m}{Functional decomposition, i.e., all main and interaction
-  components in the model.}
-  \item{intercept}{Intercept, i.e., expected value of the prediction.}
+Decomposition of the regression or classification function.
+A \code{list} with elements:
+\itemize{
+\item \code{shap}: SHAP values.
+\item \code{m}: Functional decomposition, i.e., all main and interaction
+components in the model.
+\item \code{intercept}: Intercept, i.e., expected value of the prediction.
+}
 }
 \description{
 Global explanations for tree-based models by decomposing

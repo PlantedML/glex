@@ -7,7 +7,7 @@
 #' q-interaction SHAP for all values of q for tree-based models such as xgboost.
 #'
 #' For parallel execution, register a backend, e.g. with
-#' \code{doParallel::registerDoParallel()}.
+#' `doParallel::registerDoParallel()`.
 #'
 #' @param object Model to be explained.
 #' @param x Data to be explained.
@@ -15,12 +15,12 @@
 #'  Defaults to using all possible interactions.
 #' @param ... Further arguments passed to methods.
 #'
-#' @return Decomposition of the regression or classification function. Object
-#' with elements:
-#'   \item{shap}{SHAP values.}
-#'   \item{m}{Functional decomposition, i.e., all main and interaction
-#'   components in the model.}
-#'   \item{intercept}{Intercept, i.e., expected value of the prediction.}
+#' @return Decomposition of the regression or classification function.
+#' A `list` with elements:
+#' * `shap`: SHAP values.
+#' * `m`: Functional decomposition, i.e., all main and interaction
+#'   components in the model.
+#' * `intercept`: Intercept, i.e., expected value of the prediction.
 #' @export
 #'
 #' @examples
