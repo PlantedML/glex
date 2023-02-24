@@ -173,19 +173,28 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   # Overall feature effect is sum of all elements where feature is involved
   interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
 
-  # SHAP values are the sum of the m's *1/d
+  # SHAP values are the sum of the m's * 1/d
   shap <- sapply(colnames(x), function(col) {
-    # FIXME: Avoid grep'ing overlapping names, e.g. "xy", "xyz"
-    idx <- grep(col, colnames(interactions))
+    # iterate over terms (x1, x2, x1:x2, ...)
+    # Split by : to uniquely identify original variables, check if col is included
+    idx <- vapply(colnames(interactions), \(x) {
+      col %in% unlist(strsplit(x, ":"))
+    }, logical(1))
+    # Logical vector to integer indices
+    idx <- which(idx)
+
     if (length(idx) == 0) {
-      rep(0, nrow(interactions))
+      numeric(nrow(interactions))
     } else {
       rowSums(interactions[, idx, drop = FALSE])
     }
   })
 
   # Return shap values, decomposition and intercept
-  list(shap = shap,
-       m = m_all[, -1],
-       intercept = unique(m_all[, 1]) + 0.5)
+  list(
+    shap = shap,
+    m = m_all[, -1],
+    intercept = unique(m_all[, 1]) + 0.5,
+    x = x
+  )
 }
