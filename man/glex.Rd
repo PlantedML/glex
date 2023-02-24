@@ -43,7 +43,18 @@ For parallel execution, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
 }
 \examples{
-# mtcars example
+
+# Random Planted Forest -----
+if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+library(randomPlantedForest)
+
+rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
+
+glex(rp, mtcars[27:32, ])
+
+}
+# xgboost -----
+if (requireNamespace("xgboost", quietly = TRUE)) {
 library(xgboost)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
@@ -56,5 +67,6 @@ glex(xg, x[27:32, ])
 # Parallel execution
 doParallel::registerDoParallel()
 glex(xg, x[27:32, ])
+}
 }
 }

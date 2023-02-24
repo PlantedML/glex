@@ -22,22 +22,6 @@
 #'   components in the model, up to the degree specified by `max_interaction`.
 #' * `intercept`: Intercept, i.e., expected value of the prediction.
 #' @export
-#'
-#' @examples
-#' # mtcars example
-#' library(xgboost)
-#' x <- as.matrix(mtcars[, -1])
-#' y <- mtcars$mpg
-#' xg <- xgboost(data = x[1:26, ], label = y[1:26],
-#'               params = list(max_depth = 4, eta = .1),
-#'               nrounds = 10)
-#' glex(xg, x[27:32, ])
-#'
-#' \dontrun{
-#' # Parallel execution
-#' doParallel::registerDoParallel()
-#' glex(xg, x[27:32, ])
-#' }
 glex <- function(object, x, ...) {
   UseMethod("glex")
 }
@@ -84,6 +68,24 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
 #' @import foreach
 #' @importFrom stats predict
 #' @importFrom utils combn
+#'
+#' @examples
+#' # xgboost -----
+#' if (requireNamespace("xgboost", quietly = TRUE)) {
+#' library(xgboost)
+#' x <- as.matrix(mtcars[, -1])
+#' y <- mtcars$mpg
+#' xg <- xgboost(data = x[1:26, ], label = y[1:26],
+#'               params = list(max_depth = 4, eta = .1),
+#'               nrounds = 10)
+#' glex(xg, x[27:32, ])
+#'
+#' \dontrun{
+#' # Parallel execution
+#' doParallel::registerDoParallel()
+#' glex(xg, x[27:32, ])
+#' }
+#' }
 glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
 
   if (!requireNamespace("xgboost", quietly = TRUE)) {
