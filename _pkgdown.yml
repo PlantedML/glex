@@ -1,0 +1,29 @@
+url: http://plantedml.com/glex/
+template:
+  bootstrap: 5
+
+
+articles:
+- title: Showcases
+  navbar: ~
+  desc: |
+    Case studies of model explanations on real-world datasets.
+  contents:
+  - articles/Bikesharing-Decomposition-rpf
+
+reference:
+- title: Model explanation
+  desc: Functional decomposition of model predictions
+- contents:
+  - starts_with("glex")
+
+- title: Visualisation
+  desc: Visualize main and interaction terms
+  contents:
+  - starts_with("plot_")
+  - autoplot.glex
+# - text: -------
+# - title: Utility functions
+# - contents:
+  #- starts_with("print.")
+  #- starts_with("str.")

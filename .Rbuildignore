@@ -4,3 +4,7 @@
 ^glex.*\.tar\.gz$
 ^glex.*\.tgz$
 ^\.github$
+^attic$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

@@ -44,8 +44,8 @@ glex.default <- function(object, ...) {
 #'
 #' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 #'
-#' glex(rp, mtcars[27:32, ])
-#'
+#' glex_rpf <- glex(rp, mtcars[27:32, ])
+#' str(glex_rpf, list.len = 5)
 #' }
 glex.rpf <- function(object, x, max_interaction = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
@@ -53,11 +53,12 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
                 "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
   }
 
-  randomPlantedForest::predict_components(
+  ret <- randomPlantedForest::predict_components(
     object = object, new_data = x, max_interaction = max_interaction,
     predictors = NULL
   )
-
+  class(ret) <- c("glex", "rpf_components", class(ret))
+  ret
 }
 
 #' @rdname glex
@@ -77,7 +78,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
 #' y <- mtcars$mpg
 #' xg <- xgboost(data = x[1:26, ], label = y[1:26],
 #'               params = list(max_depth = 4, eta = .1),
-#'               nrounds = 10)
+#'               nrounds = 10, verbose = 0)
 #' glex(xg, x[27:32, ])
 #'
 #' \dontrun{
@@ -191,10 +192,12 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   })
 
   # Return shap values, decomposition and intercept
-  list(
-    shap = shap,
-    m = m_all[, -1],
+  ret <- list(
+    shap = data.table::setDT(as.data.frame(shap)),
+    m = data.table::setDT(as.data.frame(m_all[, -1])),
     intercept = unique(m_all[, 1]) + 0.5,
-    x = x
+    x = data.table::setDT(as.data.frame(x))
   )
+  class(ret) <- c("glex", "xgb_components", class(ret))
+  ret
 }

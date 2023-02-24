@@ -1,7 +1,7 @@
 Type: Package
 Package: glex
 Title: Global Explanations for Tree-Based Models
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person(c("Marvin", "N."), "Wright", , "cran@wrig.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8542-6291")),
@@ -16,15 +16,23 @@ Description: Global explanations for tree-based models by decomposing
     and q-interaction SHAP for all values of q for tree-based models such
     as xgboost.
 License: GPL-3
-URL: https://github.com/PlantedML/glex
+URL: https://github.com/PlantedML/glex,
+    http://plantedml.com/glex/
 BugReports: https://github.com/PlantedML/glex/issues
 Imports: 
+    checkmate,
     data.table,
     foreach,
+    ggplot2,
     Rcpp (>= 1.0.8)
 Suggests: 
     doParallel,
+    ISLR2,
+    knitr,
+    patchwork,
     randomPlantedForest,
+    rmarkdown,
+    scico,
     testthat (>= 3.0.0),
     xgboost
 LinkingTo: 
@@ -35,3 +43,4 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+VignetteBuilder: knitr

@@ -1,0 +1,183 @@
+---
+title: "Bikesharing: Decomposition with Random Planted Forest"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 9
+)
+
+# Adapted from https://github.com/PlantedML/shap_decomposition/blob/master/bike_example/bike_example.R
+```
+
+```{r setup}
+library(glex)
+library(randomPlantedForest)
+library(data.table)
+library(ISLR2) # For Bikeshare dataset
+library(ggplot2)
+library(patchwork) # To arrange plots
+set.seed(2023)
+
+theme_set(
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+)
+```
+
+## Preparing the Data
+
+First we load the `Bikeshare` data from the `ISLR2` package, which provides the dataset published at the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset).
+
+> This data set contains the hourly and daily count of rental bikes between years 2011 and 2012 in Capital bikeshare system, along with weather and seasonal information.
+
+The outcome is going to be `bikers`, the total number of bikers in the system.
+
+The predictors of interest in our case are going to be the following:
+
+- `hr`: Hour of day, 0 to 23 hours.
+- `temp`: Normalized temperature in Celsius
+- `workingday`: Binary value indicating whether it's a work day (1) or not (0)
+
+We recode the `hr` variable from a 24-level `factor` to a numeric column.
+
+```{r data-prep}
+data(Bikeshare)
+bike <- data.table(Bikeshare)
+bike[, hr := as.numeric(as.character(hr))]
+bike[, workingday := factor(workingday, levels = c(0, 1), labels = c("No Workingday", "Workingday"))]
+bike[, season := factor(season, levels = 1:4, labels = c("Winter", "Spring", "Summer", "Fall"))]
+
+# Only one observation with this condition, removing it to make space.
+bike <- bike[weathersit != "heavy rain/snow", ] 
+
+head(bike)
+```
+
+
+## Fitting, Purification, Component Extraction
+
+Next we can fit a Random Planted Forest on the `bikers` variable, using a subset of the available predictors.
+We limit the model's complexity by setting `max_interaction = 3`, as we are only going to visualize interactions up to the third degree, and using a higher value here might only marginally improve predictive performance at the cost of a longer runtime.
+For our example here, a smaller model with merely 30 trees suffices.
+We also `purify` the forest to enable the desired decomposition.
+This step is not required for global predictions and may take some time, which is why it is implemented as a separate step.
+
+```{r, include=FALSE}
+t1 <- Sys.time()
+```
+
+
+```{r model-fit}
+rp <- rpf(
+  bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit + season,
+  data = bike,
+  max_interaction = 3, ntrees = 30
+)
+
+purify(rp)
+```
+
+We select the predictors of interest and use `glex()` to retrieve all predictive components that include them,
+from main effects to 3rd degree interactions.
+The resulting object also contains the original data as `x`, which we need for later visualization.
+
+```{r extract-components}
+vars <- c("hr", "temp", "workingday", "hum", "weathersit", "season")
+
+components <- glex(rp, bike, predictors = vars)
+
+# There's a lot of components...
+str(components$m, list.len = 8)
+```
+
+```{r, include=FALSE}
+t2 <- Sys.time()
+
+took <- ceiling(as.numeric(difftime(t2, t1, units = "secs"))/10)*10
+```
+
+Please note that fitting the model, purification, and the extraction of the components may take some time, depending on available resources and the size of the data.
+For example, the above steps took around `r took` seconds to complete on GitHub Actions.
+
+## Main Effects
+
+```{r main-effects}
+p_main <- plot_main_effect(components, "temp") +
+  plot_main_effect(components, "hr") +
+  plot_main_effect(components, "workingday")
+
+p_main + plot_layout(widths = c(.3, .3, .4))
+```
+
+## 2-Way Interactions
+
+```{r twoway-effects}
+p_2way1 <- plot_twoway_effects(components, c("workingday", "temp"))
+p_2way2 <- plot_twoway_effects(components, c("hr", "workingday"))
+p_2way3 <- plot_twoway_effects(components, c("hr", "temp"))
+
+p_2way <- (p_2way1 / p_2way2 + 
+    plot_layout(guides = "collect") &
+      theme(legend.position = "bottom")) | p_2way3
+
+p_2way <- p_2way + 
+  plot_annotation(tag_levels = list(c("1,2", "3,1", "3,3")), tag_prefix = "m(", tag_suffix = ")")
+
+p_2way
+```
+
+## 3-Way Interaction
+
+```{r threeway-effects}
+p_3way <- plot_threeway_effects(components, c("hr", "temp", "workingday"))
+
+p_3way
+```
+
+## Everything Together
+
+```{r all-effects, fig.width=9, fig.height=10}
+p_main / p_2way / p_3way + 
+  plot_layout(heights = c(.2, .5, .3))
+```
+
+## Additional effects
+
+
+All main effects:
+
+Iterating over `vars` (`r paste0(vars, collapse = ", ")`), and passing each to `plot_main_effect`, then collecting the plots with `patchwork::wrap_plots()`:
+
+```{r all-main-effects, fig.width=10}
+wrap_plots(lapply(vars, plot_main_effect, components = components))
+```
+
+From here we use `autoplot` for convenience. Internally it just passes its arguments on to the specialized `plot_*` functions, depending on the number of predictors supplied.
+
+```{r}
+autoplot(components, c("season", "workingday"))
+autoplot(components, c("season", "hr"))
+autoplot(components, c("season", "weathersit"))
+autoplot(components, c("weathersit", "temp"))
+autoplot(components, c("hum", "temp"))
+```
+
+
+3rd degree interactions can be tricky, if they have any effect at all.
+
+```{r}
+autoplot(components, c("season", "hr", "weathersit"))
+autoplot(components, c("workingday", "hr", "season"))
+# Hard to interpret, likely spurious
+autoplot(components, c("workingday", "hr", "weathersit"))
+# zero effect
+autoplot(components, c("weathersit", "season", "workingday"))
+```
+

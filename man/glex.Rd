@@ -50,8 +50,8 @@ library(randomPlantedForest)
 
 rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 
-glex(rp, mtcars[27:32, ])
-
+glex_rpf <- glex(rp, mtcars[27:32, ])
+str(glex_rpf, list.len = 5)
 }
 # xgboost -----
 if (requireNamespace("xgboost", quietly = TRUE)) {
@@ -60,7 +60,7 @@ x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
 xg <- xgboost(data = x[1:26, ], label = y[1:26],
               params = list(max_depth = 4, eta = .1),
-              nrounds = 10)
+              nrounds = 10, verbose = 0)
 glex(xg, x[27:32, ])
 
 \dontrun{

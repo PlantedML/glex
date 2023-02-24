@@ -2,3 +2,5 @@
 .Rcheck
 .Rhistory
 *.Rproj
+docs
+inst/doc
