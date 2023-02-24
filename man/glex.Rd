@@ -2,29 +2,40 @@
 % Please edit documentation in R/glex.R
 \name{glex}
 \alias{glex}
+\alias{glex.rpf}
+\alias{glex.xgb.Booster}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(xg, x, max_interaction = Inf)
+glex(object, x, ...)
+
+\method{glex}{rpf}(object, x, max_interaction = NULL, ...)
+
+\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
 }
 \arguments{
-\item{xg}{xgboost model to be explained.}
+\item{object}{Model to be explained.}
 
 \item{x}{Data to be explained.}
 
-\item{max_interaction}{Maximum interaction size to consider.}
+\item{...}{Further arguments passed to methods.}
+
+\item{max_interaction}{Maximum interaction size to consider.
+Defaults to using all possible interactions.}
 }
 \value{
-Decomposition of the regression or classification function. Object
-with elements:
-  \item{shap}{SHAP values.}
-  \item{m}{Functional decomposition, i.e., all main and interaction
-  components in the model.}
-  \item{intercept}{Intercept, i.e., expected value of the prediction.}
+Decomposition of the regression or classification function.
+A \code{list} with elements:
+\itemize{
+\item \code{shap}: SHAP values (\code{xgboost} method only).
+\item \code{m}: Functional decomposition, i.e., all main and interaction
+components in the model, up to the degree specified by \code{max_interaction}.
+\item \code{intercept}: Intercept, i.e., expected value of the prediction.
+}
 }
 \description{
-Global explanations for tree-based models by decomposing 
-regression or classification functions into the sum of main components and 
-interaction components of arbitrary order. Calculates SHAP values and 
+Global explanations for tree-based models by decomposing
+regression or classification functions into the sum of main components and
+interaction components of arbitrary order. Calculates SHAP values and
 q-interaction SHAP for all values of q for tree-based models such as xgboost.
 }
 \details{
@@ -32,7 +43,18 @@ For parallel execution, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
 }
 \examples{
-# mtcars example
+
+# Random Planted Forest -----
+if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+library(randomPlantedForest)
+
+rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
+
+glex(rp, mtcars[27:32, ])
+
+}
+# xgboost -----
+if (requireNamespace("xgboost", quietly = TRUE)) {
 library(xgboost)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
@@ -45,5 +67,6 @@ glex(xg, x[27:32, ])
 # Parallel execution
 doParallel::registerDoParallel()
 glex(xg, x[27:32, ])
+}
 }
 }
