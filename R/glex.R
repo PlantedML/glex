@@ -52,13 +52,24 @@ glex.default <- function(object, ...) {
 
 #' @rdname glex
 #' @export
+#' @examples
+#'
+#' # Random Planted Forest -----
+#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' library(randomPlantedForest)
+#'
+#' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
+#'
+#' glex(rp, mtcars[27:32, ])
+#'
+#' }
 glex.rpf <- function(object, x, max_interaction = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0("randomPlantedForest needs to be installed: ",
                 "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
   }
 
-  randomPlantedForest::extract_components(
+  randomPlantedForest::predict_components(
     object = object, new_data = x, max_interaction = max_interaction,
     predictors = NULL
   )
