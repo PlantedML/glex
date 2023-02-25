@@ -15,17 +15,34 @@ than this value. Refers to percentage of average absolute \code{m} divided by av
 \item{...}{(Unused)}
 }
 \value{
-A data.table
+A data.table with columns:
+\itemize{
+\item \code{degree} (\code{integer}): Degree of interaction of the \code{term}, with \code{1}  being main effects, \code{2} being 2-degree interactions etc.
+\item \code{term} (\code{character}): Model term, e.g. main effect \code{x1} or interaction term \code{x1:x2}, \code{x1:x3:x5} etc.
+\item \code{term_list} (\code{list}): Same as \code{term} but as a list-column to enable filtering by specific variables without
+requiring to split by \code{:}.
+\item \code{m} (\code{numeric}): Average absolute contribution of \code{term}, see Details.
+\item \code{m_rel} (\code{numeric}): \code{m} but relative to the average prediction (\code{intercept} in \code{glex()} output), times 100.
+}
 }
 \description{
 Variable Importance for Main and Interaction Terms
+}
+\details{
+The \code{m} reported here is the average absolute value of \code{m} as reported by \code{glex()}, aggregated by \code{term}:
+
+\deqn{\mathtt{m} = \frac{1}{n} \sum_{i = 1}^n |m| }
+
+In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (\eqn{m_0}, \code{intercept} as reported by \code{glex()}):
+
+\deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0} \cdot 100}
 }
 \examples{
 # Random Planted Forest -----
 if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 
-rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
+rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 4)
 
 glex_rpf <- glex(rp, mtcars[27:32, ])
 

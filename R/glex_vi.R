@@ -5,15 +5,31 @@
 #'   than this value. Refers to percentage of average absolute `m` divided by average prediction (`intercept`).
 #' @param ... (Unused)
 #'
-#' @return A data.table
+#' @return A data.table with columns:
+#' * `degree` (`integer`): Degree of interaction of the `term`, with `1`  being main effects, `2` being 2-degree interactions etc.
+#' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
+#' * `term_list` (`list`): Same as `term` but as a list-column to enable filtering by specific variables without
+#'   requiring to split by `:`.
+#' * `m` (`numeric`): Average absolute contribution of `term`, see Details.
+#' * `m_rel` (`numeric`): `m` but relative to the average prediction (`intercept` in `glex()` output), times 100.
+#'
 #' @export
+#'
+#' @details
+#' The `m` reported here is the average absolute value of `m` as reported by `glex()`, aggregated by `term`:
+#'
+#' \deqn{\mathtt{m} = \frac{1}{n} \sum_{i = 1}^n |m| }
+#'
+#' In turn, `m_rel` rescales `m` by the average prediction of the model (\eqn{m_0}, `intercept` as reported by `glex()`):
+#'
+#' \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0} \cdot 100}
 #'
 #' @examples
 #' # Random Planted Forest -----
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
 #'
-#' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
+#' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 4)
 #'
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #'
@@ -67,28 +83,37 @@ glex_vi <- function(object, threshold = 0, ...) {
 autoplot.glex_vi <- function(object, by_degree = FALSE, ...) {
 
   checkmate::assert_flag(by_degree)
-  object <- data.table::copy(object)
+  # object <- data.table::copy(object)
   by_what <- ifelse(by_degree, "Degree", "Term")
 
   # FIXME: data.table NSE stuff
   m <- NULL
 
-  if (by_degree) {
-    p <- ggplot(object[, list(m = sum(m)), by = "degree"],
-            aes(y = stats::reorder(.data[["degree"]], .data[["m"]])))
+  if (by_what == "Degree") {
+
+    aggr <- object[, list(m = sum(m)), by = "degree"]
+
+    p <- ggplot(aggr)
+    p <- p + aes(y = stats::reorder(.data[["degree"]], .data[["m"]]))
     x_lab <- "Sum of Average Absolute Contributions"
-  } else {
-    p <- ggplot(object, aes(y = stats::reorder(.data[["term"]], .data[["m"]])))
+
+  }
+
+  if (by_what == "Term") {
+
+    p <- ggplot(object)
+    p <- p + aes(y = stats::reorder(.data[["term"]], .data[["m"]]))
     x_lab <- "Average Absolute Contribution"
+
   }
 
   p + aes(x = .data[["m"]], fill = factor(.data[["degree"]])) +
-    geom_col(color = "black", linewidth = .1) +
+    geom_col(linewidth = 0, alpha = .8) +
     scale_fill_viridis_d(direction = -1, end = .95) +
-    theme(legend.position = "bottom") +
     labs(
       title = sprintf("Average Absolute Prediction Contribution by %s", by_what),
       y = by_what, x = x_lab,
       fill = "Degree of Interaction"
-    )
+    ) +
+    theme(legend.position = "bottom")
 }
