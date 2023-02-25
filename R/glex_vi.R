@@ -34,14 +34,30 @@
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #'
 #' # All terms
-#' glex_vi(glex_rpf)
+#' vi_rpf <- glex_vi(glex_rpf)
 #'
 #' # Only terms with a relative contribution greater or equal 0.1% of the average prediction
-#' (vi <- glex_vi(glex_rpf, threshold = 0.1))
+#' vi_rpf_filtered <- glex_vi(glex_rpf, threshold = 0.1)
 #'
 #' library(ggplot2)
-#' autoplot(vi)
-#' autoplot(vi, by_degree = TRUE)
+#' autoplot(vi_rpf_filtered)
+#' autoplot(vi_rpf, by_degree = TRUE)
+#' }
+#'
+#' # xgboost -----
+#' if (requireNamespace("xgboost", quietly = TRUE)) {
+#' library(xgboost)
+#' x <- as.matrix(mtcars[, -1])
+#' y <- mtcars$mpg
+#' xg <- xgboost(data = x[1:26, ], label = y[1:26],
+#'               params = list(max_depth = 4, eta = .1),
+#'               nrounds = 10, verbose = 0)
+#' glex_xgb <- glex(xg, x[27:32, ])
+#' vi_xgb <- glex_vi(glex_xgb)
+#'
+#' library(ggplot2)
+#' autoplot(vi_xgb)
+#' autoplot(vi_xgb, by_degree = TRUE)
 #' }
 glex_vi <- function(object, threshold = 0, ...) {
   checkmate::assert_class(object, classes = "glex")
