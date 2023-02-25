@@ -57,7 +57,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
     object = object, new_data = x, max_interaction = max_interaction,
     predictors = NULL
   )
-  class(ret) <- c("glex", "rpf_components", class(ret))
+  # class(ret) <- c("glex", "rpf_components", class(ret))
   ret
 }
 

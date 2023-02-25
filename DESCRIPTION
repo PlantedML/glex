@@ -24,7 +24,8 @@ Imports:
     data.table,
     foreach,
     ggplot2,
-    Rcpp (>= 1.0.8)
+    Rcpp (>= 1.0.8),
+    stats
 Suggests: 
     doParallel,
     ISLR2,
