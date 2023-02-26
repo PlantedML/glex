@@ -11,7 +11,7 @@
 #'
 #' @param object Model to be explained.
 #' @param x Data to be explained.
-#' @param max_interaction Maximum interaction size to consider.
+#' @param max_interaction (`integer(1)`) Maximum interaction size to consider.
 #'  Defaults to using all possible interactions.
 #' @param ... Further arguments passed to methods.
 #'
@@ -98,6 +98,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   Feature <- NULL
   Feature_num <- NULL
 
+  checkmate::assert_int(max_interaction, null.ok = TRUE, lower = 1)
   # If max_interaction is not specified, we set it to max
   if (is.null(max_interaction)) max_interaction <- Inf
 
@@ -122,7 +123,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   })))
 
   # Keep only those with not more than max_interaction involved features
-  d <- sapply(all_S, length)
+  d <- lengths(all_S)
   all_S <- all_S[d <= max_interaction]
 
   # For each tree, calculate matrix and contribution
@@ -135,7 +136,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                    tree_info$Quality, tree_info$Cover, U, 0)
     colnames(mat) <- sapply(U, function(u) {
-      paste(colnames(x)[u], collapse = ":")
+      paste(sort(colnames(x)[u]), collapse = ":")
     })
 
     # Init m matrix
@@ -146,7 +147,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     })
 
     # Calculate contribution, use only subsets with not more than max_interaction involved features
-    d <- sapply(U, length)
+    d <- lengths(U)
     for (S in U[d <= max_interaction]) {
       colname <- paste(sort(colnames(x)[S]), collapse = ":")
       if (nchar(colname) == 0) {

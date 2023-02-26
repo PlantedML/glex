@@ -19,7 +19,7 @@ glex(object, x, ...)
 
 \item{...}{Further arguments passed to methods.}
 
-\item{max_interaction}{Maximum interaction size to consider.
+\item{max_interaction}{(\code{integer(1)}) Maximum interaction size to consider.
 Defaults to using all possible interactions.}
 }
 \value{
