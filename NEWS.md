@@ -4,6 +4,9 @@
 * Added `ggplot2::autoplot` S3 method for `glex` objects.
 * Added `pkgdown` site
 * Added Bikesharing article
+* Added `glex_vi()` to compute variable importance scores including interaction terms, including a
+  corresponding `ggplot2::autoplot` method.
+* Added `glex_explain()` to plot prediction components of a single observation.
 
 # glex 0.2.0
 
