@@ -15,13 +15,16 @@ reference:
 - title: Model explanation
   desc: Functional decomposition of model predictions
 - contents:
-  - starts_with("glex")
+  - glex
+  - glex_vi
 
 - title: Visualisation
   desc: Visualize main and interaction terms
   contents:
   - starts_with("plot_")
   - autoplot.glex
+  - autoplot.glex_vi
+  - glex_explain
 # - text: -------
 # - title: Utility functions
 # - contents:
