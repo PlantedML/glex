@@ -17,8 +17,9 @@ autoplot.glex <- function(object, predictors, ...) {
 #'  for all main effects, all second-order interactions, etc.
 #' @param scale (`"absolute"`) Plot average absolute contributions (default) or the same value but scaled by the
 #' average prediction (`"relative"`).
+#' @param threshold (`numeric(1)`) Optional threshold to filter output to include only importance scores greater
+#'   than this value. Refers to the chosen `scale`.
 #' @param ... (Unused)
-#' @inheritParams glex_vi
 #'
 #' @return A `ggplot2` object.
 #' @export
@@ -36,7 +37,8 @@ autoplot.glex_vi <- function(object, threshold = 0, by_degree = FALSE, scale = "
   # FIXME: data.table NSE stuff
   m <- m_rel <- NULL
 
-  object <- object[m_rel >= threshold]
+  # Filter by threshold, depending on which of m, m_rel is going to be plotted.
+  object <- object[object[[score]] >= threshold, ]
 
   if (by_what == "Degree") {
 

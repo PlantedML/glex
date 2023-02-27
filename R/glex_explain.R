@@ -9,6 +9,7 @@
 #' @export
 #'
 #' @examples
+#' set.seed(1)
 #' # Random Planted Forest -----
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
@@ -24,13 +25,17 @@ glex_explain <- function(object, id, threshold = 0) {
   checkmate::assert_int(id, lower = 1, upper = nrow(object$x))
   checkmate::assert_number(threshold, lower = 0)
 
-  m_long <- data.table::melt(object$m[, .id := .I], id.vars = ".id")
-  m_long <- m_long[.id == id, ]
+  m_long <- data.table::melt(object$m[, ".id" := .I], id.vars = ".id")
+  m_long <- m_long[m_long[[".id"]] == id, ]
+  x_subset <- object$x[id, ]
 
+  # Clean up temporary variable
+  object$m[, ".id" := NULL]
+
+  # Get final prediction
   pred <- sum(m_long[["value"]]) + object$intercept
 
-  m_long <- m_long[abs(value) > threshold, ]
-  x_subset <- object$x[id, ]
+  m_long <- m_long[abs(m_long[["value"]]) > threshold, ]
 
   ggplot(m_long, aes(
       y = stats::reorder(.data[["variable"]], abs(.data[["value"]])),

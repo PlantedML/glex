@@ -20,6 +20,7 @@ A \link[ggplot2:ggplot]{ggplot2::ggplot} object.
 Explain a single prediction
 }
 \examples{
+set.seed(1)
 # Random Planted Forest -----
 if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)

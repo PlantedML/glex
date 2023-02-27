@@ -73,13 +73,6 @@ get_x_types <- function(components, predictors) {
 #' @importFrom scico scale_color_scico
 diverging_palette <- function(...) {
 
-  # guide_colorbar <- ggplot2::guide_colorbar(
-  #   barwidth = ggplot2::unit(15, "char"),
-  #   barheight = ggplot2::unit(1, "char"),
-  #   title.position = "right",
-  #   title.hjust = .5
-  # )
-  #
   guide_colorbar <- ggplot2::guide_colorbar(
     barwidth = ggplot2::unit(10.2, "lines"),
     barheight = ggplot2::unit(1, "char"),

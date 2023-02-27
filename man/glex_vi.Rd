@@ -4,20 +4,18 @@
 \alias{glex_vi}
 \title{Variable Importance for Main and Interaction Terms}
 \usage{
-glex_vi(object, threshold = 0, ...)
+glex_vi(object, ...)
 }
 \arguments{
 \item{object}{Object of class \code{glex}.}
 
-\item{threshold}{(\code{numeric(1)}) Optional threshold to filter output to include only importance scores greater
-than this value. Refers to \code{m_rel}, the average absolute \code{m} divided by average prediction (\code{intercept}).}
-
 \item{...}{(Unused)}
 }
 \value{
-A data.table with columns:
+A \code{\link{data.table}} with columns:
 \itemize{
-\item \code{degree} (\code{integer}): Degree of interaction of the \code{term}, with \code{1}  being main effects, \code{2} being 2-degree interactions etc.
+\item \code{degree} (\code{integer}): Degree of interaction of the \code{term}, with \code{1} being main effects,
+\code{2} being 2-degree interactions etc.
 \item \code{term} (\code{character}): Model term, e.g. main effect \code{x1} or interaction term \code{x1:x2}, \code{x1:x3:x5} etc.
 \item \code{term_list} (\code{list}): Same as \code{term} but as a list-column to enable filtering by specific variables without
 requiring to split by \code{:}.
@@ -38,23 +36,24 @@ In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (
 \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
 }
 \examples{
+set.seed(1)
 # Random Planted Forest -----
 if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 
-rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 4)
+rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 
 glex_rpf <- glex(rp, mtcars[27:32, ])
 
 # All terms
 vi_rpf <- glex_vi(glex_rpf)
 
-# Only terms with a relative contribution greater or equal 0.1\% of the average prediction
-vi_rpf_filtered <- glex_vi(glex_rpf, threshold = 0.001)
-
 library(ggplot2)
-autoplot(vi_rpf_filtered)
+# Filter to contributions greater 0.1 on the scale of the target
+autoplot(vi_rpf, threshold = 0.1)
+# Summarize by degree of interaction
 autoplot(vi_rpf, by_degree = TRUE)
+# Filter by relative contributions greater 0.5\%
 autoplot(vi_rpf, scale = "relative", threshold = 0.005)
 }
 
@@ -72,7 +71,6 @@ vi_xgb <- glex_vi(glex_xgb)
 library(ggplot2)
 autoplot(vi_xgb)
 autoplot(vi_xgb, by_degree = TRUE)
-autoplot(vi_xgb, scale = "relative")
 }
 }
 \seealso{

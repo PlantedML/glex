@@ -10,7 +10,7 @@
 \item{object}{Object of class \code{glex_vi}, see \code{\link[=glex_vi]{glex_vi()}}.}
 
 \item{threshold}{(\code{numeric(1)}) Optional threshold to filter output to include only importance scores greater
-than this value. Refers to \code{m_rel}, the average absolute \code{m} divided by average prediction (\code{intercept}).}
+than this value. Refers to the chosen \code{scale}.}
 
 \item{by_degree}{(\code{FALSE}) Optionally sum values by degree of interaction, resulting in one contribution score
 for all main effects, all second-order interactions, etc.}
