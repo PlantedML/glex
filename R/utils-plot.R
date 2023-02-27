@@ -24,6 +24,28 @@ label_m <- function(predictors, mathy = TRUE) {
   }
 }
 
+#' Look up terms with their original values
+#'
+#' Used in `glex_explain()`.
+#' @noRd
+#' @keywords internal
+#' @param term (`character`) One or more terms to be looked up in `x`, e.g. `"x1"`, `c("x1", "x2:x3")`
+#' @param x Dataset with original observations.
+label_m_x <- function(term, x) {
+
+  vapply(term, function(m) {
+    m <- unlist(strsplit(m, split = ":"))
+    xvals <- lapply(m, function(mx) {
+      xval <- x[[mx]]
+      if (is.factor(xval)) xval <- as.character(xval)
+      xval
+    })
+
+    paste0(sprintf("%s [%s]", m, xvals), collapse = "\n")
+  }, FUN.VALUE = "")
+
+}
+
 #' Utility to get symmetric range of component
 #' @keywords internal
 #' @noRd
@@ -45,6 +67,10 @@ get_x_types <- function(components, predictors) {
   x_types
 }
 
+#' Consistent diverging color scale
+#' @noRd
+#' @keywords internal
+#' @importFrom scico scale_color_scico
 diverging_palette <- function(...) {
 
   # guide_colorbar <- ggplot2::guide_colorbar(
