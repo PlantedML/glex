@@ -10,7 +10,7 @@ glex_vi(object, threshold = 0, ...)
 \item{object}{Object of class \code{glex}.}
 
 \item{threshold}{(\code{numeric(1)}) Optional threshold to filter output to include only importance scores greater
-than this value. Refers to percentage of average absolute \code{m} divided by average prediction (\code{intercept}).}
+than this value. Refers to \code{m_rel}, the average absolute \code{m} divided by average prediction (\code{intercept}).}
 
 \item{...}{(Unused)}
 }
@@ -22,7 +22,7 @@ A data.table with columns:
 \item \code{term_list} (\code{list}): Same as \code{term} but as a list-column to enable filtering by specific variables without
 requiring to split by \code{:}.
 \item \code{m} (\code{numeric}): Average absolute contribution of \code{term}, see Details.
-\item \code{m_rel} (\code{numeric}): \code{m} but relative to the average prediction (\code{intercept} in \code{glex()} output), times 100.
+\item \code{m_rel} (\code{numeric}): \code{m} but relative to the average prediction (\code{intercept} in \code{glex()} output).
 }
 }
 \description{
@@ -35,7 +35,7 @@ The \code{m} reported here is the average absolute value of \code{m} as reported
 
 In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (\eqn{m_0}, \code{intercept} as reported by \code{glex()}):
 
-\deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0} \cdot 100}
+\deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
 }
 \examples{
 # Random Planted Forest -----
@@ -50,11 +50,12 @@ glex_rpf <- glex(rp, mtcars[27:32, ])
 vi_rpf <- glex_vi(glex_rpf)
 
 # Only terms with a relative contribution greater or equal 0.1\% of the average prediction
-vi_rpf_filtered <- glex_vi(glex_rpf, threshold = 0.1)
+vi_rpf_filtered <- glex_vi(glex_rpf, threshold = 0.001)
 
 library(ggplot2)
 autoplot(vi_rpf_filtered)
 autoplot(vi_rpf, by_degree = TRUE)
+autoplot(vi_rpf, scale = "relative", threshold = 0.005)
 }
 
 # xgboost -----
@@ -71,5 +72,9 @@ vi_xgb <- glex_vi(glex_xgb)
 library(ggplot2)
 autoplot(vi_xgb)
 autoplot(vi_xgb, by_degree = TRUE)
+autoplot(vi_xgb, scale = "relative")
 }
+}
+\seealso{
+autoplot.glex_vi
 }
