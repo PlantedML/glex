@@ -25,6 +25,7 @@ Imports:
     foreach,
     ggplot2,
     Rcpp (>= 1.0.8),
+    scico,
     stats
 Suggests: 
     doParallel,
@@ -33,7 +34,6 @@ Suggests:
     patchwork,
     randomPlantedForest,
     rmarkdown,
-    scico,
     testthat (>= 3.0.0),
     xgboost
 LinkingTo: 

@@ -24,6 +24,7 @@ reference:
   - starts_with("plot_")
   - autoplot.glex
   - autoplot.glex_vi
+  - glex_explain
 # - text: -------
 # - title: Utility functions
 # - contents:
