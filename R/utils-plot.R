@@ -95,3 +95,30 @@ diverging_palette <- function(...) {
   }
 
 }
+
+#' @noRd
+#' @keywords internal
+melt_m <- function(m, levels = NULL) {
+  # We need an id.var for melt to avoid a warning, but don't want to modify m permanently
+  m[, ".id" := seq_len(.N)]
+  m_long <- data.table::melt(m, id.vars = ".id", value.name = "m",
+                             variable.name = "term", variable.factor = FALSE)
+  # clean up that temporary id column again while modifying by reference
+  m[, ".id" := NULL]
+
+  if (!is.null(levels)) {
+    m_long[, class := multiclass_m_to_class(term, levels)]
+    m_long[, term := multiclass_m_to_term(term)]
+  }
+
+  m_long
+}
+
+multiclass_m_to_class <- function(mn, levels) {
+  ret <- gsub(pattern = "__class:", replacement = "", regmatches(mn, regexpr("__class:(.*)$", mn)))
+  factor(ret, levels = levels)
+}
+
+multiclass_m_to_term <- function(mn) {
+  gsub(pattern = "__class:(.*)$", replacement = "", mn)
+}

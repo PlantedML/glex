@@ -66,6 +66,10 @@ autoplot.glex_vi <- function(object, threshold = 0, by_degree = FALSE, scale = "
     )
   }
 
+  if (!is.null(object[["class"]])) {
+    p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
+  }
+
   p + aes(x = .data[[score]], fill = factor(.data[["degree"]])) +
     geom_col(linewidth = 0, alpha = .8) +
     coord_cartesian(xlim = c(0, NA), expand = FALSE) +
