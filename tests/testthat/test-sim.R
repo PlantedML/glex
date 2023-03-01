@@ -1,6 +1,3 @@
-
-library(xgboost)
-
 # Simulate data
 n <- 100
 p <- 2
