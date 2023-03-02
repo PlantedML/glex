@@ -10,17 +10,17 @@
 \usage{
 \method{autoplot}{glex}(object, predictors, ...)
 
-plot_main_effect(components, predictor, ...)
+plot_main_effect(object, predictor, ...)
 
-plot_threeway_effects(components, predictors, ...)
+plot_threeway_effects(object, predictors, ...)
 
-plot_twoway_effects(components, predictors, ...)
+plot_twoway_effects(object, predictors, ...)
 }
 \arguments{
-\item{...}{Unused}
-
-\item{components, object}{Predicted components including the original data the model was fit on, as
+\item{object}{Predicted components including the original data the model was fit on, as
 returned by \code{glex()}}
+
+\item{...}{Unused}
 
 \item{predictor, predictors}{\verb{[character]} vector of predictor names, e.g. \code{"x1"} to plot main effect of \code{x1}, and
 \code{c("x1", "x2")} to plot the interaction term \code{x1:x2}.}

@@ -9,6 +9,8 @@
 #' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
 #' * `term_list` (`list`): Same as `term` but as a list-column to enable filtering by specific variables without
 #'   requiring to split by `:`.
+#' * `class` (`factor`): For multiclass targets only: The associated target class. Lists all classes in the
+#'   target, not limited to the majority vote.
 #' * `m` (`numeric`): Average absolute contribution of `term`, see Details.
 #' * `m_rel` (`numeric`): `m` but relative to the average prediction (`intercept` in `glex()` output).
 #'

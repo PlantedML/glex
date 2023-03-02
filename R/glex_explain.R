@@ -1,5 +1,8 @@
 #' Explain a single prediction
 #'
+#' Plots the prediction components for a single observation, identified by the row number in the dataset used
+#' with `glex()`.
+#'
 #' @param object Object of class [`glex`] containing prediction components and data to be explained.
 #' @param id (`integer(1)`) Row ID of the observation to be explained in `object$x`.
 #' @param threshold (`numeric(1): 0`) Threshold to filter output by in case of many negligible effects.
@@ -24,6 +27,9 @@ glex_explain <- function(object, id, threshold = 0) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_int(id, lower = 1, upper = nrow(object$x))
   checkmate::assert_number(threshold, lower = 0)
+
+  # data.table NSE warnings
+  m <- predsum <- NULL
 
   m_long <- melt_m(object$m, object$target_levels)
   m_long <- m_long[m_long[[".id"]] == id, ]
@@ -80,5 +86,4 @@ glex_explain <- function(object, id, threshold = 0) {
   }
 
   p
-
 }
