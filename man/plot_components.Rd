@@ -17,8 +17,7 @@ plot_threeway_effects(object, predictors, ...)
 plot_twoway_effects(object, predictors, ...)
 }
 \arguments{
-\item{object}{Predicted components including the original data the model was fit on, as
-returned by \code{glex()}}
+\item{object}{Object of class \code{\link{glex}}.}
 
 \item{...}{Unused}
 

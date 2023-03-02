@@ -156,7 +156,7 @@ All main effects:
 Iterating over `vars` (`r paste0(vars, collapse = ", ")`), and passing each to `plot_main_effect`, then collecting the plots with `patchwork::wrap_plots()`:
 
 ```{r all-main-effects, fig.width=10}
-wrap_plots(lapply(vars, plot_main_effect, components = components))
+wrap_plots(lapply(vars, plot_main_effect, object = components))
 ```
 
 From here we use `autoplot` for convenience. Internally it just passes its arguments on to the specialized `plot_*` functions, depending on the number of predictors supplied.
