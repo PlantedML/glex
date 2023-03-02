@@ -1,7 +1,7 @@
 #' Plot Prediction Components
 #'
 #' @rdname plot_components
-#' @param components,object Predicted components including the original data the model was fit on, as
+#' @param object Predicted components including the original data the model was fit on, as
 #'   returned by `glex()`
 #' @param predictor,predictors `[character]` vector of predictor names, e.g. `"x1"` to plot main effect of `x1`, and
 #'   `c("x1", "x2")` to plot the interaction term `x1:x2`.
@@ -28,19 +28,19 @@
 #' plot_main_effect(components, "wt")
 #' plot_main_effect(components, "cyl")
 #' }
-plot_main_effect <- function(components, predictor, ...) {
-  checkmate::assert_class(components, "glex")
+plot_main_effect <- function(object, predictor, ...) {
+  checkmate::assert_class(object, "glex")
   checkmate::assert_string(predictor) # Must be a single predictor
-  checkmate::assert_subset(predictor, colnames(components$x), empty.ok = FALSE)
+  checkmate::assert_subset(predictor, colnames(object$x), empty.ok = FALSE)
 
-  xdf <- assemble_components(components, predictor)
-  x_type <- get_x_types(components, predictor)
+  xdf <- assemble_components(object, predictor)
+  x_type <- get_x_types(object, predictor)
 
   if (x_type == "continuous") {
     p <- ggplot2::ggplot(xdf, ggplot2::aes(
       x = .data[[predictor]], y = .data[["m"]])
     )
-    p <- p + ggplot2::geom_line(size = 1.2, key_glyph = "rect")
+    p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect")
 
     # p <- p + ggplot2::geom_point()
   }
@@ -49,6 +49,10 @@ plot_main_effect <- function(components, predictor, ...) {
     p <- ggplot2::ggplot(unique(xdf), ggplot2::aes(x = .data[[predictor]], y = .data[["m"]]))
     p <- p + ggplot2::geom_col(alpha = .8, width = 2/3)
     p <- p + theme(panel.grid.major.x = element_blank())
+  }
+
+  if (!is.null(object$target_levels)) {
+    p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
   }
 
   p +

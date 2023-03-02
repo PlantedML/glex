@@ -2,9 +2,19 @@
 #' @keywords internal
 #' @noRd
 #' @inheritParams plot_twoway_effects
-assemble_components <- function(components, predictors) {
-  xtemp <- data.table::copy(components)
+assemble_components <- function(object, predictors) {
+  xtemp <- data.table::copy(object)
   xdf <- xtemp$x[, predictors, with = FALSE]
+  xdf[, ".id" := .I]
+  setkey(xdf, ".id")
+
+  if (!is.null(object$target_levels)) {
+    mwide <- reshape_m_multiclass(object, format = "wide")
+    mwide <- mwide[, c(".id", "class", paste(sort(predictors), collapse = ":")), with = FALSE]
+    setnames(mwide, c(".id", "class", "m"))
+    return(xdf[mwide])
+  }
+
   xdf$m <- xtemp$m[[paste(sort(predictors), collapse = ":")]]
   xdf[]
 }
@@ -35,9 +45,10 @@ label_m_x <- function(term, x) {
 
   vapply(term, function(m) {
     m <- unlist(strsplit(m, split = ":"))
-    xvals <- lapply(m, function(mx) {
+    xvals <- sapply(m, function(mx) {
       xval <- x[[mx]]
       if (is.factor(xval)) xval <- as.character(xval)
+      if (is.numeric(xval)) xval <- format(xval, scipen = 4, justify = "none", digits = 4)
       xval
     })
 
@@ -121,4 +132,17 @@ multiclass_m_to_class <- function(mn, levels) {
 
 multiclass_m_to_term <- function(mn) {
   gsub(pattern = "__class:(.*)$", replacement = "", mn)
+}
+
+reshape_m_multiclass <- function(object, format = "wide") {
+  checkmate::assert_subset(format, choices = c("wide", "long"))
+  checkmate::assert_character(object$target_levels, min.len = 2)
+
+  mlong <- melt_m(object$m, object$target_levels)
+
+  if (format == "wide") {
+    data.table::dcast(mlong, .id + class  ~ term, value.var = "m")
+  } else if (format == "long") {
+    mlong[]
+  }
 }

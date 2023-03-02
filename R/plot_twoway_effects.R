@@ -17,13 +17,13 @@
 #' plot_twoway_effects(components, c("vs", "cyl"))
 #' plot_twoway_effects(components, c("cyl", "vs"))
 #' }
-plot_twoway_effects <- function(components, predictors, ...) {
-  checkmate::assert_class(components, "glex")
+plot_twoway_effects <- function(object, predictors, ...) {
+  checkmate::assert_class(object, "glex")
   checkmate::assert_character(predictors, len = 2, unique = TRUE)
-  checkmate::assert_subset(predictors, names(components$x))
+  checkmate::assert_subset(predictors, names(object$x))
 
-  x_types <- get_x_types(components, predictors)
-  xdf <- assemble_components(components, predictors)
+  x_types <- get_x_types(object, predictors)
+  xdf <- assemble_components(object, predictors)
   x_cat <- names(xdf)[which(x_types == "categorical")]
   x_cont <- names(xdf)[which(x_types == "continuous")]
 
@@ -69,6 +69,9 @@ plot_twoway_effects <- function(components, predictors, ...) {
       ggplot2::labs(y = label_m(predictors))
   }
 
+  if (!is.null(object$target_levels)) {
+    p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
+  }
   # Final cleanup ----
   p + ggplot2::theme(legend.position = "bottom")
 }
