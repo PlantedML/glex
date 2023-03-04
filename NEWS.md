@@ -1,3 +1,7 @@
+# glex 0.3.1
+
+* Extend plot functions to multiclass classification. In most cases that means facetting by the target class.
+
 # glex 0.3.0
 
 * Added plotting functions for main, 2- and 3-degree interaction terms
