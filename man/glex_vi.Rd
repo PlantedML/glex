@@ -19,6 +19,8 @@ A \code{\link{data.table}} with columns:
 \item \code{term} (\code{character}): Model term, e.g. main effect \code{x1} or interaction term \code{x1:x2}, \code{x1:x3:x5} etc.
 \item \code{term_list} (\code{list}): Same as \code{term} but as a list-column to enable filtering by specific variables without
 requiring to split by \code{:}.
+\item \code{class} (\code{factor}): For multiclass targets only: The associated target class. Lists all classes in the
+target, not limited to the majority vote.
 \item \code{m} (\code{numeric}): Average absolute contribution of \code{term}, see Details.
 \item \code{m_rel} (\code{numeric}): \code{m} but relative to the average prediction (\code{intercept} in \code{glex()} output).
 }

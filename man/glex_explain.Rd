@@ -17,7 +17,8 @@ glex_explain(object, id, threshold = 0)
 A \link[ggplot2:ggplot]{ggplot2::ggplot} object.
 }
 \description{
-Explain a single prediction
+Plots the prediction components for a single observation, identified by the row number in the dataset used
+with \code{glex()}.
 }
 \examples{
 set.seed(1)

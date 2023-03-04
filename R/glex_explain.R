@@ -1,5 +1,8 @@
 #' Explain a single prediction
 #'
+#' Plots the prediction components for a single observation, identified by the row number in the dataset used
+#' with `glex()`.
+#'
 #' @param object Object of class [`glex`] containing prediction components and data to be explained.
 #' @param id (`integer(1)`) Row ID of the observation to be explained in `object$x`.
 #' @param threshold (`numeric(1): 0`) Threshold to filter output by in case of many negligible effects.
@@ -25,28 +28,35 @@ glex_explain <- function(object, id, threshold = 0) {
   checkmate::assert_int(id, lower = 1, upper = nrow(object$x))
   checkmate::assert_number(threshold, lower = 0)
 
-  m_long <- data.table::melt(object$m[, ".id" := .I], id.vars = ".id")
+  # data.table NSE warnings
+  m <- predsum <- NULL
+
+  m_long <- melt_m(object$m, object$target_levels)
   m_long <- m_long[m_long[[".id"]] == id, ]
   x_subset <- object$x[id, ]
 
-  # Clean up temporary variable
-  object$m[, ".id" := NULL]
-
   # Get final prediction
-  pred <- sum(m_long[["value"]]) + object$intercept
+  if (is.null(object$target_levels)) {
+    pred <- sum(m_long[["m"]]) + object$intercept
+    pred <- format(pred, scientific = 4, justify = "none")
+  } else {
+    # Multiclass gets by-class pred
+    pred <- m_long[, list(predsum = sum(m) + object$intercept), by = "class"]
+    pred <- as.character(pred[which.max(predsum), "class"][[1]])
+  }
 
-  m_long <- m_long[abs(m_long[["value"]]) > threshold, ]
+  m_long <- m_long[abs(m_long[["m"]]) > threshold, ]
 
-  ggplot(m_long, aes(
-      y = stats::reorder(.data[["variable"]], abs(.data[["value"]])),
+  p <- ggplot(m_long, aes(
+      y = stats::reorder(.data[["term"]], abs(.data[["m"]])),
       #x = .data[["value"]] + object$intercept,
-      color = as.character(sign(.data[["value"]]))
+      color = as.character(sign(.data[["m"]]))
     )) +
     #geom_point(shape = 21, size = 3) +
     geom_segment(
       x = object$intercept,
       aes(
-        xend = .data[["value"]] + object$intercept,
+        xend = .data[["m"]] + object$intercept,
         yend = after_stat(.data[["y"]])
       ),
       arrow = grid::arrow(angle = 45, type = "closed"),
@@ -59,7 +69,7 @@ glex_explain <- function(object, id, threshold = 0) {
     #scale_color_manual(values = c(`TRUE` = "blue", `FALSE` = "red")) +
     scico::scale_colour_scico_d(palette = "vikO", begin = .75, end = .25) +
     labs(
-      title = sprintf("ID %i with predicted value %1.3f", id, pred),
+      title = sprintf("ID %i with predicted value %s", id, pred),
       #subtitle = sprintf("Predicted value: %1.3f", pred),
       x = "Average Prediction +/- m"
     ) +
@@ -71,4 +81,9 @@ glex_explain <- function(object, id, threshold = 0) {
       axis.text.y = element_text(colour = "#222222", size = 11)
     )
 
+  if (!is.null(object$target_levels)) {
+    p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
+  }
+
+  p
 }

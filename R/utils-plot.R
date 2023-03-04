@@ -1,14 +1,3 @@
-#' Assemble original data and corresponding component
-#' @keywords internal
-#' @noRd
-#' @inheritParams plot_twoway_effects
-assemble_components <- function(components, predictors) {
-  xtemp <- data.table::copy(components)
-  xdf <- xtemp$x[, predictors, with = FALSE]
-  xdf$m <- xtemp$m[[paste(sort(predictors), collapse = ":")]]
-  xdf[]
-}
-
 #' Create component label from predictors
 #'
 #' @keywords internal
@@ -35,9 +24,10 @@ label_m_x <- function(term, x) {
 
   vapply(term, function(m) {
     m <- unlist(strsplit(m, split = ":"))
-    xvals <- lapply(m, function(mx) {
+    xvals <- sapply(m, function(mx) {
       xval <- x[[mx]]
       if (is.factor(xval)) xval <- as.character(xval)
+      if (is.numeric(xval)) xval <- format(xval, scipen = 4, justify = "none", digits = 4)
       xval
     })
 
@@ -80,18 +70,10 @@ diverging_palette <- function(...) {
     title.hjust = .5, title.vjust = 1
   )
 
-  if (!requireNamespace("scico", quietly = TRUE)) {
-    ggplot2::scale_color_distiller(
-      palette = "PRGn", type = "div",
-      guide = guide_colorbar,
-      ...
-    )
-  } else {
-    scico::scale_color_scico(
-      palette = "vikO",
-      guide = guide_colorbar,
-      ...
-    )
-  }
-
+  scico::scale_color_scico(
+    palette = "vikO",
+    guide = guide_colorbar,
+    midpoint = 0,
+    ...
+  )
 }

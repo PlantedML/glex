@@ -9,6 +9,8 @@
 #' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
 #' * `term_list` (`list`): Same as `term` but as a list-column to enable filtering by specific variables without
 #'   requiring to split by `:`.
+#' * `class` (`factor`): For multiclass targets only: The associated target class. Lists all classes in the
+#'   target, not limited to the majority vote.
 #' * `m` (`numeric`): Average absolute contribution of `term`, see Details.
 #' * `m_rel` (`numeric`): `m` but relative to the average prediction (`intercept` in `glex()` output).
 #'
@@ -67,21 +69,24 @@ glex_vi <- function(object, ...) {
   # FIXME: data.table NSE warnings
   term <- term_list <- degree <- m <- m_rel <- NULL
 
-  # We need an id.var for melt to avoid a warning, but don't want to modify m permanently
-  object$m[, ".id" := seq_len(.N)]
-  m_long <- data.table::melt(object$m, id.vars = ".id", value.name = "m",
-                             variable.name = "term", variable.factor = FALSE)
-  # clean up that temporary id column again
-  object$m[, ".id" := NULL]
+  m_long <- melt_m(object$m, object$target_levels)
+
+  if (!is.null(object$target_levels)) {
+    vars_by <- c("term", "class")
+    vars_out <- c("degree", "term", "term_list", "class", "m", "m_rel")
+  } else {
+    vars_by <- "term"
+    vars_out <- c("degree", "term", "term_list", "m", "m_rel")
+  }
 
   # aggregate by term, add useful variables
-  m_aggr <- m_long[, list(m = mean(abs(m))), by = "term"]
+  m_aggr <- m_long[, list(m = mean(abs(m))), by = vars_by]
   m_aggr[, term_list := lapply(term, function(x) unlist(strsplit(x, ":")))]
   m_aggr[, degree := vapply(term_list, length, integer(1))]
   m_aggr[, m_rel := (m / object[["intercept"]])]
 
   data.table::setorder(m_aggr, -m)
-  data.table::setcolorder(m_aggr, c("degree", "term", "term_list", "m", "m_rel"))
+  data.table::setcolorder(m_aggr, neworder = vars_out)
   class(m_aggr) <- c("glex_vi", class(m_aggr))
   # Only return non-zero scores
   m_aggr[m_aggr[["m"]] > 0]
