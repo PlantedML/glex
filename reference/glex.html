@@ -120,21 +120,21 @@ components in the model, up to the degree specified by <code>max_interaction</co
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"randomPlantedForest"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/randomPlantedForest" class="external-link">randomPlantedForest</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/randomPlantedForest/man/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu">glex</span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">glex_rpf</span>, list.len <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ m        :Classes ‘data.table’ and 'data.frame':	6 obs. of  55 variables:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.726 0.726 -0.537 -0.253 -0.537 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.849 2.489 -1.314 0.602 -0.889 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 1.5518 0.0569 -1.6261 -0.3558 -1.6261 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 1.344 -0.366 1.344 -0.267 -0.267 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 1.989 1.818 0.129 0.189 -0.844 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.79 0.79 -0.47 -0.342 -0.47 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.724 2.33 -1.013 0.816 -0.816 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.265 0.361 -2.327 -0.253 -2.327 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 1.6613 -0.1248 1.6613 -0.0959 -0.0959 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 1.96 1.82 0.496 0.451 -0.599 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ x        :Classes ‘data.table’ and 'data.frame':	6 obs. of  10 variables:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl : num [1:6] 4 4 8 6 8 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp: num [1:6] 120.3 95.1 351 145 301 ...</span>

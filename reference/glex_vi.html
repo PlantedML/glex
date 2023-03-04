@@ -82,6 +82,8 @@
 <li><p><code>term</code> (<code>character</code>): Model term, e.g. main effect <code>x1</code> or interaction term <code>x1:x2</code>, <code>x1:x3:x5</code> etc.</p></li>
 <li><p><code>term_list</code> (<code>list</code>): Same as <code>term</code> but as a list-column to enable filtering by specific variables without
 requiring to split by <code>:</code>.</p></li>
+<li><p><code>class</code> (<code>factor</code>): For multiclass targets only: The associated target class. Lists all classes in the
+target, not limited to the majority vote.</p></li>
 <li><p><code>m</code> (<code>numeric</code>): Average absolute contribution of <code>term</code>, see Details.</p></li>
 <li><p><code>m_rel</code> (<code>numeric</code>): <code>m</code> but relative to the average prediction (<code>intercept</code> in <code><a href="glex.html">glex()</a></code> output).</p></li>
 </ul></div>
@@ -104,7 +106,7 @@ requiring to split by <code>:</code>.</p></li>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"randomPlantedForest"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/randomPlantedForest" class="external-link">randomPlantedForest</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/randomPlantedForest/man/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

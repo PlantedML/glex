@@ -166,13 +166,13 @@ the forest to enable the desired decomposition. This step is not
 required for global predictions and may take some time, which is why it
 is implemented as a separate step.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/randomPlantedForest/man/rpf.html" class="external-link">rpf</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span></span>
 <span>  <span class="va">bikers</span> <span class="op">~</span> <span class="va">day</span> <span class="op">+</span> <span class="va">hr</span> <span class="op">+</span> <span class="va">temp</span> <span class="op">+</span> <span class="va">windspeed</span> <span class="op">+</span> <span class="va">workingday</span> <span class="op">+</span> <span class="va">hum</span> <span class="op">+</span> <span class="va">weathersit</span> <span class="op">+</span> <span class="va">season</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">bike</span>,</span>
 <span>  max_interaction <span class="op">=</span> <span class="fl">3</span>, ntrees <span class="op">=</span> <span class="fl">30</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/randomPlantedForest/man/purify.html" class="external-link">purify</a></span><span class="op">(</span><span class="va">rp</span><span class="op">)</span></span>
+<span><span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/purify.html" class="external-link">purify</a></span><span class="op">(</span><span class="va">rp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; -- Regression Random Planted Forest --</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Formula: bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit +      season </span></span>
@@ -218,7 +218,7 @@ visualization.</p>
 <span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt;</span></span></code></pre></div>
 <p>Please note that fitting the model, purification, and the extraction
 of the components may take some time, depending on available resources
-and the size of the data. For example, the above steps took around 40
+and the size of the data. For example, the above steps took around 30
 seconds to complete on GitHub Actions.</p>
 </div>
 <div class="section level2">
@@ -275,7 +275,7 @@ seconds to complete on GitHub Actions.</p>
 weathersit, season), and passing each to <code>plot_main_effect</code>,
 then collecting the plots with <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">vars</span>, <span class="va">plot_main_effect</span>, components <span class="op">=</span> <span class="va">components</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">vars</span>, <span class="va">plot_main_effect</span>, object <span class="op">=</span> <span class="va">components</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Bikesharing-Decomposition-rpf_files/figure-html/all-main-effects-1.png" width="960" style="display: block; margin: auto;"></p>
 <p>From here we use <code>autoplot</code> for convenience. Internally it
 just passes its arguments on to the specialized <code>plot_*</code>

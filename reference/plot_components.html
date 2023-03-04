@@ -63,22 +63,21 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for glex</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">predictors</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">plot_main_effect</span><span class="op">(</span><span class="va">components</span>, <span class="va">predictor</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">plot_main_effect</span><span class="op">(</span><span class="va">object</span>, <span class="va">predictor</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">plot_threeway_effects</span><span class="op">(</span><span class="va">components</span>, <span class="va">predictors</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">plot_threeway_effects</span><span class="op">(</span><span class="va">object</span>, <span class="va">predictors</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">plot_twoway_effects</span><span class="op">(</span><span class="va">components</span>, <span class="va">predictors</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">plot_twoway_effects</span><span class="op">(</span><span class="va">object</span>, <span class="va">predictors</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>...</dt>
+    <dl><dt>object</dt>
+<dd><p>Object of class <code><a href="glex.html">glex</a></code>.</p></dd>
+
+
+<dt>...</dt>
 <dd><p>Unused</p></dd>
-
-
-<dt>components, object</dt>
-<dd><p>Predicted components including the original data the model was fit on, as
-returned by <code><a href="glex.html">glex()</a></code></p></dd>
 
 
 <dt>predictor, predictors</dt>
@@ -104,7 +103,7 @@ returned by <code><a href="glex.html">glex()</a></code></p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Fit forest, get components</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rpfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/randomPlantedForest/man/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">wt</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">drat</span> <span class="op">+</span> <span class="va">vs</span>, data <span class="op">=</span> <span class="va">mtcars</span>, ntrees <span class="op">=</span> <span class="fl">25</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rpfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">wt</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">drat</span> <span class="op">+</span> <span class="va">vs</span>, data <span class="op">=</span> <span class="va">mtcars</span>, ntrees <span class="op">=</span> <span class="fl">25</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">components</span> <span class="op">&lt;-</span> <span class="fu"><a href="glex.html">glex</a></span><span class="op">(</span><span class="va">rpfit</span>, <span class="va">mtcars</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Main effects ----</span></span></span>
