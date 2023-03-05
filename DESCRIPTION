@@ -26,7 +26,8 @@ Imports:
     ggplot2,
     Rcpp (>= 1.0.8),
     scico,
-    stats
+    stats,
+    utils
 Suggests: 
     doParallel,
     ISLR2,
