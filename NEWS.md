@@ -1,4 +1,4 @@
-# glex 0.3.1
+# glex 0.3.0.9000 (Development version)
 
 * Extend plot functions to multiclass classification. In most cases that means facetting by the target class.
 * Overhaul `glex_explain` to a waterfall plot showing the SHAP decomposition for given predictors.
