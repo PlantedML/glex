@@ -53,6 +53,6 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 
 glex_rpf <- glex(rp, mtcars[27:32, ])
 
-glex_explain(glex_rpf, id = 3, predictors = "wt")
+glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
 }
 }

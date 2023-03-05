@@ -40,7 +40,7 @@
 #'
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #'
-#' glex_explain(glex_rpf, id = 3, predictors = "wt")
+#' glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
 #' }
 glex_explain <- function(
     object, id,
