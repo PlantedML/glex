@@ -56,6 +56,10 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.1" id="glex-031">glex 0.3.1<a class="anchor" aria-label="anchor" href="#glex-031"></a></h2>
 <ul><li>Extend plot functions to multiclass classification. In most cases that means facetting by the target class.</li>
+<li>Overhaul <code>glex_explain</code> to a waterfall plot showing the SHAP decomposition for given predictors.</li>
+<li>
+<code>autoplot.glex_vi</code> gains a <code>max_interaction</code> argument in line with <code>glex_explain</code>, and now similarly aggregates terms that either fall below <code>threshold</code> or exceed <code>max_interaction</code>.</li>
+<li>Add <code>glex.print</code> for a more compact output in case of large numbers of terms.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="glex-030">glex 0.3.0<a class="anchor" aria-label="anchor" href="#glex-030"></a></h2>
