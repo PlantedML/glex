@@ -1,6 +1,9 @@
 # glex 0.3.1
 
 * Extend plot functions to multiclass classification. In most cases that means facetting by the target class.
+* Overhaul `glex_explain` to a waterfall plot showing the SHAP decomposition for given predictors.
+* `autoplot.glex_vi` gains a `max_interaction` argument in line with `glex_explain`, and now similarly aggregates terms that either fall below `threshold` or exceed `max_interaction`.
+* Add `glex.print` for a more compact output in case of large numbers of terms.
 
 # glex 0.3.0
 
