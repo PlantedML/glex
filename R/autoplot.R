@@ -13,32 +13,65 @@ autoplot.glex <- function(object, predictors, ...) {
 #' Plot glex Variable Importances
 #'
 #' @param object Object of class `glex_vi`, see [`glex_vi()`].
-#' @param by_degree (`FALSE`) Optionally sum values by degree of interaction, resulting in one contribution score
+#' @param by_degree (`logical(1): FALSE`) Optionally sum values by degree of interaction, resulting in one contribution score
 #'  for all main effects, all second-order interactions, etc.
 #' @param scale (`"absolute"`) Plot average absolute contributions (default) or the same value but scaled by the
 #' average prediction (`"relative"`).
-#' @param threshold (`numeric(1)`) Optional threshold to filter output to include only importance scores greater
+#' @param threshold (`numeric(1)`: 0) Optional threshold to filter output to include only importance scores greater
 #'   than this value. Refers to the chosen `scale`.
+#' @param max_interaction (`integer(1): NULL`) Optionally filter plot to show terms up to the specified
+#' degree of interaction. Similar to `threshold`, all other terms will be aggregated under a
+#' `"Remaining terms"` label.
 #' @param ... (Unused)
 #'
 #' @return A `ggplot2` object.
 #' @export
 #' @seealso glex_vi
-autoplot.glex_vi <- function(object, threshold = 0, by_degree = FALSE, scale = "absolute", ...) {
+autoplot.glex_vi <- function(
+    object, by_degree = FALSE,
+    threshold = 0, max_interaction = NULL,
+    scale = "absolute",
+    ...
+    ) {
 
   checkmate::assert_flag(by_degree)
   checkmate::assert_number(threshold, lower = 0, finite = TRUE)
+  checkmate::assert_number(max_interaction, lower = 1, upper = max(object$degree), null.ok = TRUE)
+  if (is.null(max_interaction)) max_interaction <- max(object$degree)
   checkmate::assert_subset(scale, choices = c("absolute", "relative"))
 
   object <- data.table::copy(object)
   by_what <- ifelse(by_degree, "Degree", "Term")
   score <- switch(scale, absolute = "m", relative = "m_rel")
+  object[, term_list := NULL]
 
   # FIXME: data.table NSE stuff
-  m <- m_rel <- NULL
+  m <- m_rel <- degree <- term_list <- NULL
 
-  # Filter by threshold, depending on which of m, m_rel is going to be plotted.
-  object <- object[object[[score]] >= threshold, ]
+  aggr_degree <- function(x) {
+     if (length(x) == 0) return(NULL)
+     rng <- range(x)
+     rng <- rng[!duplicated(rng)]
+     paste(rng, collapse = "-")
+  }
+
+  # Sanity check that we're aggregating correctly by keeping track of the sums
+  old_sum <- sum(object[[score]])
+
+  object <- rbind(
+    object[degree <= max_interaction & abs(object[[score]]) > threshold, ],
+    object[degree > max_interaction | abs(object[[score]]) <= threshold,
+           list(m = sum(m), m_rel = sum(m_rel),
+                degree = aggr_degree(degree), term = "Remaining terms")]
+
+  , fill = TRUE)
+
+  # Ugly hack to sort degree labels with the aggregated term (e.g. "2-4") last
+  object[, degree := factor(degree, levels = unique(degree)[order(nchar(unique(degree)))])]
+
+  # Aforementioned sanity check: Sums should not differ aside from rounding error
+  new_sum <- sum(object[[score]])
+  checkmate::assert_number(abs(old_sum - new_sum), upper = 1e-13)
 
   if (by_what == "Degree") {
 
@@ -46,6 +79,7 @@ autoplot.glex_vi <- function(object, threshold = 0, by_degree = FALSE, scale = "
 
     p <- ggplot(aggr)
     p <- p + aes(y = stats::reorder(.data[["degree"]], .data[[score]]))
+    p <- p + guides(fill = "none")
 
     x_lab <- switch(
       score,
@@ -76,11 +110,11 @@ autoplot.glex_vi <- function(object, threshold = 0, by_degree = FALSE, scale = "
     scale_fill_viridis_d(direction = -1, end = .95) +
     labs(
       title = sprintf("glex Variable Importances by %s", by_what),
-      y = by_what, x = x_lab,
+      y = NULL, x = x_lab,
       fill = "Degree of Interaction"
     ) +
     theme(
-      legend.position = "bottom",
+      legend.position = "top",
       panel.grid.minor.x = element_blank(),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
