@@ -29,6 +29,7 @@
 #' @importFrom scico scale_colour_scico_d
 #' @importFrom utils head
 #' @export
+#' @family Visualization functions
 #'
 #' @examples
 #' set.seed(1)
@@ -150,7 +151,15 @@ glex_explain <- function(
   xshap[, xleft := avgpred + shap]
   xshap[, xright := avgpred]
 
-  #browser()
+  # Subset to selected class, could be of length > 1
+  if (!is.null(class)) {
+    # Pre-calculated indices for subsetting to avoid DT NSE name clashes
+    idx_class <- which(xdf[["class"]] %in% class)
+    idx_class_shap <- which(xshap[["class"]] %in% class)
+
+    xdf <- xdf[idx_class, ]
+    xshap <- xshap[idx_class_shap, ]
+  }
 
   p <- ggplot(xdf, aes(y = term_int, fill = as.character(sign(m_scaled))))
 
@@ -227,7 +236,7 @@ glex_explain <- function(
   # Labels and theming
   p <- p +
     labs(
-      title = sprintf("Decomposition for ID %d into with predicted value %s", id, pred),
+      title = sprintf("Decomposition for ID %d with predicted value %s", id, pred),
       subtitle = sprintf("Centered around average prediction: %1.2f", avgpred),
       x = "Average prediction +/- m",
       y = NULL
