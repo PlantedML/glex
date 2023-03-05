@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,13 +77,169 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-<div class="section level1">
+  <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="global-explanations-for-tree-based-models">Global explanations for tree-based models<a class="anchor" aria-label="anchor" href="#global-explanations-for-tree-based-models"></a>
 </h1></div>
-<p>Global explanations for tree-based models by decomposing regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates SHAP values and q-interaction SHAP for all values of q for tree-based models such as xgboost.</p>
-</div>
+<!-- badges: start -->
 
+<p>Global explanations for tree-based models by decomposing regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates SHAP values and q-interaction SHAP for all values of q for tree-based models such as xgboost.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>You can install the development version of glex from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PlantedML/glex"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="whats-included">What’s Included<a class="anchor" aria-label="anchor" href="#whats-included"></a>
+</h2>
+<p>Currently <code>glex</code> works with <a href="https://cran.r-project.org/package=xgboost" class="external-link"><code>xgboost</code></a> and <a href="http://plantedml.com/randomPlantedForest/" class="external-link"><code>randomPlantedForest</code></a> models, so we’ll start by fitting a model with one of each:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install xgboost from CRAN</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"xgboost"</span><span class="op">)</span></span>
+<span><span class="co"># ... and randomPlantedForest from GitHub</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PlantedML/randomPlantedForest"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/glex" class="external-link">glex</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Model fitting</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/randomPlantedForest" class="external-link">randomPlantedForest</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dmlc/xgboost" class="external-link">xgboost</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Visualization</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">13</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">21</span><span class="op">)</span></span></code></pre></div>
+<p>Note that <code>xgboost</code>, unlike <code>randomPlantedForest</code>, requires <code>matrix</code> input and does not support categorical predictors.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span></span>
+<span><span class="va">xg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html" class="external-link">xgboost</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, label <span class="op">=</span> <span class="va">y</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span><span class="op">]</span>,</span>
+<span>              params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max_depth <span class="op">=</span> <span class="fl">3</span>, eta <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span>,</span>
+<span>              nrounds <span class="op">=</span> <span class="fl">30</span>, verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<p>Using the model objects and a dataset to explain (such as a test set in this case), we can create <code>glex</code> objects for each of the model fits. These objects of class <code>glex</code> are a list containing the prediction components of main and interaction terms (<code>$m</code>), the dataset to be explained with the observed feature values (<code>$x</code>) used to visualize feature effects, and the average predicted value for the model (<code>$intercept</code>). The <code>xgboost</code> method additionally returns the SHAP values (<code>$shap</code>) for each feature in the model.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">glex_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex.html">glex</a></span><span class="op">(</span><span class="va">xg</span>, <span class="va">x</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<p>Both <code>m</code> and <code>shap</code> satisfy the property that their sums (per observation) together with the <code>intercept</code> are equal to the model prediction for each observation:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Calculating sum of components and sum of SHAP values</span></span>
+<span><span class="va">sum_m_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">glex_rpf</span><span class="op">$</span><span class="va">m</span><span class="op">)</span> <span class="op">+</span> <span class="va">glex_rpf</span><span class="op">$</span><span class="va">intercept</span></span>
+<span><span class="va">sum_m_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">glex_xgb</span><span class="op">$</span><span class="va">m</span><span class="op">)</span> <span class="op">+</span> <span class="va">glex_xgb</span><span class="op">$</span><span class="va">intercept</span></span>
+<span><span class="va">sum_shap_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">glex_xgb</span><span class="op">$</span><span class="va">shap</span><span class="op">)</span> <span class="op">+</span> <span class="va">glex_xgb</span><span class="op">$</span><span class="va">intercept</span></span>
+<span></span>
+<span><span class="co"># Model predictions</span></span>
+<span><span class="va">pred_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">pred_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">xg</span>, <span class="va">x</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># For XGBoost</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_xgb</span>, <span class="va">sum_m_xgb</span>, <span class="va">sum_shap_xgb</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      pred_xgb sum_m_xgb sum_shap_xgb</span></span>
+<span><span class="co">#&gt; [1,] 21.39075  21.39076     21.39076</span></span>
+<span><span class="co">#&gt; [2,] 20.23664  20.23664     20.23664</span></span>
+<span><span class="co">#&gt; [3,] 14.73895  14.73895     14.73895</span></span>
+<span><span class="co">#&gt; [4,] 18.76170  18.76170     18.76170</span></span>
+<span><span class="co">#&gt; [5,] 13.05614  13.05614     13.05614</span></span>
+<span><span class="co">#&gt; [6,] 20.23664  20.23664     20.23664</span></span>
+<span></span>
+<span><span class="co"># For RPF</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_rpf</span>, <span class="va">sum_m_rpf</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      pred_rpf sum_m_rpf</span></span>
+<span><span class="co">#&gt; [1,] 28.29398  28.29398</span></span>
+<span><span class="co">#&gt; [2,] 26.02555  26.02555</span></span>
+<span><span class="co">#&gt; [3,] 18.33365  18.33365</span></span>
+<span><span class="co">#&gt; [4,] 20.30721  20.30721</span></span>
+<span><span class="co">#&gt; [5,] 15.22179  15.22179</span></span>
+<span><span class="co">#&gt; [6,] 24.75446  24.75446</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="variable-importances">Variable Importances<a class="anchor" aria-label="anchor" href="#variable-importances"></a>
+</h3>
+<p>Variable importance scores are calculated for each main and interaction term by calculating the average of the absolute prediction components (<code>m</code>) over the dataset supplied to <code><a href="reference/glex.html">glex()</a></code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">vi_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_vi.html">glex_vi</a></span><span class="op">(</span><span class="va">glex_rpf</span><span class="op">)</span></span>
+<span><span class="va">vi_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_vi.html">glex_vi</a></span><span class="op">(</span><span class="va">glex_xgb</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">vi_rpf</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;    degree   term         m</span></span>
+<span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      1     hp 1.3998532</span></span>
+<span><span class="co">#&gt; 2:      1     wt 1.1725086</span></span>
+<span><span class="co">#&gt; 3:      1   disp 1.0441441</span></span>
+<span><span class="co">#&gt; 4:      1   drat 0.8630354</span></span>
+<span><span class="co">#&gt; 5:      1    cyl 0.5955195</span></span>
+<span><span class="va">vi_xgb</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;    degree   term         m</span></span>
+<span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      1     hp 1.1360711</span></span>
+<span><span class="co">#&gt; 2:      1     wt 1.0361386</span></span>
+<span><span class="co">#&gt; 3:      1   disp 0.6661451</span></span>
+<span><span class="co">#&gt; 4:      1    cyl 0.5727933</span></span>
+<span><span class="co">#&gt; 5:      1   qsec 0.2129094</span></span></code></pre></div>
+<p>The output additionally contains the degree of interaction, which can be used for filtering and aggregating. Here we filter for terms with contributions above a <code>threshold</code> of <code>0.05</code> to get a more compact plot, with terms below the threshold aggregated into one labelled “Remaining terms”:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_vi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_rpf</span>, threshold <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span>, tag <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p_vi2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_xgb</span>, threshold <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span>, tag <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p_vi1</span> <span class="op">+</span> <span class="va">p_vi2</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance scores by term"</span><span class="op">)</span> <span class="op">&amp;</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.tag.position <span class="op">=</span> <span class="st">"bottomleft"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-glex_vi-plot-1.png" width="100%"> We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be partuclarly relevant for a given model.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_vi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_rpf</span>, by_degree <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span>, tag <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p_vi2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_xgb</span>, by_degree <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span>, tag <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p_vi1</span> <span class="op">+</span> <span class="va">p_vi2</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance scores by degree"</span><span class="op">)</span> <span class="op">&amp;</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.tag.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-glex_vi-plot-by-degree-1.png" width="100%"></p>
+</div>
+<div class="section level3">
+<h3 id="feature-effects">Feature Effects<a class="anchor" aria-label="anchor" href="#feature-effects"></a>
+</h3>
+<p>We can also plot prediction components against observed feature values, which admittedly produces more interesting output with larger, more interesting datasets.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="st">"hp"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_xgb</span>, <span class="st">"hp"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Main effect for 'hp'"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-plot_components-1.png" width="100%"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hp"</span>, <span class="st">"wt"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_xgb</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hp"</span>, <span class="st">"wt"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Two-way effects for 'hp' and 'wt'"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-plot_components-2.png" width="100%"></p>
+<p>Currently there is support for plots of interactions up to the third degree, including continuous and categorical features. Unfortunately, three-way interactions of continuous features are not supported yet.</p>
+</div>
+<div class="section level3">
+<h3 id="decomposition-of-individual-predictions">Decomposition of Individual Predictions<a class="anchor" aria-label="anchor" href="#decomposition-of-individual-predictions"></a>
+</h3>
+<p>Finally, we can explore the prediction for a single observation by displaying its individual prediction components. The SHAP value is the sum of all of these components and serves as a reference value. For compactness, we only plot one feature and collapse all interaction terms above the second degree into one as their combined effect is very small.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_explain.html">glex_explain</a></span><span class="op">(</span><span class="va">glex_rpf</span>, id <span class="op">=</span> <span class="fl">2</span>, predictors <span class="op">=</span> <span class="st">"hp"</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>tag <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_explain.html">glex_explain</a></span><span class="op">(</span><span class="va">glex_xgb</span>, id <span class="op">=</span> <span class="fl">2</span>, predictors <span class="op">=</span> <span class="st">"hp"</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>tag <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.tag.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-glex_explain-1.png" width="100%"></p>
+</div>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
@@ -121,6 +277,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://app.codecov.io/gh/PlantedML/glex?branch=master" class="external-link"><img src="https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
 

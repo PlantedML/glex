@@ -14,7 +14,7 @@ This function wraps str() with a truncated output for a more compact representat
     
     <a class="navbar-brand me-2" href="../index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,6 +81,36 @@ This function wraps <code><a href="https://rdrr.io/r/utils/str.html" class="exte
 
 </dl></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Random Planted Forest -----</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"randomPlantedForest"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/randomPlantedForest" class="external-link">randomPlantedForest</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">wt</span> <span class="op">+</span> <span class="va">drat</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> glex object of subclass rpf_components </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Explaining predictions of 6 observations with 6 terms:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ m        :Classes ‘data.table’ and 'data.frame':	6 obs. of  6 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp     : num [1:6] 4.465 0.232 -3.543 -1.036 -3.543 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt     : num [1:6] 5 4.55 1.02 1.7 -1.45 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat   : num [1:6] 2.8043 -0.0431 2.8043 -0.1041 -0.1041 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp:wt  : num [1:6] -0.3522 -0.275 0.0097 -0.2194 -0.5301 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat:hp: num [1:6] 0.6248 0.1407 0.0701 0.0681 0.0933 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x        :Classes ‘data.table’ and 'data.frame':	6 obs. of  3 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp  : num [1:6] 91 113 264 175 335 109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
