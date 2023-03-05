@@ -201,7 +201,6 @@ glex_explain <- function(
     geom_label(
       data = xshap, aes(
         label = sprintf("SHAP: %s", format(shap, digits = 2)),
-        #label = glue::glue("SHAP: {format(shap, digits = 2)}"),
         x = xright, fill = NULL,
         hjust = pmin(1.05, 0.95 + sign(shap))
       )
@@ -209,8 +208,7 @@ glex_explain <- function(
     # Label contribution values
     geom_label(
       aes(x = xleft,
-        label = sprintf("%s: %f", term, round(m_scaled, 2)),
-        #label = glue::glue("{term}: {round(m_scaled, 2)}"),
+        label = sprintf("%s: %s", term, round(m_scaled, 2)),
         hjust = pmin(1.05, 0.95 + sign(m_scaled))),
       color = "white", alpha = .75
     )
