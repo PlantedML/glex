@@ -4,7 +4,15 @@
 \alias{glex_explain}
 \title{Explain a single prediction}
 \usage{
-glex_explain(object, id, threshold = 0)
+glex_explain(
+  object,
+  id,
+  threshold = 0,
+  max_interaction = NULL,
+  predictors = NULL,
+  class = NULL,
+  barheight = 0.5
+)
 }
 \arguments{
 \item{object}{Object of class \code{\link{glex}} containing prediction components and data to be explained.}
@@ -12,13 +20,28 @@ glex_explain(object, id, threshold = 0)
 \item{id}{(\code{integer(1)}) Row ID of the observation to be explained in \code{object$x}.}
 
 \item{threshold}{(\code{numeric(1): 0}) Threshold to filter output by in case of many negligible effects.}
+
+\item{max_interaction}{(\code{integer(1): NULL}) Optionally filter plot to show terms up to the specified
+degree of interaction. Similar to \code{threshold}, all other terms will be aggregated under a
+\code{"Remaining terms"} label.}
+
+\item{predictors}{(\code{character: NULL}) Vector of column names in \verb{$x} to restrict plot to.}
+
+\item{class}{(\code{character: NULL}) For multiclass targets, specifies the target class to limit output.}
+
+\item{barheight}{(\code{numeric(1): 0.5}) Relative height of horizontal bars.
+Preferred value may depend on the number of vertical elements, hence it may be necessary to adjust
+this value as needed.}
 }
 \value{
-A \link[ggplot2:ggplot]{ggplot2::ggplot} object.
+A \link[ggplot2:ggplot]{ggplot} object.
 }
 \description{
 Plots the prediction components for a single observation, identified by the row number in the dataset used
 with \code{glex()}.
+Since the resulting plot can be quite busy due to potentially large amounts of elements, it is highly
+recommended to use \code{predictors}, \code{max_interaction}, or \code{threshold} to restrict the number of
+elements in the plot.
 }
 \examples{
 set.seed(1)
@@ -30,6 +53,6 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 
 glex_rpf <- glex(rp, mtcars[27:32, ])
 
-glex_explain(glex_rpf, id = 3, threshold = 0.2)
+glex_explain(glex_rpf, id = 3, predictors = "wt")
 }
 }
