@@ -29,6 +29,7 @@ Imports:
     stats,
     utils
 Suggests: 
+    covr,
     doParallel,
     ISLR2,
     knitr,
