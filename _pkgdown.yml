@@ -25,8 +25,8 @@ reference:
   - autoplot.glex
   - autoplot.glex_vi
   - glex_explain
-# - text: -------
-# - title: Utility functions
-# - contents:
-  #- starts_with("print.")
+- text: -------
+- title: Utility functions
+  contents:
+  - starts_with("print.")
   #- starts_with("str.")
