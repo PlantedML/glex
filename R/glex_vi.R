@@ -25,7 +25,7 @@
 #'
 #' \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
 #'
-#' @seealso autoplot.glex_vi
+#' @seealso [autoplot.glex_vi]
 #' @examples
 #' set.seed(1)
 #' # Random Planted Forest -----
@@ -81,13 +81,14 @@ glex_vi <- function(object, ...) {
 
   # aggregate by term, add useful variables
   m_aggr <- m_long[, list(m = mean(abs(m))), by = vars_by]
+  # Only return non-zero scores
+  m_aggr <- m_aggr[m_aggr[["m"]] > 0]
   m_aggr[, term_list := lapply(term, function(x) unlist(strsplit(x, ":")))]
-  m_aggr[, degree := vapply(term_list, length, integer(1))]
+  m_aggr[, degree := lengths(term_list)]
   m_aggr[, m_rel := (m / object[["intercept"]])]
 
   data.table::setorder(m_aggr, -m)
   data.table::setcolorder(m_aggr, neworder = vars_out)
   class(m_aggr) <- c("glex_vi", class(m_aggr))
-  # Only return non-zero scores
-  m_aggr[m_aggr[["m"]] > 0]
+  m_aggr
 }

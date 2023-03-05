@@ -2,7 +2,7 @@
 #'
 #' @rdname plot_components
 #' @param object Object of class [`glex`].
-#' @param predictor,predictors `[character]` vector of predictor names, e.g. `"x1"` to plot main effect of `x1`, and
+#' @param predictor,predictors `(character)` vector of predictor names, e.g. `"x1"` to plot main effect of `x1`, and
 #'   `c("x1", "x2")` to plot the interaction term `x1:x2`.
 #' @param ... Unused
 #'

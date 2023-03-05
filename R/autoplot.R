@@ -1,5 +1,6 @@
 #' @rdname plot_components
 #' @export
+#' @family Visualization functions
 autoplot.glex <- function(object, predictors, ...) {
   np <- length(predictors)
 
@@ -24,9 +25,10 @@ autoplot.glex <- function(object, predictors, ...) {
 #' `"Remaining terms"` label.
 #' @param ... (Unused)
 #'
-#' @return A `ggplot2` object.
+#' @return A [`ggplot`][ggplot2::ggplot] object.
 #' @export
-#' @seealso glex_vi
+#' @seealso [glex_vi]
+#' @family Visualization functions
 autoplot.glex_vi <- function(
     object, by_degree = FALSE,
     threshold = 0, max_interaction = NULL,

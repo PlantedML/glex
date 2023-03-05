@@ -32,11 +32,16 @@ average prediction (\code{"relative"}).}
 \item{...}{(Unused)}
 }
 \value{
-A \code{ggplot2} object.
+A \code{\link[ggplot2:ggplot]{ggplot}} object.
 }
 \description{
 Plot glex Variable Importances
 }
 \seealso{
-glex_vi
+\link{glex_vi}
+
+Other Visualization functions: 
+\code{\link{autoplot.glex}()},
+\code{\link{glex_explain}()}
 }
+\concept{Visualization functions}

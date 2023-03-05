@@ -7,7 +7,7 @@
 \method{print}{glex}(x, ...)
 }
 \arguments{
-\item{x}{Object to print}
+\item{x}{Object to print.}
 
 \item{...}{(Unused)}
 }

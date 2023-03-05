@@ -76,5 +76,5 @@ autoplot(vi_xgb, by_degree = TRUE)
 }
 }
 \seealso{
-autoplot.glex_vi
+\link{autoplot.glex_vi}
 }

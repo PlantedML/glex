@@ -56,3 +56,9 @@ glex_rpf <- glex(rp, mtcars[27:32, ])
 glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
 }
 }
+\seealso{
+Other Visualization functions: 
+\code{\link{autoplot.glex_vi}()},
+\code{\link{autoplot.glex}()}
+}
+\concept{Visualization functions}

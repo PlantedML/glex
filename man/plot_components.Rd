@@ -21,7 +21,7 @@ plot_twoway_effects(object, predictors, ...)
 
 \item{...}{Unused}
 
-\item{predictor, predictors}{\verb{[character]} vector of predictor names, e.g. \code{"x1"} to plot main effect of \code{x1}, and
+\item{predictor, predictors}{\code{(character)} vector of predictor names, e.g. \code{"x1"} to plot main effect of \code{x1}, and
 \code{c("x1", "x2")} to plot the interaction term \code{x1:x2}.}
 }
 \value{
@@ -65,3 +65,9 @@ plot_twoway_effects(components, c("vs", "cyl"))
 plot_twoway_effects(components, c("cyl", "vs"))
 }
 }
+\seealso{
+Other Visualization functions: 
+\code{\link{autoplot.glex_vi}()},
+\code{\link{glex_explain}()}
+}
+\concept{Visualization functions}
