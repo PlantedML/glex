@@ -59,7 +59,7 @@ glex_explain <- function(
   checkmate::assert_subset(class, object$target_levels, empty.ok = TRUE)
 
   # data.table NSE warnings
-  .id <- m <- predsum <- term_list <- term <- degree <- m_scaled <- NULL
+  .id <- m <- predsum <- term <- degree <- m_scaled <- NULL
   term_int <- xleft <- xright <- reference_term <- shap <- x <- NULL
 
   m_long <- melt_m(object$m, object$target_levels)
@@ -81,8 +81,7 @@ glex_explain <- function(
     pred <- as.character(pred[which.max(predsum), "class"][[1]])
   }
 
-  mlong_id[, term_list := lapply(term, function(x) unlist(strsplit(x, ":")))]
-  mlong_id[, degree := lengths(term_list)]
+  mlong_id[, degree := get_degree(term)]
   mlong_id[, m_scaled := m / degree]
   mlong_id[, m := NULL]
 
@@ -98,8 +97,7 @@ glex_explain <- function(
   # collected under one reference term, e.g. "x1" and "x1:x2" belong to x1, but "x1:x2" also belongs to x2
   xdf <- data.table::rbindlist(lapply(names(x_subset), function(main_term) {
     # get all terms associated with the current reference term
-    mtemp <- mlong_id[vapply(term_list, function(term) main_term %in% term, FUN.VALUE = logical(1)), ]
-    mtemp[, term_list := NULL]
+    mtemp <- mlong_id[find_term_matches(main_term, term), ]
 
     # In non-multiclass setting we need to create a "class" column so that following grouped ops work,
     # and having a dummy column is probably easier than having multiple if-else'd operations depending

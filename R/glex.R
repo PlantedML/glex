@@ -171,7 +171,8 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     m_all <- foreach(j = idx, .combine = "+") %do% tree_fun(j)
   }
 
-  d <- lengths(regmatches(colnames(m_all), gregexpr(":", colnames(m_all)))) + 1
+  #d <- lengths(regmatches(colnames(m_all), gregexpr(":", colnames(m_all)))) + 1
+  d <- get_degree(colnames(m_all))
 
   # Overall feature effect is sum of all elements where feature is involved
   interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
@@ -180,11 +181,13 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   shap <- sapply(colnames(x), function(col) {
     # iterate over terms (x1, x2, x1:x2, ...)
     # Split by : to uniquely identify original variables, check if col is included
-    idx <- vapply(colnames(interactions), \(x) {
-      col %in% unlist(strsplit(x, ":"))
-    }, logical(1))
-    # Logical vector to integer indices
-    idx <- which(idx)
+    # idx <- vapply(colnames(interactions), \(x) {
+    #   col %in% unlist(strsplit(x, ":"))
+    # }, logical(1))
+    # # Logical vector to integer indices
+    # idx <- which(idx)
+
+    idx <- find_term_matches(col, colnames(interactions))
 
     if (length(idx) == 0) {
       numeric(nrow(interactions))
