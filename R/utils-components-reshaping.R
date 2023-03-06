@@ -24,7 +24,7 @@ melt_m <- function(m, levels = NULL) {
   # data.table NSE warning
   term <- NULL
   # We need an id.var for melt to avoid a warning, but don't want to modify m permanently
-  m[, ".id" := seq_len(.N)]
+  m[, ".id" := .I]
   m_long <- data.table::melt(m, id.vars = ".id", value.name = "m",
                              variable.name = "term", variable.factor = FALSE)
   # clean up that temporary id column again while modifying by reference
@@ -58,4 +58,8 @@ reshape_m_multiclass <- function(object, format = "wide") {
   } else if (format == "long") {
     mlong[]
   }
+}
+
+get_degree <- function(x, pattern = ":") {
+  lengths(strsplit(x, split = ":", fixed = TRUE))
 }
