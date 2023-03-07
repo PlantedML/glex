@@ -8,7 +8,7 @@ assemble_components <- function(object, predictors) {
   setkey(xdf, ".id")
 
   if (!is.null(object$target_levels)) {
-    mwide <- reshape_m_multiclass(object, format = "wide")
+    mwide <- reshape_m_multiclass(object)
     mwide <- mwide[, c(".id", "class", paste(sort(predictors), collapse = ":")), with = FALSE]
     setnames(mwide, c(".id", "class", "m"))
     return(xdf[mwide])
@@ -47,19 +47,23 @@ multiclass_m_to_term <- function(mn) {
   gsub(pattern = "__class:(.*)$", replacement = "", mn)
 }
 
-reshape_m_multiclass <- function(object, format = "wide") {
+reshape_m_multiclass <- function(object) {
   checkmate::assert_subset(format, choices = c("wide", "long"))
   checkmate::assert_character(object$target_levels, min.len = 2)
 
   mlong <- melt_m(object$m, object$target_levels)
-
-  if (format == "wide") {
-    data.table::dcast(mlong, .id + class  ~ term, value.var = "m")
-  } else if (format == "long") {
-    mlong[]
-  }
+  data.table::dcast(mlong, .id + class  ~ term, value.var = "m")
 }
 
+#' Get the degree of interaction from vector of terms
+#'
+#' Terms of the form `"x1", "x2", "x1:x2"` have degrees 1, 1, 2, respectively.
+#' This utility function exists mainly for code deduplication and consistency.
+#' It is also a lot faster than using regex-approaches, yet it still makes the strong assumption
+#' of `:` _only_ occuring as an interaction delimiter.
+#'
+#' @noRd
+#' @keywords internal
 get_degree <- function(x, pattern = ":") {
   lengths(strsplit(x, split = ":", fixed = TRUE))
 }
