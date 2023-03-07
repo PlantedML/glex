@@ -14,7 +14,7 @@
 #' @param max_interaction (`integer(1): NULL`)\cr
 #'  Maximum interaction size to consider.
 #'  Defaults to using all possible interactions available in the model.\cr
-#'  For [`xgboost`][xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
+#'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
 #' @param ... Further arguments passed to methods.
 #'

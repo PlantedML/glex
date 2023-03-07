@@ -22,7 +22,7 @@ glex(object, x, ...)
 \item{max_interaction}{(\code{integer(1): NULL})\cr
 Maximum interaction size to consider.
 Defaults to using all possible interactions available in the model.\cr
-For \code{\link[=xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
+For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 }
 \value{
