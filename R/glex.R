@@ -103,14 +103,10 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
 
   # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
   # If max_depth is not defined in xgb, we assume its default of 6.
-  xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6, object$params$max_depth)
+  xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6L, object$params$max_depth)
 
   if (is.null(max_interaction)) {
-    if (!is.null(object$params$max_depth)) {
-      max_interaction <- xgb_max_depth
-    } else {
-      max_interaction <- 6L
-    }
+    max_interaction <- xgb_max_depth
   }
 
   checkmate::assert_int(max_interaction, lower = 1, upper = xgb_max_depth)
