@@ -48,7 +48,6 @@ multiclass_m_to_term <- function(mn) {
 }
 
 reshape_m_multiclass <- function(object) {
-  checkmate::assert_subset(format, choices = c("wide", "long"))
   checkmate::assert_character(object$target_levels, min.len = 2)
 
   mlong <- melt_m(object$m, object$target_levels)
