@@ -6,14 +6,15 @@
 #' interaction components of arbitrary order. Calculates SHAP values and
 #' q-interaction SHAP for all values of q for tree-based models such as xgboost.
 #'
-#' For parallel execution, register a backend, e.g. with
+#' For parallel execution using `xgboost` models, register a backend, e.g. with
 #' `doParallel::registerDoParallel()`.
 #'
-#' @param object Model to be explained.
+#' @param object Model to be explained, either of class `xgb.Booster` or `rpf`.
 #' @param x Data to be explained.
-#' @param max_interaction (`integer(1): NULL`) Maximum interaction size to consider.
-#'  Defaults to using all possible interactions available in the model.
-#'  For [`xgboost`][xgboost], this defaults to the `max_depth` parameter of the model fit.
+#' @param max_interaction (`integer(1): NULL`)\cr
+#'  Maximum interaction size to consider.
+#'  Defaults to using all possible interactions available in the model.\cr
+#'  For [`xgboost`][xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
 #' @param ... Further arguments passed to methods.
 #'
