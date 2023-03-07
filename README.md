@@ -165,7 +165,7 @@ p_vi1 + p_vi2 +
 <img src="man/figures/README-glex_vi-plot-1.png" width="100%" /> We can
 also sum values within each degree of interaction for a more aggregated
 view, which can be useful as it allows us to judge interactions above a
-certain degree to not be partuclarly relevant for a given model.
+certain degree to not be particularly relevant for a given model.
 
 ``` r
 p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 

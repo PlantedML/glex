@@ -117,7 +117,7 @@ vi_xgb[1:5, c("degree", "term", "m")]
 
 The output additionally contains the degree of interaction, which can be used for filtering and aggregating. Here we filter for terms with contributions above a `threshold` of `0.05` to get a more compact plot, with terms below the threshold aggregated into one labelled "Remaining terms":
 
-```{r glex_vi-plot}
+```{r glex_vi-plot, fig.width=12}
 p_vi1 <- autoplot(vi_rpf, threshold = .05) + 
   labs(title = NULL, tag = "RPF")
 
@@ -128,9 +128,9 @@ p_vi1 + p_vi2 +
   plot_annotation(title = "Variable importance scores by term") & 
   theme(plot.tag.position = "bottomleft")
 ```
-We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be partuclarly relevant for a given model.
+We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be particularly relevant for a given model.
 
-```{r glex_vi-plot-by-degree}
+```{r glex_vi-plot-by-degree, fig.height=5}
 p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
   labs(title = NULL, tag = "RPF")
 

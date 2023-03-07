@@ -1,5 +1,8 @@
 # glex 0.3.0.9000 (Development version)
 
+* Limit `max_interaction` in `glex.xgb.Booster` to `max_depth` parameter of `xgboost` model.
+  If `max_depth` is not set during model fit, the default value of `6` is assumed.
+  This prevents `glex` from returning spurious higher-order interactions containing values numerically close to 0.
 * Extend plot functions to multiclass classification. In most cases that means facetting by the target class.
 * Overhaul `glex_explain` to a waterfall plot showing the SHAP decomposition for given predictors.
 * `autoplot.glex_vi` gains a `max_interaction` argument in line with `glex_explain`, and now similarly aggregates terms that either fall below `threshold` or exceed `max_interaction`.
