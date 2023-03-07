@@ -81,7 +81,7 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost.</p
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>Model to be explained.</p></dd>
+<dd><p>Model to be explained, either of class <code>xgb.Booster</code> or <code>rpf</code>.</p></dd>
 
 
 <dt>x</dt>
@@ -93,9 +93,10 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost.</p
 
 
 <dt>max_interaction</dt>
-<dd><p>(<code>integer(1): NULL</code>) Maximum interaction size to consider.
-Defaults to using all possible interactions available in the model.
-For <code><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html" class="external-link">xgboost</a></code>, this defaults to the <code>max_depth</code> parameter of the model fit.
+<dd><p>(<code>integer(1): NULL</code>)<br>
+Maximum interaction size to consider.
+Defaults to using all possible interactions available in the model.<br>
+For <code><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html" class="external-link">xgboost</a></code>, this defaults to the <code>max_depth</code> parameter of the model fit.<br>
 If not set in <code>xgboost</code>, the default value of <code>6</code> is assumed.</p></dd>
 
 </dl></div>
@@ -111,7 +112,7 @@ components in the model, up to the degree specified by <code>max_interaction</co
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>For parallel execution, register a backend, e.g. with
+    <p>For parallel execution using <code>xgboost</code> models, register a backend, e.g. with
 <code><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html" class="external-link">doParallel::registerDoParallel()</a></code>.</p>
     </div>
 
@@ -129,14 +130,14 @@ components in the model, up to the degree specified by <code>max_interaction</co
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ m        :Classes ‘data.table’ and 'data.frame':	6 obs. of  55 variables:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.3471 0.3471 -0.173 -0.0852 -0.173 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.542 3.111 -1.469 0.288 -1.015 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.8069 -0.0968 -1.8139 -0.7361 -1.8139 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 0.89535 -0.10371 0.89535 -0.00099 -0.00099 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 1.602 1.502 0.986 0.97 -0.831 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.727 0.727 -0.296 -0.262 -0.296 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.723 3.052 -1.251 0.667 -0.89 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.55 0.144 -1.952 -0.227 -1.952 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 1.5815 -0.0879 1.5815 -0.0583 -0.0583 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 2.835 2.691 0.812 0.758 -0.971 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20.2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ x        :Classes ‘data.table’ and 'data.frame':	6 obs. of  10 variables:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl : num [1:6] 4 4 8 6 8 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp: num [1:6] 120.3 95.1 351 145 301 ...</span>
