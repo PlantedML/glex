@@ -93,8 +93,10 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost.</p
 
 
 <dt>max_interaction</dt>
-<dd><p>(<code>integer(1)</code>) Maximum interaction size to consider.
-Defaults to using all possible interactions.</p></dd>
+<dd><p>(<code>integer(1): NULL</code>) Maximum interaction size to consider.
+Defaults to using all possible interactions available in the model.
+For <code><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html" class="external-link">xgboost</a></code>, this defaults to the <code>max_depth</code> parameter of the model fit.
+If not set in <code>xgboost</code>, the default value of <code>6</code> is assumed.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -127,14 +129,14 @@ components in the model, up to the degree specified by <code>max_interaction</co
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ m        :Classes ‘data.table’ and 'data.frame':	6 obs. of  55 variables:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.884 0.884 -0.506 -0.297 -0.506 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.632 2.864 -1.092 0.388 -0.911 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.653 0.248 -2.573 -0.436 -2.573 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 0.94 -0.034 0.94 0.1 0.1 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 2.874 2.798 0.3 0.317 -0.882 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.3471 0.3471 -0.173 -0.0852 -0.173 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.542 3.111 -1.469 0.288 -1.015 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.8069 -0.0968 -1.8139 -0.7361 -1.8139 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 0.89535 -0.10371 0.89535 -0.00099 -0.00099 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 1.602 1.502 0.986 0.97 -0.831 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ x        :Classes ‘data.table’ and 'data.frame':	6 obs. of  10 variables:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl : num [1:6] 4 4 8 6 8 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp: num [1:6] 120.3 95.1 351 145 301 ...</span>
