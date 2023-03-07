@@ -19,8 +19,10 @@ glex(object, x, ...)
 
 \item{...}{Further arguments passed to methods.}
 
-\item{max_interaction}{(\code{integer(1)}) Maximum interaction size to consider.
-Defaults to using all possible interactions.}
+\item{max_interaction}{(\code{integer(1): NULL}) Maximum interaction size to consider.
+Defaults to using all possible interactions available in the model.
+For \code{\link{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.
+If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 }
 \value{
 Decomposition of the regression or classification function.

@@ -11,8 +11,10 @@
 #'
 #' @param object Model to be explained.
 #' @param x Data to be explained.
-#' @param max_interaction (`integer(1)`) Maximum interaction size to consider.
-#'  Defaults to using all possible interactions.
+#' @param max_interaction (`integer(1): NULL`) Maximum interaction size to consider.
+#'  Defaults to using all possible interactions available in the model.
+#'  For [`xgboost`][xgboost], this defaults to the `max_depth` parameter of the model fit.
+#'  If not set in `xgboost`, the default value of `6` is assumed.
 #' @param ... Further arguments passed to methods.
 #'
 #' @return Decomposition of the regression or classification function.
@@ -98,9 +100,19 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   Feature <- NULL
   Feature_num <- NULL
 
-  checkmate::assert_int(max_interaction, null.ok = TRUE, lower = 1)
-  # If max_interaction is not specified, we set it to max
-  if (is.null(max_interaction)) max_interaction <- Inf
+  # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
+  # If max_depth is not defined in xgb, we assume its default of 6.
+  xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6, object$params$max_depth)
+
+  if (is.null(max_interaction)) {
+    if (!is.null(object$params$max_depth)) {
+      max_interaction <- xgb_max_depth
+    } else {
+      max_interaction <- 6L
+    }
+  }
+
+  checkmate::assert_int(max_interaction, lower = 1, upper = xgb_max_depth)
 
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
