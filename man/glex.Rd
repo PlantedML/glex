@@ -13,15 +13,16 @@ glex(object, x, ...)
 \method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
 }
 \arguments{
-\item{object}{Model to be explained.}
+\item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}
 
 \item{x}{Data to be explained.}
 
 \item{...}{Further arguments passed to methods.}
 
-\item{max_interaction}{(\code{integer(1): NULL}) Maximum interaction size to consider.
-Defaults to using all possible interactions available in the model.
-For \code{\link{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.
+\item{max_interaction}{(\code{integer(1): NULL})\cr
+Maximum interaction size to consider.
+Defaults to using all possible interactions available in the model.\cr
+For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 }
 \value{
@@ -41,7 +42,7 @@ interaction components of arbitrary order. Calculates SHAP values and
 q-interaction SHAP for all values of q for tree-based models such as xgboost.
 }
 \details{
-For parallel execution, register a backend, e.g. with
+For parallel execution using \code{xgboost} models, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
 }
 \examples{
