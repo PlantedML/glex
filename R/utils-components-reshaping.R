@@ -15,6 +15,7 @@ assemble_components <- function(object, predictors) {
   }
 
   xdf$m <- object$m[[paste(sort(predictors), collapse = ":")]]
+  xdf[, ".id" := NULL]
   xdf[]
 }
 
