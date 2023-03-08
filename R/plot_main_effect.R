@@ -39,14 +39,13 @@ plot_main_effect <- function(object, predictor, ...) {
     p <- ggplot2::ggplot(xdf, ggplot2::aes(
       x = .data[[predictor]], y = .data[["m"]])
     )
-    p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect")
-
-    # p <- p + ggplot2::geom_point()
+    p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect", color = "#194155")
+    #p <- p + ggplot2::geom_point()
   }
 
   if (x_type == "categorical") {
-    p <- ggplot2::ggplot(unique(xdf), ggplot2::aes(x = .data[[predictor]], y = .data[["m"]]))
-    p <- p + ggplot2::geom_col(alpha = .8, width = 2/3)
+    p <- ggplot2::ggplot(xdf, ggplot2::aes(x = .data[[predictor]], y = .data[["m"]]))
+    p <- p + ggplot2::geom_col(alpha = .8, width = 1/2, fill = "#194155")
     p <- p + theme(panel.grid.major.x = element_blank())
   }
 
@@ -55,6 +54,6 @@ plot_main_effect <- function(object, predictor, ...) {
   }
 
   p +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+    ggplot2::geom_hline(yintercept = 0, linetype = "6161") +
     ggplot2::labs(y = label_m(predictor))
 }

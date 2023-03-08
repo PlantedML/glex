@@ -16,11 +16,16 @@ test_that("regression rpf", {
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {
   skip_if_not_installed("randomPlantedForest")
-  xdat$x1fact <- as.factor(as.integer(xdat$x1 > 0))
-  rp <- rpf(y ~ x1fact + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf(y ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
-  p <- plot_threeway_effects(gl, c("x1fact", "x2", "x3"))
+  p <- plot_threeway_effects(gl, c("x4", "x2", "x3"))
+  expect_s3_class(p, "ggplot")
+
+  p <- plot_threeway_effects(gl, c("x4", "x5", "x3"))
+  expect_s3_class(p, "ggplot")
+
+  p <- plot_threeway_effects(gl, c("x4", "x5", "x6"))
   expect_s3_class(p, "ggplot")
 })
 
@@ -28,10 +33,16 @@ test_that("binary rpf", {
 # Multiclass / rpf ------------------------------------------------------------------------------------------------
 test_that("multiclass rpf", {
   skip_if_not_installed("randomPlantedForest")
-  xdat$x1fact <- as.factor(as.integer(xdat$x1 > 0))
-  rp <- rpf(yk ~ x1fact + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf(yk ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
-  p <- plot_threeway_effects(gl, c("x1fact", "x2", "x3"))
+
+  p <- plot_threeway_effects(gl, c("x4", "x2", "x3"))
+  expect_s3_class(p, "ggplot")
+
+  p <- plot_threeway_effects(gl, c("x4", "x5", "x3"))
+  expect_s3_class(p, "ggplot")
+
+  p <- plot_threeway_effects(gl, c("x4", "x5", "x6"))
   expect_s3_class(p, "ggplot")
 })

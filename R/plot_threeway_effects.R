@@ -47,7 +47,7 @@ plot_threeway_effects <- function(object, predictors, ...) {
       colour = .data[[x_cat[[1]]]],
       fill = ggplot2::after_scale(.data[["colour"]])
     )) +
-      ggplot2::geom_line(size = 1.2, key_glyph = "rect") +
+      ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect") +
       ggplot2::scale_color_brewer(palette = "Dark2") +
       ggplot2::labs(y = label_m(predictors))
 

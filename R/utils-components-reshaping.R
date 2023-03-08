@@ -11,12 +11,13 @@ assemble_components <- function(object, predictors) {
     mwide <- reshape_m_multiclass(object, format = "wide")
     mwide <- mwide[, c(".id", "class", paste(sort(predictors), collapse = ":")), with = FALSE]
     setnames(mwide, c(".id", "class", "m"))
-    return(xdf[mwide])
+    xdf <- xdf[mwide, on = ".id"]
+  } else {
+    xdf$m <- object$m[[paste(sort(predictors), collapse = ":")]]
   }
 
-  xdf$m <- object$m[[paste(sort(predictors), collapse = ":")]]
   xdf[, ".id" := NULL]
-  xdf[]
+  unique(xdf)
 }
 
 #' @noRd
