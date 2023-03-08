@@ -65,11 +65,22 @@ test_that("multiclass rpf", {
 
 test_that("multiclass rpf plot", {
   skip_if_not_installed("randomPlantedForest")
-  rp <- rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3, deterministic = TRUE)
   gl <- glex(rp, xdat)
 
   vi <- glex_vi(gl)
 
   p <- autoplot(vi)
   expect_s3_class(p, "ggplot")
+
+  p <- autoplot(vi, threshold = .02)
+  expect_s3_class(p, "ggplot")
+
+  p2 <- autoplot(vi, max_interaction = 2)
+  expect_s3_class(p, "ggplot")
+
+  p1 <- autoplot(vi, max_interaction = 1)
+  expect_s3_class(p, "ggplot")
+
+  expect_failure(expect_identical(p2, p1))
 })

@@ -63,7 +63,7 @@ plot_twoway_effects <- function(object, predictors, ...) {
     p <- ggplot2::ggplot(xdf, ggplot2::aes(
       x = .data[[x_cont]], y = .data[["m"]], color = .data[[x_cat]]
     )) +
-      ggplot2::geom_line(size = 1.2, key_glyph = "rect") +
+      ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect") +
       ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
       ggplot2::scale_color_brewer(palette = "Dark2") +
       ggplot2::labs(y = label_m(predictors))
