@@ -57,27 +57,44 @@ autoplot.glex_vi <- function(
      paste(rng, collapse = "-")
   }
 
-  # Sanity check that we're aggregating correctly by keeping track of the sums
-  old_sum <- sum(object[[score]])
+  # If max_interaction or threshold would select any observations, we summarize accordingly
+  if (any(object$degree > max_interaction | abs(object[[score]]) <= threshold)) {
 
-  object <- rbind(
-    object[degree <= max_interaction & abs(object[[score]]) > threshold, ],
-    object[degree > max_interaction | abs(object[[score]]) <= threshold,
-           list(m = sum(m), m_rel = sum(m_rel),
-                degree = aggr_degree(degree), term = "Remaining terms")]
+    # Sanity check that we're aggregating correctly by keeping track of the sums
+    old_sum <- sum(object[[score]])
 
-  , fill = TRUE)
+    # Keep rows not above max_interaction and scores above threshold
+    keep <- object[degree <= max_interaction & abs(object[[score]]) > threshold, ]
+
+    # Depending on whether we have a "class" col in multiclass, we need to summarize by that
+    # I thought there was a neater way but by = NULL is not a great idea it turns out.
+    if (is.null(object[["class"]])) {
+      reduced <- object[degree > max_interaction | abs(object[[score]]) <= threshold,
+                        list(m = sum(m), m_rel = sum(m_rel), degree = aggr_degree(degree), term = "Remaining terms")]
+    } else {
+      reduced <- object[degree > max_interaction | abs(object[[score]]) <= threshold,
+                        list(m = sum(m), m_rel = sum(m_rel), degree = aggr_degree(degree), term = "Remaining terms"),
+                        by = "class"]
+    }
+
+    # Combine again
+    object <- rbind(keep, reduced)
+
+    # Aforementioned sanity check: Sums should not differ aside from rounding error
+    new_sum <- sum(object[[score]])
+    checkmate::assert_number(abs(old_sum - new_sum), upper = 1e-13)
+  }
 
   # Ugly hack to sort degree labels with the aggregated term (e.g. "2-4") last
+  # Degree should be a factor for discrete color scale anyway.
   object[, degree := factor(degree, levels = unique(degree)[order(nchar(unique(degree)))])]
-
-  # Aforementioned sanity check: Sums should not differ aside from rounding error
-  new_sum <- sum(object[[score]])
-  checkmate::assert_number(abs(old_sum - new_sum), upper = 1e-13)
-
   if (by_what == "Degree") {
 
-    aggr <- object[, list(m = sum(m), m_rel = sum(m_rel)), by = "degree"]
+    if (is.null(object[["class"]])) {
+      aggr <- object[, list(m = sum(m), m_rel = sum(m_rel)), by = "degree"]
+    } else {
+      aggr <- object[, list(m = sum(m), m_rel = sum(m_rel)), by = c("degree", "class")]
+    }
 
     p <- ggplot(aggr)
     p <- p + aes(y = stats::reorder(.data[["degree"]], .data[[score]]))
@@ -106,7 +123,7 @@ autoplot.glex_vi <- function(
     p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
   }
 
-  p + aes(x = .data[[score]], fill = factor(.data[["degree"]])) +
+  p + aes(x = .data[[score]], fill = .data[["degree"]]) +
     geom_col(linewidth = 0, alpha = .8) +
     coord_cartesian(xlim = c(0, NA), expand = FALSE) +
     scale_fill_viridis_d(direction = -1, end = .95) +
@@ -116,7 +133,7 @@ autoplot.glex_vi <- function(
       fill = "Degree of Interaction"
     ) +
     theme(
-      legend.position = "top",
+      legend.position = "bottom",
       panel.grid.minor.x = element_blank(),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
