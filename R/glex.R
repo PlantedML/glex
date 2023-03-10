@@ -144,16 +144,16 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     U <- subsets(T)
     mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                    tree_info$Quality, tree_info$Cover, U, 0)
-    colnames(mat) <- sapply(U, function(u) {
+    colnames(mat) <- vapply(U, function(u) {
       paste(sort(colnames(x)[u]), collapse = ":")
-    })
+    }, FUN.VALUE = character(1))
 
     # Init m matrix
     m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
       #browser()
-    colnames(m_all) <- sapply(all_S, function(s) {
+    colnames(m_all) <- vapply(all_S, function(s) {
       paste(sort(colnames(x)[s]), collapse = ":")
-    })
+    }, FUN.VALUE = character(1))
 
     # Calculate contribution, use only subsets with not more than max_interaction involved features
     d <- lengths(U)
@@ -180,22 +180,13 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     m_all <- foreach(j = idx, .combine = "+") %do% tree_fun(j)
   }
 
-  #d <- lengths(regmatches(colnames(m_all), gregexpr(":", colnames(m_all)))) + 1
   d <- get_degree(colnames(m_all))
 
   # Overall feature effect is sum of all elements where feature is involved
   interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
 
   # SHAP values are the sum of the m's * 1/d
-  shap <- sapply(colnames(x), function(col) {
-    # iterate over terms (x1, x2, x1:x2, ...)
-    # Split by : to uniquely identify original variables, check if col is included
-    # idx <- vapply(colnames(interactions), \(x) {
-    #   col %in% unlist(strsplit(x, ":"))
-    # }, logical(1))
-    # # Logical vector to integer indices
-    # idx <- which(idx)
-
+  shap <- vapply(colnames(x), function(col) {
     idx <- find_term_matches(col, colnames(interactions))
 
     if (length(idx) == 0) {
@@ -203,7 +194,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     } else {
       rowSums(interactions[, idx, drop = FALSE])
     }
-  })
+  }, FUN.VALUE = numeric(nrow(x)))
 
   # Return shap values, decomposition and intercept
   ret <- list(
