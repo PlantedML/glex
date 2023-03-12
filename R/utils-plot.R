@@ -15,26 +15,26 @@ label_m <- function(predictors, mathy = TRUE) {
 
 #' Look up terms with their original values
 #'
-#' Used in `glex_explain()`.
-#' @noRd
-#' @keywords internal
-#' @param term (`character`) One or more terms to be looked up in `x`, e.g. `"x1"`, `c("x1", "x2:x3")`
-#' @param x Dataset with original observations.
-label_m_x <- function(term, x) {
-
-  vapply(term, function(m) {
-    m <- unlist(strsplit(m, split = ":"))
-    xvals <- sapply(m, function(mx) {
-      xval <- x[[mx]]
-      if (is.factor(xval)) xval <- as.character(xval)
-      if (is.numeric(xval)) xval <- format(xval, scipen = 4, justify = "none", digits = 4)
-      xval
-    })
-
-    paste0(sprintf("%s [%s]", m, xvals), collapse = "\n")
-  }, FUN.VALUE = "")
-
-}
+# Used to be used in `glex_explain()`, currently unused but kept in case it comes in handy.
+# @noRd
+# @keywords internal
+# @param term (`character`) One or more terms to be looked up in `x`, e.g. `"x1"`, `c("x1", "x2:x3")`
+# @param x Dataset with original observations.
+# label_m_x <- function(term, x) {
+#
+#   vapply(term, function(m) {
+#     m <- unlist(strsplit(m, split = ":"))
+#     xvals <- sapply(m, function(mx) {
+#       xval <- x[[mx]]
+#       if (is.factor(xval)) xval <- as.character(xval)
+#       if (is.numeric(xval)) xval <- format(xval, scipen = 4, justify = "none", digits = 4)
+#       xval
+#     })
+#
+#     paste0(sprintf("%s [%s]", m, xvals), collapse = "\n")
+#   }, FUN.VALUE = "")
+#
+# }
 
 #' Utility to get symmetric range of component
 #' @keywords internal

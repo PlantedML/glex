@@ -49,12 +49,12 @@ glex_rpf <- glex(rp, mtcars[27:32, ])
 vi_rpf <- glex_vi(glex_rpf)
 
 library(ggplot2)
-# Filter to contributions greater 0.1 on the scale of the target
-autoplot(vi_rpf, threshold = 0.1)
+# Filter to contributions greater 0.05 on the scale of the target
+autoplot(vi_rpf, threshold = 0.05)
 # Summarize by degree of interaction
 autoplot(vi_rpf, by_degree = TRUE)
-# Filter by relative contributions greater 0.5\%
-autoplot(vi_rpf, scale = "relative", threshold = 0.005)
+# Filter by relative contributions greater 0.1\%
+autoplot(vi_rpf, scale = "relative", threshold = 0.001)
 }
 
 # xgboost -----
