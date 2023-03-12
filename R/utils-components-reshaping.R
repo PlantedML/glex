@@ -33,20 +33,12 @@ melt_m <- function(m, levels = NULL) {
   m[, ".id" := NULL]
 
   if (!is.null(levels)) {
-    m_long[, class := multiclass_m_to_class(term, levels)]
-    m_long[, term := multiclass_m_to_term(term)]
+    m_long[, class := split_names(term, split_string = "__class:", target_index = 2)]
+    m_long[, class := factor(class, levels = levels)]
+    m_long[, term := split_names(term, split_string = "__class:", target_index = 1)]
   }
 
   m_long
-}
-
-multiclass_m_to_class <- function(mn, levels) {
-  ret <- gsub(pattern = "__class:", replacement = "", regmatches(mn, regexpr("__class:(.*)$", mn)))
-  factor(ret, levels = levels)
-}
-
-multiclass_m_to_term <- function(mn) {
-  gsub(pattern = "__class:(.*)$", replacement = "", mn)
 }
 
 reshape_m_multiclass <- function(object) {
@@ -54,6 +46,21 @@ reshape_m_multiclass <- function(object) {
 
   mlong <- melt_m(object$m, object$target_levels)
   data.table::dcast(mlong, .id + class  ~ term, value.var = "m")
+}
+
+#' Helper to split multiclass terms of format <term>__class:<class>
+#'
+#' Should be faster / more consistent than using regex.
+#'
+#' @param mn Character vector of terms.
+#' @param split_string String to split at, currently "__class:" is used as default.
+#' @param target_index Index of split vector to return. Either 1 or 2 (default)
+#' @keywords internal
+#' @noRd
+split_names <- function(mn, split_string = "__class:", target_index = 2) {
+  vapply(mn, function(x) {
+    unlist(strsplit(x, split = split_string, fixed = TRUE))[target_index]
+  }, character(1), USE.NAMES = FALSE)
 }
 
 #' Get the degree of interaction from vector of terms
@@ -66,5 +73,5 @@ reshape_m_multiclass <- function(object) {
 #' @noRd
 #' @keywords internal
 get_degree <- function(x, pattern = ":") {
-  lengths(strsplit(x, split = ":", fixed = TRUE))
+  lengths(strsplit(x, split = pattern, fixed = TRUE))
 }
