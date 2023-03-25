@@ -48,7 +48,7 @@ get_m_limits <- function(xdf) {
 #' @noRd
 get_x_types <- function(components, predictors) {
   # Create look-up table for predictors and their types
-  tp <- c(numeric = "continuous", integer = "continuous", character = "categorical", factor = "categorical")
+  tp <- c(numeric = "continuous", integer = "continuous", character = "categorical", factor = "categorical", ordered = "categorical")
   x_types <- vapply(predictors, function(p) {
     cl <- class(components[["x"]][[p]])[1]
     tp[cl]
