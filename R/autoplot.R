@@ -45,10 +45,9 @@ autoplot.glex_vi <- function(
   object <- data.table::copy(object)
   by_what <- ifelse(by_degree, "Degree", "Term")
   score <- switch(scale, absolute = "m", relative = "m_rel")
-  object[, term_list := NULL]
 
   # FIXME: data.table NSE stuff
-  m <- m_rel <- degree <- term_list <- NULL
+  m <- m_rel <- degree <- NULL
 
   aggr_degree <- function(x) {
      if (length(x) == 0) return(NULL)

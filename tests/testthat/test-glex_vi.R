@@ -7,7 +7,7 @@ test_that("regression rpf", {
   vi <- glex_vi(gl) |>
     expect_s3_class("glex_vi") |>
     expect_s3_class("data.table") |>
-    expect_named(c("degree", "term", "term_list", "m", "m_rel"))
+    expect_named(c("degree", "term", "m", "m_rel"))
 
   expect_false(any(sapply(vi, anyNA)))
 })
@@ -42,7 +42,7 @@ test_that("binary rpf", {
   vi <- glex_vi(gl) |>
     expect_s3_class("glex_vi") |>
     expect_s3_class("data.table") |>
-    expect_named(c("degree", "term", "term_list", "m", "m_rel"))
+    expect_named(c("degree", "term", "m", "m_rel"))
 
   expect_false(any(sapply(vi, anyNA)))
 })
@@ -76,7 +76,7 @@ test_that("multiclass rpf", {
   vi <- glex_vi(gl) |>
     expect_s3_class("glex_vi") |>
     expect_s3_class("data.table") |>
-    expect_named(c("degree", "term", "term_list", "class", "m", "m_rel"))
+    expect_named(c("degree", "term", "class", "m", "m_rel"))
 
   expect_false(any(sapply(vi, anyNA)))
 })

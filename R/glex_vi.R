@@ -7,8 +7,6 @@
 #' * `degree` (`integer`): Degree of interaction of the `term`, with `1` being main effects,
 #'    `2` being 2-degree interactions etc.
 #' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
-#' * `term_list` (`list`): Same as `term` but as a list-column to enable filtering by specific variables without
-#'   requiring to split by `:`.
 #' * `class` (`factor`): For multiclass targets only: The associated target class. Lists all classes in the
 #'   target, not limited to the majority vote.
 #' * `m` (`numeric`): Average absolute contribution of `term`, see Details.
@@ -67,24 +65,23 @@ glex_vi <- function(object, ...) {
   checkmate::assert_class(object, classes = "glex")
 
   # FIXME: data.table NSE warnings
-  term <- term_list <- degree <- m <- m_rel <- NULL
+  term <- degree <- m <- m_rel <- NULL
 
   m_long <- melt_m(object$m, object$target_levels)
 
   if (!is.null(object$target_levels)) {
     vars_by <- c("term", "class")
-    vars_out <- c("degree", "term", "term_list", "class", "m", "m_rel")
+    vars_out <- c("degree", "term", "class", "m", "m_rel")
   } else {
     vars_by <- "term"
-    vars_out <- c("degree", "term", "term_list", "m", "m_rel")
+    vars_out <- c("degree", "term", "m", "m_rel")
   }
 
   # aggregate by term, add useful variables
   m_aggr <- m_long[, list(m = mean(abs(m))), by = vars_by]
   # Only return non-zero scores
   m_aggr <- m_aggr[m_aggr[["m"]] > 0]
-  m_aggr[, term_list := lapply(term, function(x) unlist(strsplit(x, ":")))]
-  m_aggr[, degree := lengths(term_list)]
+  m_aggr[, degree := get_degree(term)]
   m_aggr[, m_rel := (m / object[["intercept"]])]
 
   data.table::setorder(m_aggr, -m)

@@ -10,6 +10,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// find_term_matches
+std::vector<int> find_term_matches(std::string main_term, std::vector<std::string> terms);
+RcppExport SEXP _glex_find_term_matches(SEXP main_termSEXP, SEXP termsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type main_term(main_termSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type terms(termsSEXP);
+    rcpp_result_gen = Rcpp::wrap(find_term_matches(main_term, terms));
+    return rcpp_result_gen;
+END_RCPP
+}
 // recurse
 Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node);
 RcppExport SEXP _glex_recurse(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP) {
@@ -46,6 +58,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_recurse", (DL_FUNC) &_glex_recurse, 9},
     {"_glex_contribute", (DL_FUNC) &_glex_contribute, 6},
     {NULL, NULL, 0}
