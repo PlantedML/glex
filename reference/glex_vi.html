@@ -80,8 +80,6 @@
 <p>A <code>data.table</code> with columns:</p><ul><li><p><code>degree</code> (<code>integer</code>): Degree of interaction of the <code>term</code>, with <code>1</code> being main effects,
 <code>2</code> being 2-degree interactions etc.</p></li>
 <li><p><code>term</code> (<code>character</code>): Model term, e.g. main effect <code>x1</code> or interaction term <code>x1:x2</code>, <code>x1:x3:x5</code> etc.</p></li>
-<li><p><code>term_list</code> (<code>list</code>): Same as <code>term</code> but as a list-column to enable filtering by specific variables without
-requiring to split by <code>:</code>.</p></li>
 <li><p><code>class</code> (<code>factor</code>): For multiclass targets only: The associated target class. Lists all classes in the
 target, not limited to the majority vote.</p></li>
 <li><p><code>m</code> (<code>numeric</code>): Average absolute contribution of <code>term</code>, see Details.</p></li>
