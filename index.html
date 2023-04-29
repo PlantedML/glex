@@ -82,15 +82,12 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Global explanations for tree-based models by decomposing regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates SHAP values and q-interaction SHAP for all values of q for tree-based models such as xgboost.</p>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
+<p>Global explanations for tree-based models by decomposing regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates exact intervetniaonal SHAP values and q-interaction interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as xgboost.</p>
+<p>See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures” <a href="https://arxiv.org/abs/2208.06151" class="external-link">(arxiv)</a>. ## Installation</p>
 <p>You can install the development version of glex from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PlantedML/glex"</span><span class="op">)</span></span></code></pre></div>
-</div>
 <div class="section level2">
 <h2 id="whats-included">What’s Included<a class="anchor" aria-label="anchor" href="#whats-included"></a>
 </h2>
