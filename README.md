@@ -12,9 +12,10 @@ coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](h
 
 Global explanations for tree-based models by decomposing regression or
 classification functions into the sum of main components and interaction
-components of arbitrary order. Calculates SHAP values and q-interaction
-SHAP for all values of q for tree-based models such as xgboost.
+components of arbitrary order. Calculates exact intervetniaonal SHAP values and q-interaction
+interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as xgboost.
 
+See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures" [(arxiv)](https://arxiv.org/abs/2208.06151).
 ## Installation
 
 You can install the development version of glex from
