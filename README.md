@@ -10,12 +10,18 @@
 coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=master)
 <!-- badges: end -->
 
-Global explanations for tree-based models by decomposing regression or
+Global explanations for tree-based models by decomposing regression or  
 classification functions into the sum of main components and interaction
-components of arbitrary order. Calculates exact intervetniaonal SHAP values and q-interaction
-interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as xgboost.
+components of arbitrary order. Calculates exact interventional SHAP
+values and q-interaction interventional SHAP (q being the highest order
+of interaction present in the model) for tree-based models such as
+XGBoost.
 
-See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures" [(arxiv)](https://arxiv.org/abs/2208.06151).
+See the accompanying paper for more details and exact definitions:
+“Unifying local and global model explanations by functional
+decomposition of low dimensional structures”
+[(arxiv)](https://arxiv.org/abs/2208.06151).
+
 ## Installation
 
 You can install the development version of glex from
@@ -109,12 +115,12 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 #>      pred_rpf sum_m_rpf
-#> [1,] 28.29398  28.29398
-#> [2,] 26.02555  26.02555
-#> [3,] 18.33365  18.33365
-#> [4,] 20.30721  20.30721
-#> [5,] 15.22179  15.22179
-#> [6,] 24.75446  24.75446
+#> [1,] 28.82532  28.82532
+#> [2,] 26.15614  26.15614
+#> [3,] 18.21634  18.21634
+#> [4,] 19.03077  19.03077
+#> [5,] 14.40612  14.40612
+#> [6,] 23.40146  23.40146
 ```
 
 ### Variable Importances
@@ -130,11 +136,11 @@ vi_xgb <- glex_vi(glex_xgb)
 vi_rpf[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     hp 1.3998532
-#> 2:      1     wt 1.1725086
-#> 3:      1   disp 1.0441441
-#> 4:      1   drat 0.8630354
-#> 5:      1    cyl 0.5955195
+#> 1:      1     hp 1.7444502
+#> 2:      1     wt 0.9335066
+#> 3:      1   drat 0.9220123
+#> 4:      1   disp 0.9151442
+#> 5:      1    cyl 0.4683222
 vi_xgb[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>

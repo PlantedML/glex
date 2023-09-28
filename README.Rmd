@@ -22,7 +22,11 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=master)
 <!-- badges: end -->
 
-Global explanations for tree-based models by decomposing  regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates SHAP values and q-interaction SHAP for all values of q for tree-based models such as xgboost.
+Global explanations for tree-based models by decomposing regression or                                                                     
+classification functions into the sum of main components and interaction components of arbitrary order. 
+Calculates exact interventional SHAP values and q-interaction interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as XGBoost.                 
+
+See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures" [(arxiv)](https://arxiv.org/abs/2208.06151).
 
 ## Installation
 
@@ -142,7 +146,6 @@ p_vi1 + p_vi2 +
   theme(plot.tag.position = "top")
 ```
 
-
 ### Feature Effects
 
 We can also plot prediction components against observed feature values, which admittedly produces more interesting output with larger, more interesting datasets.
@@ -176,8 +179,6 @@ p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) +
 
 p1 + p2 & theme(plot.tag.position = "bottom")
 ```
-
-
 
 [xgb]: https://cran.r-project.org/package=xgboost
 [rpf]: http://plantedml.com/randomPlantedForest/
