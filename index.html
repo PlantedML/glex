@@ -82,12 +82,17 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Global explanations for tree-based models by decomposing regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates exact intervetniaonal SHAP values and q-interaction interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as xgboost.</p>
-<p>See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures” <a href="https://arxiv.org/abs/2208.06151" class="external-link">(arxiv)</a>. ## Installation</p>
+<p>Global explanations for tree-based models by decomposing regression or<br>
+classification functions into the sum of main components and interaction components of arbitrary order. Calculates exact interventional SHAP values and q-interaction interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as XGBoost.</p>
+<p>See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures” <a href="https://arxiv.org/abs/2208.06151" class="external-link">(arxiv)</a>.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
 <p>You can install the development version of glex from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PlantedML/glex"</span><span class="op">)</span></span></code></pre></div>
+</div>
 <div class="section level2">
 <h2 id="whats-included">What’s Included<a class="anchor" aria-label="anchor" href="#whats-included"></a>
 </h2>
@@ -147,12 +152,12 @@
 <span><span class="co"># For RPF</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_rpf</span>, <span class="va">sum_m_rpf</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      pred_rpf sum_m_rpf</span></span>
-<span><span class="co">#&gt; [1,] 28.29398  28.29398</span></span>
-<span><span class="co">#&gt; [2,] 26.02555  26.02555</span></span>
-<span><span class="co">#&gt; [3,] 18.33365  18.33365</span></span>
-<span><span class="co">#&gt; [4,] 20.30721  20.30721</span></span>
-<span><span class="co">#&gt; [5,] 15.22179  15.22179</span></span>
-<span><span class="co">#&gt; [6,] 24.75446  24.75446</span></span></code></pre></div>
+<span><span class="co">#&gt; [1,] 28.82532  28.82532</span></span>
+<span><span class="co">#&gt; [2,] 26.15614  26.15614</span></span>
+<span><span class="co">#&gt; [3,] 18.21634  18.21634</span></span>
+<span><span class="co">#&gt; [4,] 19.03077  19.03077</span></span>
+<span><span class="co">#&gt; [5,] 14.40612  14.40612</span></span>
+<span><span class="co">#&gt; [6,] 23.40146  23.40146</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="variable-importances">Variable Importances<a class="anchor" aria-label="anchor" href="#variable-importances"></a>
 </h3>
@@ -164,11 +169,11 @@
 <span><span class="va">vi_rpf</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    degree   term         m</span></span>
 <span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      1     hp 1.3998532</span></span>
-<span><span class="co">#&gt; 2:      1     wt 1.1725086</span></span>
-<span><span class="co">#&gt; 3:      1   disp 1.0441441</span></span>
-<span><span class="co">#&gt; 4:      1   drat 0.8630354</span></span>
-<span><span class="co">#&gt; 5:      1    cyl 0.5955195</span></span>
+<span><span class="co">#&gt; 1:      1     hp 1.7444502</span></span>
+<span><span class="co">#&gt; 2:      1     wt 0.9335066</span></span>
+<span><span class="co">#&gt; 3:      1   drat 0.9220123</span></span>
+<span><span class="co">#&gt; 4:      1   disp 0.9151442</span></span>
+<span><span class="co">#&gt; 5:      1    cyl 0.4683222</span></span>
 <span><span class="va">vi_xgb</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    degree   term         m</span></span>
 <span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
