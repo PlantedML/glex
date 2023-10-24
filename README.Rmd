@@ -6,6 +6,7 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
+  warning = FALSE,
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
@@ -22,11 +23,17 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=master)
 <!-- badges: end -->
 
-Global explanations for tree-based models by decomposing regression or                                                                     
-classification functions into the sum of main components and interaction components of arbitrary order. 
-Calculates exact interventional SHAP values and q-interaction interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as XGBoost.                 
+Global explanations for tree-based models by decomposing regression or  
+classification functions into the sum of main components and interaction
+components of arbitrary order. Calculates exact interventional SHAP
+values and q-interaction interventional SHAP (q being the highest order
+of interaction present in the model) for tree-based models such as
+XGBoost.
 
-See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures" [(arxiv)](https://arxiv.org/abs/2208.06151).
+See the accompanying paper for more details and exact definitions:
+“Unifying local and global model explanations by functional
+decomposition of low dimensional structures”
+[(arxiv)](https://arxiv.org/abs/2208.06151).
 
 ## Installation
 
@@ -130,7 +137,7 @@ p_vi2 <- autoplot(vi_xgb, threshold = .05) +
 
 p_vi1 + p_vi2 +
   plot_annotation(title = "Variable importance scores by term") & 
-  theme(plot.tag.position = "bottomleft")
+  theme(plot.tag.position = "top")
 ```
 We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be particularly relevant for a given model.
 
@@ -155,13 +162,15 @@ p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Main effect for 'hp'")
+  plot_annotation(title = "Main effect for 'hp'") & 
+  theme(plot.tag.position = "top")
 
 p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
+  plot_annotation(title = "Two-way effects for 'hp' and 'wt'") & 
+  theme(plot.tag.position = "top")
 ```
 
 Currently there is support for plots of interactions up to the third degree, including continuous and categorical features. Unfortunately, three-way interactions of continuous features are not supported yet.
@@ -177,7 +186,8 @@ p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) +
 p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
   labs(tag = "XGBoost")
 
-p1 + p2 & theme(plot.tag.position = "bottom")
+p1 + p2 & theme(plot.tag.position = "bottom") & 
+  theme(plot.tag.position = "bottom")
 ```
 
 [xgb]: https://cran.r-project.org/package=xgboost

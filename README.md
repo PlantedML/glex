@@ -115,12 +115,12 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 #>      pred_rpf sum_m_rpf
-#> [1,] 28.82532  28.82532
-#> [2,] 26.15614  26.15614
-#> [3,] 18.21634  18.21634
-#> [4,] 19.03077  19.03077
-#> [5,] 14.40612  14.40612
-#> [6,] 23.40146  23.40146
+#> [1,] 29.69958  29.69958
+#> [2,] 25.24842  25.24842
+#> [3,] 19.35783  19.35783
+#> [4,] 20.75434  20.75434
+#> [5,] 15.95185  15.95185
+#> [6,] 24.86277  24.86277
 ```
 
 ### Variable Importances
@@ -136,11 +136,11 @@ vi_xgb <- glex_vi(glex_xgb)
 vi_rpf[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     hp 1.7444502
-#> 2:      1     wt 0.9335066
-#> 3:      1   drat 0.9220123
-#> 4:      1   disp 0.9151442
-#> 5:      1    cyl 0.4683222
+#> 1:      1     wt 1.4747963
+#> 2:      1     hp 1.3103943
+#> 3:      1   drat 1.0086698
+#> 4:      1     am 0.7842427
+#> 5:      1   disp 0.7641779
 vi_xgb[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
@@ -166,7 +166,7 @@ p_vi2 <- autoplot(vi_xgb, threshold = .05) +
 
 p_vi1 + p_vi2 +
   plot_annotation(title = "Variable importance scores by term") & 
-  theme(plot.tag.position = "bottomleft")
+  theme(plot.tag.position = "top")
 ```
 
 <img src="man/figures/README-glex_vi-plot-1.png" width="100%" /> We can
@@ -199,7 +199,8 @@ p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Main effect for 'hp'")
+  plot_annotation(title = "Main effect for 'hp'") & 
+  theme(plot.tag.position = "top")
 ```
 
 <img src="man/figures/README-plot_components-1.png" width="100%" />
@@ -210,7 +211,8 @@ p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
+  plot_annotation(title = "Two-way effects for 'hp' and 'wt'") & 
+  theme(plot.tag.position = "top")
 ```
 
 <img src="man/figures/README-plot_components-2.png" width="100%" />
@@ -233,7 +235,8 @@ p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) +
 p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
   labs(tag = "XGBoost")
 
-p1 + p2 & theme(plot.tag.position = "bottom")
+p1 + p2 & theme(plot.tag.position = "bottom") & 
+  theme(plot.tag.position = "bottom")
 ```
 
 <img src="man/figures/README-glex_explain-1.png" width="100%" />
