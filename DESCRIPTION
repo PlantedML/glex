@@ -16,8 +16,7 @@ Description: Global explanations for tree-based models by decomposing
     and q-interaction SHAP for all values of q for tree-based models such
     as xgboost.
 License: GPL-3
-URL: https://github.com/PlantedML/glex,
-    http://plantedml.com/glex/
+URL: https://github.com/PlantedML/glex, http://plantedml.com/glex/
 BugReports: https://github.com/PlantedML/glex/issues
 Imports: 
     checkmate,
@@ -40,10 +39,11 @@ Suggests:
     xgboost
 LinkingTo: 
     Rcpp
+VignetteBuilder: 
+    knitr
 Remotes:
     PlantedML/randomPlantedForest
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-VignetteBuilder: knitr
