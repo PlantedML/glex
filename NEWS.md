@@ -1,5 +1,6 @@
 # glex 0.3.0.9000 (Development version)
 
+* Add `plot_pdp()`, a version of `plot_main_effect()` with the intercept added.
 * Limit `max_interaction` in `glex.xgb.Booster` to `max_depth` parameter of `xgboost` model.
   If `max_depth` is not set during model fit, the default value of `6` is assumed.
   This prevents `glex` from returning spurious higher-order interactions containing values numerically close to 0.

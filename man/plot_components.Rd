@@ -28,7 +28,8 @@ plot_twoway_effects(object, predictors, ...)
 A \code{ggplot2} object.
 }
 \description{
-Plot Prediction Components
+Plotting the main effects among the prediction components is effectively
+identical to a partial dependence plot, centered to 0.
 }
 \examples{
 if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
@@ -66,6 +67,8 @@ plot_twoway_effects(components, c("cyl", "vs"))
 }
 }
 \seealso{
+\code{\link[=plot_pdp]{plot_pdp()}}
+
 Other Visualization functions: 
 \code{\link{autoplot.glex_vi}()},
 \code{\link{glex_explain}()}

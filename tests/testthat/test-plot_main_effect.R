@@ -1,5 +1,5 @@
 # These tests only ensure that glex_explain can create a ggplot without error
-# Plots still need to be manually expected. {vdiffr} would be an option but would only make sense
+# Plots still need to be manually inspected. {vdiffr} would be an option but would only make sense
 # once actual plot appearance is finalized.
 
 # Regression / rpf ------------------------------------------------------------------------------------------------

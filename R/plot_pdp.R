@@ -1,19 +1,16 @@
-#' Plot Prediction Components
+#' Partial Dependence Plot
 #'
-#' Plotting the main effects among the prediction components is effectively
-#' identical to a partial dependence plot, centered to 0.
+#' A version of [`plot_main_effect`] with the intercept term (horizontal line) added,
+#' resulting in a partial dependence plot.
 #'
-#' @rdname plot_components
 #' @param object Object of class [`glex`].
-#' @param predictor,predictors `(character)` vector of predictor names, e.g. `"x1"` to plot main effect of `x1`, and
-#'   `c("x1", "x2")` to plot the interaction term `x1:x2`.
-#' @param ... Unused
+#' @param predictor (`character(1)`) predictor names, e.g. `"x1"`.
+#' @param ... Used for future expansion.
 #'
 #' @return A `ggplot2` object.
 #' @import ggplot2
 #' @export
-#' @seealso [plot_pdp()]
-#'
+#' @seealso [plot_main_effect()]
 #' @examples
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
@@ -27,16 +24,17 @@
 #' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
 #' components <- glex(rpfit, mtcars)
 #'
-#' # Main effects ----
-#' plot_main_effect(components, "wt")
-#' plot_main_effect(components, "cyl")
+#' plot_pdp(components, "wt")
+#' plot_pdp(components, "cyl")
 #' }
-plot_main_effect <- function(object, predictor, ...) {
+plot_pdp <- function(object, predictor, ...) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_string(predictor) # Must be a single predictor
   checkmate::assert_subset(predictor, colnames(object$x), empty.ok = FALSE)
 
   xdf <- assemble_components(object, predictor)
+  # Add intercept - only relevant difference to plot_main_effect
+  xdf[["m"]] <- xdf[["m"]] + object[["intercept"]]
   x_type <- get_x_types(object, predictor)
 
   if (x_type == "continuous") {
@@ -44,7 +42,6 @@ plot_main_effect <- function(object, predictor, ...) {
       x = .data[[predictor]], y = .data[["m"]])
     )
     p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect", color = "#194155")
-    #p <- p + ggplot2::geom_point()
   }
 
   if (x_type == "categorical") {
@@ -58,6 +55,6 @@ plot_main_effect <- function(object, predictor, ...) {
   }
 
   p +
-    ggplot2::geom_hline(yintercept = 0, linetype = "6161") +
+    ggplot2::geom_hline(yintercept = object[["intercept"]], linetype = "6161") +
     ggplot2::labs(y = label_m(predictor))
 }
