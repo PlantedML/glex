@@ -4,6 +4,10 @@
 autoplot.glex <- function(object, predictors, ...) {
   np <- length(predictors)
 
+  if (np < 1 | np > 3) {
+    stop("You need to specify at least 1 but not more than 3 predictors!")
+  }
+
   if (np == 1) p <- plot_main_effect(object, predictors, ...)
   if (np == 2) p <- plot_twoway_effects(object, predictors, ...)
   if (np == 3) p <- plot_threeway_effects(object, predictors, ...)
