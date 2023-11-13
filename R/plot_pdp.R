@@ -56,5 +56,5 @@ plot_pdp <- function(object, predictor, ...) {
 
   p +
     ggplot2::geom_hline(yintercept = object[["intercept"]], linetype = "6161") +
-    ggplot2::labs(y = label_m(predictor))
+    ggplot2::labs(y = "Prediction")
 }
