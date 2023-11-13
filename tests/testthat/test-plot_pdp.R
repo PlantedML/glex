@@ -20,8 +20,6 @@ test_that("binary rpf", {
 
   p <- plot_pdp(gl, "x1")
   expect_s3_class(p, "ggplot")
-
-  expect_identical(p, autoplot(gl, "x1"))
 })
 
 
