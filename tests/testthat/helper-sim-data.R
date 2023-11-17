@@ -1,3 +1,5 @@
+set.seed(234)
+
 # Simulated data with binary/multiclass target
 xdat <- data.frame(
   x1 = rnorm(100),
