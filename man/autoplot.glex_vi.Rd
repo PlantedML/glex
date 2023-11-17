@@ -42,6 +42,7 @@ Plot glex Variable Importances
 
 Other Visualization functions: 
 \code{\link{autoplot.glex}()},
-\code{\link{glex_explain}()}
+\code{\link{glex_explain}()},
+\code{\link{plot_pdp}()}
 }
 \concept{Visualization functions}

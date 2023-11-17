@@ -39,4 +39,10 @@ plot_pdp(components, "cyl")
 }
 \seealso{
 \code{\link[=plot_main_effect]{plot_main_effect()}}
+
+Other Visualization functions: 
+\code{\link{autoplot.glex_vi}()},
+\code{\link{autoplot.glex}()},
+\code{\link{glex_explain}()}
 }
+\concept{Visualization functions}

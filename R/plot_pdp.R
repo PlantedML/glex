@@ -11,6 +11,7 @@
 #' @import ggplot2
 #' @export
 #' @seealso [plot_main_effect()]
+#' @family Visualization functions
 #' @examples
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)

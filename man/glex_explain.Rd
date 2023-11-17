@@ -59,6 +59,7 @@ glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
 \seealso{
 Other Visualization functions: 
 \code{\link{autoplot.glex_vi}()},
-\code{\link{autoplot.glex}()}
+\code{\link{autoplot.glex}()},
+\code{\link{plot_pdp}()}
 }
 \concept{Visualization functions}

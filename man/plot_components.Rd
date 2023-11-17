@@ -71,6 +71,7 @@ plot_twoway_effects(components, c("cyl", "vs"))
 
 Other Visualization functions: 
 \code{\link{autoplot.glex_vi}()},
-\code{\link{glex_explain}()}
+\code{\link{glex_explain}()},
+\code{\link{plot_pdp}()}
 }
 \concept{Visualization functions}
