@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
-coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=main)
+coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex)
 [![glex status
 badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
 <!-- badges: end -->
@@ -177,10 +177,12 @@ p_vi1 + p_vi2 +
   theme(plot.tag.position = "top")
 ```
 
-<img src="man/figures/README-glex_vi-plot-1.png" width="100%" /> We can
-also sum values within each degree of interaction for a more aggregated
-view, which can be useful as it allows us to judge interactions above a
-certain degree to not be particularly relevant for a given model.
+<img src="man/figures/README-glex_vi-plot-1.png" width="100%" />
+
+We can also sum values within each degree of interaction for a more
+aggregated view, which can be useful as it allows us to judge
+interactions above a certain degree to not be particularly relevant for
+a given model.
 
 ``` r
 p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
@@ -228,6 +230,15 @@ p1 + p2 +
 Currently there is support for plots of interactions up to the third
 degree, including continuous and categorical features. Unfortunately,
 three-way interactions of continuous features are not supported yet.
+
+Note that these main effect plots correspond to PDP plots, where the
+latter are merely the main effect plus the intercept term:
+
+``` r
+plot_pdp(glex_rpf, "hp")
+```
+
+<img src="man/figures/README-main_pdp-1.png" width="100%" />
 
 ### Decomposition of Individual Predictions
 
