@@ -7,7 +7,9 @@
 
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
-coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=master)
+coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=main)
+[![glex status
+badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
 <!-- badges: end -->
 
 Global explanations for tree-based models by decomposing regression or  
@@ -32,6 +34,12 @@ You can install the development version of glex from
 remotes::install_github("PlantedML/glex")
 ```
 
+or from [r-universe](https://plantedml.r-universe.dev/packages) with
+
+``` r
+install.packages("glex", repos = "https://plantedml.r-universe.dev")
+```
+
 ## What’s Included
 
 Currently `glex` works with
@@ -42,8 +50,8 @@ models, so we’ll start by fitting a model with one of each:
 ``` r
 # Install xgboost from CRAN
 install.packages("xgboost")
-# ... and randomPlantedForest from GitHub
-remotes::install_github("PlantedML/randomPlantedForest")
+# ... and randomPlantedForest from r-universe
+install.packages("randomPlantedForest", repos = "https://plantedml.r-universe.dev")
 ```
 
 ``` r
@@ -115,12 +123,12 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 #>      pred_rpf sum_m_rpf
-#> [1,] 29.69958  29.69958
-#> [2,] 25.24842  25.24842
-#> [3,] 19.35783  19.35783
-#> [4,] 20.75434  20.75434
-#> [5,] 15.95185  15.95185
-#> [6,] 24.86277  24.86277
+#> [1,] 28.51040  28.51040
+#> [2,] 26.00074  26.00074
+#> [3,] 17.35199  17.35199
+#> [4,] 19.57216  19.57216
+#> [5,] 14.98252  14.98252
+#> [6,] 23.90269  23.90269
 ```
 
 ### Variable Importances
@@ -136,11 +144,11 @@ vi_xgb <- glex_vi(glex_xgb)
 vi_rpf[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     wt 1.4747963
-#> 2:      1     hp 1.3103943
-#> 3:      1   drat 1.0086698
-#> 4:      1     am 0.7842427
-#> 5:      1   disp 0.7641779
+#> 1:      1     hp 1.6508213
+#> 2:      1   disp 1.1314800
+#> 3:      1     wt 0.9222168
+#> 4:      1   drat 0.6066751
+#> 5:      1    cyl 0.4174009
 vi_xgb[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>

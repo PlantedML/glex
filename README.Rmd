@@ -20,7 +20,8 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=master)
+[![Codecov test coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex?branch=main)
+[![glex status badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
 <!-- badges: end -->
 
 Global explanations for tree-based models by decomposing regression or  
@@ -44,6 +45,13 @@ You can install the development version of glex from [GitHub](https://github.com
 remotes::install_github("PlantedML/glex")
 ```
 
+or from [r-universe][r-universe] with
+
+```r
+install.packages("glex", repos = "https://plantedml.r-universe.dev")
+```
+
+
 ## What's Included
 
 Currently `glex` works with [`xgboost`][xgb] and [`randomPlantedForest`][rpf] models, so we'll start by fitting a model with one of each:
@@ -51,8 +59,8 @@ Currently `glex` works with [`xgboost`][xgb] and [`randomPlantedForest`][rpf] mo
 ```r
 # Install xgboost from CRAN
 install.packages("xgboost")
-# ... and randomPlantedForest from GitHub
-remotes::install_github("PlantedML/randomPlantedForest")
+# ... and randomPlantedForest from r-universe
+install.packages("randomPlantedForest", repos = "https://plantedml.r-universe.dev")
 ```
 
 ```{r setup}
@@ -192,3 +200,4 @@ p1 + p2 & theme(plot.tag.position = "bottom") &
 
 [xgb]: https://cran.r-project.org/package=xgboost
 [rpf]: http://plantedml.com/randomPlantedForest/
+[r-universe]: https://plantedml.r-universe.dev/packages
