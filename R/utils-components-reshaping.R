@@ -63,15 +63,3 @@ split_names <- function(mn, split_string = "__class:", target_index = 2) {
   }, character(1), USE.NAMES = FALSE)
 }
 
-#' Get the degree of interaction from vector of terms
-#'
-#' Terms of the form `"x1", "x2", "x1:x2"` have degrees 1, 1, 2, respectively.
-#' This utility function exists mainly for code deduplication and consistency.
-#' It is also a lot faster than using regex-approaches, yet it still makes the strong assumption
-#' of `:` _only_ occuring as an interaction delimiter.
-#'
-#' @noRd
-#' @keywords internal
-get_degree <- function(x, pattern = ":") {
-  lengths(strsplit(x, split = pattern, fixed = TRUE))
-}
