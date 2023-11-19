@@ -6,7 +6,7 @@
 \alias{glex.xgb.Booster}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(object, x, ...)
+glex(object, x, max_interaction = NULL, ...)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, ...)
 
@@ -17,22 +17,24 @@ glex(object, x, ...)
 
 \item{x}{Data to be explained.}
 
-\item{...}{Further arguments passed to methods.}
-
 \item{max_interaction}{(\code{integer(1): NULL})\cr
 Maximum interaction size to consider.
 Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
+
+\item{...}{Further arguments passed to methods.}
 }
 \value{
 Decomposition of the regression or classification function.
 A \code{list} with elements:
 \itemize{
 \item \code{shap}: SHAP values (\code{xgboost} method only).
-\item \code{m}: Functional decomposition, i.e., all main and interaction
+\item \code{m}: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by \code{max_interaction}.
-\item \code{intercept}: Intercept, i.e., expected value of the prediction.
+The variable names correspond to the original variable names,
+with \code{:} separating interaction terms as one would specify in a \code{\link{formula}} interface.
+\item \code{intercept}: Intercept term, the expected value of the prediction.
 }
 }
 \description{

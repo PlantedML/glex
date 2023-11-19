@@ -1,4 +1,3 @@
-
 #' Global explanations for tree-based models.
 #'
 #' Global explanations for tree-based models by decomposing
@@ -21,11 +20,13 @@
 #' @return Decomposition of the regression or classification function.
 #' A `list` with elements:
 #' * `shap`: SHAP values (`xgboost` method only).
-#' * `m`: Functional decomposition, i.e., all main and interaction
+#' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
-#' * `intercept`: Intercept, i.e., expected value of the prediction.
+#'   The variable names correspond to the original variable names,
+#'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
+#' * `intercept`: Intercept term, the expected value of the prediction.
 #' @export
-glex <- function(object, x, ...) {
+glex <- function(object, x, max_interaction = NULL, ...) {
   UseMethod("glex")
 }
 
