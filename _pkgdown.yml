@@ -28,5 +28,10 @@ reference:
 - text: -------
 - title: Utility functions
   contents:
+  - starts_with("subset_com")
   - starts_with("print.")
   #- starts_with("str.")
+
+- title: Data
+  contents:
+  - bike
