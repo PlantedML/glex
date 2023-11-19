@@ -55,7 +55,9 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0.9000" id="glex-0309000-development-version">glex 0.3.0.9000 (Development version)<a class="anchor" aria-label="anchor" href="#glex-0309000-development-version"></a></h2>
-<ul><li>Add <code><a href="../reference/plot_pdp.html">plot_pdp()</a></code>, a version of <code><a href="../reference/plot_components.html">plot_main_effect()</a></code> with the intercept added.</li>
+<ul><li>Add <code><a href="../reference/subset_components.html">subset_components()</a></code> and <code><a href="../reference/subset_components.html">subset_component_names()</a></code> to make it easier to extract only components belonging to a given main term.</li>
+<li>Add preprocessed version of <code>Bikeshare</code> data from <code>ISLR2</code> to streamlined examples.</li>
+<li>Add <code><a href="../reference/plot_pdp.html">plot_pdp()</a></code>, a version of <code><a href="../reference/plot_components.html">plot_main_effect()</a></code> with the intercept added.</li>
 <li>Limit <code>max_interaction</code> in <code>glex.xgb.Booster</code> to <code>max_depth</code> parameter of <code>xgboost</code> model. If <code>max_depth</code> is not set during model fit, the default value of <code>6</code> is assumed. This prevents <code>glex</code> from returning spurious higher-order interactions containing values numerically close to 0.</li>
 <li>Extend plot functions to multiclass classification. In most cases that means facetting by the target class.</li>
 <li>Overhaul <code>glex_explain</code> to a waterfall plot showing the SHAP decomposition for given predictors.</li>

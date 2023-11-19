@@ -25,6 +25,9 @@
     <loc>http://plantedml.com/glex/reference/autoplot.glex_vi.html</loc>
   </url>
   <url>
+    <loc>http://plantedml.com/glex/reference/bike.html</loc>
+  </url>
+  <url>
     <loc>http://plantedml.com/glex/reference/glex-package.html</loc>
   </url>
   <url>
@@ -47,5 +50,8 @@
   </url>
   <url>
     <loc>http://plantedml.com/glex/reference/print.glex.html</loc>
+  </url>
+  <url>
+    <loc>http://plantedml.com/glex/reference/subset_components.html</loc>
   </url>
 </urlset>
