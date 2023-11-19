@@ -8,7 +8,7 @@
 #' - `subset_component_names`: A character vector.
 #'
 #' @rdname subset_components
-#'
+#' @export
 #' @examples
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
