@@ -32,11 +32,26 @@
 #' plot_main_effect(components, "cyl")
 #' }
 plot_main_effect <- function(object, predictor, ...) {
+  plot_main_effect_impl(object, predictor, pdp = FALSE, ...)
+}
+
+#' Workhorse for plot-main_effect and plot_pdp
+#' Relevant differences
+#' - plot_pdp adds intercept term to y axis
+#' - plot_pdp shows "Prediction" as y-axis label rather than m_(term)
+#'
+#' @noRd
+#'
+plot_main_effect_impl <- function(object, predictor, pdp = FALSE, ...) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_string(predictor) # Must be a single predictor
   checkmate::assert_subset(predictor, colnames(object$x), empty.ok = FALSE)
 
   xdf <- assemble_components(object, predictor)
+  if (pdp) {
+    # Add intercept - only relevant difference to plot_main_effect
+    xdf[["m"]] <- xdf[["m"]] + object[["intercept"]]
+  }
   x_type <- get_x_types(object, predictor)
 
   if (x_type == "continuous") {
@@ -57,7 +72,12 @@ plot_main_effect <- function(object, predictor, ...) {
     p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
   }
 
-  p +
-    ggplot2::geom_hline(yintercept = 0, linetype = "6161") +
-    ggplot2::labs(y = label_m(predictor))
+  p <- p +
+    ggplot2::geom_hline(yintercept = 0, linetype = "6161")
+
+  if (pdp) {
+    p + ggplot2::labs(y = "Prediction")
+  } else {
+    p + ggplot2::labs(y = label_m(predictor))
+  }
 }
