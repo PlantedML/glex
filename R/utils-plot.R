@@ -74,6 +74,8 @@ diverging_palette <- function(...) {
     palette = "vikO",
     guide = guide_colorbar,
     midpoint = 0,
+    begin = 0.1,
+    end = 0.9,
     ...
   )
 }
