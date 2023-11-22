@@ -81,5 +81,6 @@ plot_threeway_effects <- function(object, predictors, ...) {
   }
 
   # Final cleanup ----
-  p + ggplot2::theme(legend.position = "bottom")
+  p +
+    theme_glex()
 }

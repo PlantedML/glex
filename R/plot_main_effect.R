@@ -76,8 +76,11 @@ plot_main_effect_impl <- function(object, predictor, pdp = FALSE, ...) {
     ggplot2::geom_hline(yintercept = 0, linetype = "6161")
 
   if (pdp) {
-    p + ggplot2::labs(y = "Prediction")
+    p <- p + ggplot2::labs(y = "Prediction")
   } else {
-    p + ggplot2::labs(y = label_m(predictor))
+    p <- p + ggplot2::labs(y = label_m(predictor))
   }
+
+  p +
+    theme_glex()
 }

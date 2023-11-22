@@ -21,14 +21,6 @@ library(ISLR2) # For Bikeshare dataset
 library(ggplot2)
 library(patchwork) # To arrange plots
 set.seed(2023)
-
-theme_set(
-  theme_minimal(base_size = 13) +
-  theme(
-    panel.grid.minor.x = element_blank(),
-    panel.grid.minor.y = element_blank()
-  )
-)
 ```
 
 ## Preparing the Data
@@ -78,7 +70,7 @@ t1 <- Sys.time()
 rp <- rpf(
   bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit + season,
   data = bike,
-  max_interaction = 3, ntrees = 30
+  max_interaction = 3, ntrees = 50, splits = 100, t_try = 0.9, split_try = 5
 )
 
 purify(rp)
@@ -175,7 +167,7 @@ autoplot(components, c("hum", "temp"))
 ```{r}
 autoplot(components, c("season", "hr", "weathersit"))
 autoplot(components, c("workingday", "hr", "season"))
-# Hard to interpret, likely spurious
+# Hard to interpret
 autoplot(components, c("workingday", "hr", "weathersit"))
 # zero effect
 autoplot(components, c("weathersit", "season", "workingday"))

@@ -1,7 +1,10 @@
 # glex 0.3.0.9000 (Development version)
 
+* Add `theme_glex()` as a default theme to all plots.  
+  This is almost identical to [`ggplot2::theme_minimal()`] aside from increased base font size
+  and convenience flags to toggle vertical and horizontal grid lines.
 * Add `subset_components()` and `subset_component_names()` to make it easier to extract only components belonging to a given main term.
-* Add preprocessed version of `Bikeshare` data from `ISLR2` to streamlined examples.
+* Add pre-processed version of `Bikeshare` data from `ISLR2` to streamlined examples.
 * Add `plot_pdp()`, a version of `plot_main_effect()` with the intercept added.
 * Limit `max_interaction` in `glex.xgb.Booster` to `max_depth` parameter of `xgboost` model.
   If `max_depth` is not set during model fit, the default value of `6` is assumed.

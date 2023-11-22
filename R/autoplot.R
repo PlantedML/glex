@@ -135,11 +135,6 @@ autoplot.glex_vi <- function(
       y = NULL, x = x_lab,
       fill = "Degree of Interaction"
     ) +
-    theme(
-      legend.position = "bottom",
-      panel.grid.minor.x = element_blank(),
-      panel.grid.major.y = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      axis.ticks.y = element_blank()
-    )
+    theme_glex(grid_x = FALSE, grid_y = TRUE) +
+    theme(axis.ticks.y = element_blank())
 }

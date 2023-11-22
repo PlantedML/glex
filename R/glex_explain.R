@@ -85,7 +85,6 @@ glex_explain <- function(
   mlong_id[, m_scaled := m / degree]
   mlong_id[, m := NULL]
 
-
   # Get observed values of selected predictors
   x_subset <- object$x[id, ]
 
@@ -167,11 +166,6 @@ glex_explain <- function(
       scales = "free_x", labeller = labeller(reference_term = xtemp)
     )
   } else {
-    # p <- p + facet_grid(
-    #   cols = vars(.data[["reference_term"]]), rows = vars(.data[["class"]]),
-    #   scales = "free_x", labeller = labeller(reference_term = xtemp, class = label_both)
-    # )
-
     p <- p + facet_wrap(
       vars(.data[["reference_term"]], .data[["class"]]),
       scales = "free_x", labeller = labeller(reference_term = xtemp, class = label_both)
@@ -252,6 +246,7 @@ glex_explain <- function(
 
   # print(p)
   # invisible(list(components = xdf, shap = xshap, plot = p))
-  p
+  p +
+    theme_glex()
 }
 
