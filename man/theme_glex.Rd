@@ -31,6 +31,8 @@ A \code{ggplot2} theme object
 This is a slight variation of \code{\link[ggplot2:ggtheme]{ggplot2::theme_minimal()}} with increased font size.
 }
 \examples{
+library(ggplot2)
+
 ggplot(mtcars, aes(wt, mpg)) +
   geom_point() +
   theme_glex()
