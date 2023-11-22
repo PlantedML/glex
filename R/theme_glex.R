@@ -12,6 +12,8 @@
 #' @export
 #' @import ggplot2
 #' @examples
+#' library(ggplot2)
+#'
 #' ggplot(mtcars, aes(wt, mpg)) +
 #'   geom_point() +
 #'   theme_glex()
