@@ -4,7 +4,7 @@
       out
     Output
        [1] "glex object of subclass rpf_components "                                     
-       [2] "Explaining predictions of 32 observations with 1 terms:"                     
+       [2] "Explaining predictions of 32 observations with 1 terms of up to 1 degree"    
        [3] ""                                                                            
        [4] "List of 3"                                                                   
        [5] " $ m        :Classes 'data.table' and 'data.frame':\t32 obs. of  1 variable:"
