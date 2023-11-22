@@ -73,5 +73,6 @@ plot_twoway_effects <- function(object, predictors, ...) {
     p <- p + facet_wrap(vars(.data[["class"]]), labeller = label_both)
   }
   # Final cleanup ----
-  p + ggplot2::theme(legend.position = "bottom")
+  p +
+    theme_glex()
 }
