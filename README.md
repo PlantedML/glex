@@ -22,7 +22,7 @@ XGBoost.
 See the accompanying paper for more details and exact definitions:
 “Unifying local and global model explanations by functional
 decomposition of low dimensional structures”
-[(arxiv)](https://arxiv.org/abs/2208.06151).
+([arxiv](https://arxiv.org/abs/2208.06151), [PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
 
 ## Installation
 
