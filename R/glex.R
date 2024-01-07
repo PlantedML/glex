@@ -115,6 +115,12 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
 
+  # Calculate components
+  calc_components(trees, x, max_interaction)
+} 
+
+calc_components <- function(trees, x, max_interaction) {
+  
   # Function to get all subsets of set
   subsets <- function(x) {
     if (length(x) == 1) {
