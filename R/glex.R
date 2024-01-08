@@ -164,13 +164,13 @@ glex.ranger <- function(object, x, max_interaction = NULL, ...) {
   
   # If max_interaction is not specified, we set it to the max.depth param of the ranger model.
   # If max.depth is not defined in ranger, we assume 6 as in xgboost.
-  rf_max_depth <- ifelse((is.null(object$max.depth) | object$max.depth == 0), 6L, object$max.depth)
+  rf_max_depth <- ifelse((is.null(object$max.depth) || object$max.depth == 0), 6L, object$max.depth)
   
   if (is.null(max_interaction)) {
     max_interaction <- rf_max_depth
   }
   
-  checkmate::assert_int(max_interaction, lower = 1, upper = rf_max_depth)
+  checkmate::assert_int(max_interaction, lower = 1, upper = Inf)
   
   # Convert model into xgboost format
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
