@@ -111,7 +111,11 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
 
   # Calculate components
-  calc_components(trees, x, max_interaction)
+  res <- calc_components(trees, x, max_interaction)
+  res$intercept <- res$intercept + 0.5
+  
+  # Return components
+  res
 } 
 
 #' @rdname glex
@@ -283,7 +287,7 @@ calc_components <- function(trees, x, max_interaction) {
   ret <- list(
     shap = data.table::setDT(as.data.frame(shap)),
     m = data.table::setDT(as.data.frame(m_all[, -1])),
-    intercept = unique(m_all[, 1]) + 0.5,
+    intercept = unique(m_all[, 1]),
     x = data.table::setDT(as.data.frame(x))
   )
   class(ret) <- c("glex", "xgb_components", class(ret))
