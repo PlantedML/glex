@@ -142,6 +142,14 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
 #' }
 glex.ranger <- function(object, x, max_interaction = NULL, ...) {
   
+  # To avoid data.table check issues
+  terminal <- NULL
+  splitvarName <- NULL
+  splitStat <- NULL
+  prediction <- NULL
+  splitvarID <- NULL
+  tree <- NULL
+  
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("ranger needs to be installed: install.packages(\"ranger\")")
   }
