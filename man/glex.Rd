@@ -4,6 +4,7 @@
 \alias{glex}
 \alias{glex.rpf}
 \alias{glex.xgb.Booster}
+\alias{glex.ranger}
 \title{Global explanations for tree-based models.}
 \usage{
 glex(object, x, max_interaction = NULL, ...)
@@ -11,6 +12,8 @@ glex(object, x, max_interaction = NULL, ...)
 \method{glex}{rpf}(object, x, max_interaction = NULL, ...)
 
 \method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
+
+\method{glex}{ranger}(object, x, max_interaction = NULL, ...)
 }
 \arguments{
 \item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}
@@ -72,6 +75,22 @@ glex(xg, x[27:32, ])
 # Parallel execution
 doParallel::registerDoParallel()
 glex(xg, x[27:32, ])
+}
+}
+# ranger -----
+if (requireNamespace("ranger", quietly = TRUE)) {
+library(ranger)
+x <- as.matrix(mtcars[, -1])
+y <- mtcars$mpg
+rf <- ranger(data = x[1:26, ], label = y[1:26],
+             num.trees = 5, max.depth = 3, 
+             node.stats = TRUE)
+glex(rf, x[27:32, ])
+
+\dontrun{
+# Parallel execution
+doParallel::registerDoParallel()
+glex(rf, x[27:32, ])
 }
 }
 }
