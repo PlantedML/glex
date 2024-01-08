@@ -97,11 +97,6 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
 
-  # To avoid data.table check issues
-  Tree <- NULL
-  Feature <- NULL
-  Feature_num <- NULL
-
   # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
   # If max_depth is not defined in xgb, we assume its default of 6.
   xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6L, object$params$max_depth)
@@ -119,7 +114,80 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   calc_components(trees, x, max_interaction)
 } 
 
+#' @rdname glex
+#' @export
+#' @useDynLib glex, .registration = TRUE
+#' @import Rcpp
+#' @import data.table
+#' @import foreach
+#' @importFrom stats predict
+#' @importFrom utils combn
+#'
+#' @examples
+#' # ranger -----
+#' if (requireNamespace("ranger", quietly = TRUE)) {
+#' library(ranger)
+#' x <- as.matrix(mtcars[, -1])
+#' y <- mtcars$mpg
+#' rf <- ranger(data = x[1:26, ], label = y[1:26],
+#'              num.trees = 5, max.depth = 3, 
+#'              node.stats = TRUE)
+#' glex(rf, x[27:32, ])
+#'
+#' \dontrun{
+#' # Parallel execution
+#' doParallel::registerDoParallel()
+#' glex(rf, x[27:32, ])
+#' }
+#' }
+glex.ranger <- function(object, x, max_interaction = NULL, ...) {
+  
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("ranger needs to be installed: install.packages(\"ranger\")")
+  }
+  
+  if (is.null(object$forest$num.samples.nodes)) {
+    stop("ranger needs to be called with node.stats=TRUE for glex.")
+  }
+  
+  # If max_interaction is not specified, we set it to the max.depth param of the ranger model.
+  # If max.depth is not defined in ranger, we assume 6 as in xgboost.
+  rf_max_depth <- ifelse((is.null(object$max.depth) | object$max.depth == 0), 6L, object$max.depth)
+  
+  if (is.null(max_interaction)) {
+    max_interaction <- rf_max_depth
+  }
+  
+  checkmate::assert_int(max_interaction, lower = 1, upper = rf_max_depth)
+  
+  # Convert model into xgboost format
+  trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
+    as.data.table(ranger::treeInfo(object, tree = i))[, tree := i-1]
+  }))
+  trees[terminal == TRUE, splitvarName := "Leaf"]
+  trees[terminal == TRUE, splitStat := prediction]
+  trees[, splitvarID := NULL]
+  trees[, terminal := NULL]
+  trees[, prediction := NULL]
+  colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
+    
+  # Calculate components
+  res <- calc_components(trees, x, max_interaction)
+  
+  # Divide everything by the number of trees
+  res$shap <- res$shap / object$num.trees
+  res$m <- res$m / object$num.trees
+  res$intercept <- res$intercept / object$num.trees
+  
+  # Return components
+  res
+} 
+
 calc_components <- function(trees, x, max_interaction) {
+  # To avoid data.table check issues
+  Tree <- NULL
+  Feature <- NULL
+  Feature_num <- NULL
   
   # Function to get all subsets of set
   subsets <- function(x) {
