@@ -1,3 +1,5 @@
+library(ranger)
+
 x_train <- as.matrix(mtcars[1:26, -1])
 x_test <- as.matrix(mtcars[27:32, -1])
 y_train <- mtcars$mpg[1:26]
