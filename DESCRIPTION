@@ -36,7 +36,8 @@ Suggests:
     randomPlantedForest,
     rmarkdown,
     testthat (>= 3.0.0),
-    xgboost
+    xgboost, 
+    ranger
 LinkingTo: 
     Rcpp
 VignetteBuilder: 
