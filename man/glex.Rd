@@ -82,7 +82,7 @@ if (requireNamespace("ranger", quietly = TRUE)) {
 library(ranger)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-rf <- ranger(data = x[1:26, ], label = y[1:26],
+rf <- ranger(x = x[1:26, ], y = y[1:26],
              num.trees = 5, max.depth = 3, 
              node.stats = TRUE)
 glex(rf, x[27:32, ])
