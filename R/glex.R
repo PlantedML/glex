@@ -91,7 +91,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
@@ -126,11 +126,18 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
 
   # Convert features to numerics (leaf = 0)
   trees[, Feature_num := as.numeric(factor(Feature, levels = c("Leaf", colnames(x)))) - 1]
-
-  # All subsets S (that appear in any of the trees)
-  all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-    subsets(trees[Tree == tree & Feature_num > 0, sort(unique(as.integer(Feature_num)))])
-  })))
+  
+  if (is.null(features)) {
+    # All subsets S (that appear in any of the trees)
+    all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
+      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(as.integer(Feature_num)))])
+    })))
+  } else {
+    # All subsets with supplied features
+    # TODO: Check colnames
+    features_num <- as.numeric(factor(features, levels = c("Leaf", colnames(x)))) - 1
+    all_S <- subsets(sort(unique(as.integer(features_num))))
+  }
 
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)

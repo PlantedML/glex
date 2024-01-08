@@ -10,7 +10,7 @@ glex(object, x, max_interaction = NULL, ...)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, ...)
 
-\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
+\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, features = NULL, ...)
 }
 \arguments{
 \item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}
