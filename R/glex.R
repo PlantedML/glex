@@ -134,7 +134,9 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
     })))
   } else {
     # All subsets with supplied features
-    # TODO: Check colnames
+    if (!all(features %in% colnames(x))) {
+      stop("All selected features have to be column names of x.")
+    }
     features_num <- as.numeric(factor(features, levels = c("Leaf", colnames(x)))) - 1
     all_S <- subsets(sort(unique(as.integer(features_num))))
   }
