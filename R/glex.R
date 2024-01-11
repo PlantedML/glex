@@ -125,20 +125,20 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   }
 
   # Convert features to numerics (leaf = 0)
-  trees[, Feature_num := as.numeric(factor(Feature, levels = c("Leaf", colnames(x)))) - 1]
+  trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
   
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
     all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(as.integer(Feature_num)))])
+      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))])
     })))
   } else {
     # All subsets with supplied features
     if (!all(features %in% colnames(x))) {
       stop("All selected features have to be column names of x.")
     }
-    features_num <- as.numeric(factor(features, levels = c("Leaf", colnames(x)))) - 1
-    all_S <- subsets(sort(unique(as.integer(features_num))))
+    features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
+    all_S <- subsets(sort(unique(features_num)))
   }
 
   # Keep only those with not more than max_interaction involved features
@@ -150,7 +150,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
     # Calculate matrix
     tree_info <- trees[Tree == tree, ]
 
-    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
+    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
     U <- subsets(T)
     mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                    tree_info$Quality, tree_info$Cover, U, 0)
