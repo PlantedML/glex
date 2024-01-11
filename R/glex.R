@@ -15,6 +15,7 @@
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
+#' @param features Vector of column names in x to calculate components for. If \code{NULL}, all features are used.
 #' @param ... Further arguments passed to methods.
 #'
 #' @return Decomposition of the regression or classification function.
@@ -26,7 +27,7 @@
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
 #' @export
-glex <- function(object, x, max_interaction = NULL, ...) {
+glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
 }
 
@@ -51,7 +52,7 @@ glex.default <- function(object, ...) {
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #' str(glex_rpf, list.len = 5)
 #' }
-glex.rpf <- function(object, x, max_interaction = NULL, ...) {
+glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0("randomPlantedForest needs to be installed: ",
                 "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
@@ -59,7 +60,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
 
   ret <- randomPlantedForest::predict_components(
     object = object, new_data = x, max_interaction = max_interaction,
-    predictors = NULL
+    predictors = features
   )
   # class(ret) <- c("glex", "rpf_components", class(ret))
   ret
@@ -91,7 +92,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
@@ -111,7 +112,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction)
+  res <- calc_components(trees, x, max_interaction, features)
   res$intercept <- res$intercept + 0.5
   
   # Return components
@@ -144,7 +145,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, ...) {
+glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   
   # To avoid data.table check issues
   terminal <- NULL
@@ -184,7 +185,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, ...) {
   colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
     
   # Calculate components
-  res <- calc_components(trees, x, max_interaction)
+  res <- calc_components(trees, x, max_interaction, features)
   
   # Divide everything by the number of trees
   res$shap <- res$shap / object$num.trees
@@ -195,7 +196,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, ...) {
   res
 } 
 
-calc_components <- function(trees, x, max_interaction) {
+calc_components <- function(trees, x, max_interaction, features) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -211,12 +212,21 @@ calc_components <- function(trees, x, max_interaction) {
   }
 
   # Convert features to numerics (leaf = 0)
-  trees[, Feature_num := as.numeric(factor(Feature, levels = c("Leaf", colnames(x)))) - 1]
-
-  # All subsets S (that appear in any of the trees)
-  all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-    subsets(trees[Tree == tree & Feature_num > 0, sort(unique(as.integer(Feature_num)))])
-  })))
+  trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
+  
+  if (is.null(features)) {
+    # All subsets S (that appear in any of the trees)
+    all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
+      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))])
+    })))
+  } else {
+    # All subsets with supplied features
+    if (!all(features %in% colnames(x))) {
+      stop("All selected features have to be column names of x.")
+    }
+    features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
+    all_S <- subsets(sort(unique(features_num)))
+  }
 
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
@@ -227,7 +237,7 @@ calc_components <- function(trees, x, max_interaction) {
     # Calculate matrix
     tree_info <- trees[Tree == tree, ]
 
-    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
+    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
     U <- subsets(T)
     mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                    tree_info$Quality, tree_info$Cover, U, 0)
@@ -237,14 +247,12 @@ calc_components <- function(trees, x, max_interaction) {
 
     # Init m matrix
     m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-      #browser()
     colnames(m_all) <- vapply(all_S, function(s) {
       paste(sort(colnames(x)[s]), collapse = ":")
     }, FUN.VALUE = character(1))
 
-    # Calculate contribution, use only subsets with not more than max_interaction involved features
-    d <- lengths(U)
-    for (S in U[d <= max_interaction]) {
+    # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
+    for (S in intersect(U, all_S)) {
       colname <- paste(sort(colnames(x)[S]), collapse = ":")
       if (nchar(colname) == 0) {
         colnum <- 1

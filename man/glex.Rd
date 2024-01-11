@@ -7,13 +7,13 @@
 \alias{glex.ranger}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(object, x, max_interaction = NULL, ...)
+glex(object, x, max_interaction = NULL, features = NULL, ...)
 
-\method{glex}{rpf}(object, x, max_interaction = NULL, ...)
+\method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
 
-\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
+\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, features = NULL, ...)
 
-\method{glex}{ranger}(object, x, max_interaction = NULL, ...)
+\method{glex}{ranger}(object, x, max_interaction = NULL, features = NULL, ...)
 }
 \arguments{
 \item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}
@@ -25,6 +25,8 @@ Maximum interaction size to consider.
 Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
+
+\item{features}{Vector of column names in x to calculate components for. If \code{NULL}, all features are used.}
 
 \item{...}{Further arguments passed to methods.}
 }
