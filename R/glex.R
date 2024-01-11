@@ -160,14 +160,12 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
     # Init m matrix
     m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-      #browser()
     colnames(m_all) <- vapply(all_S, function(s) {
       paste(sort(colnames(x)[s]), collapse = ":")
     }, FUN.VALUE = character(1))
 
-    # Calculate contribution, use only subsets with not more than max_interaction involved features
-    d <- lengths(U)
-    for (S in U[d <= max_interaction]) {
+    # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
+    for (S in intersect(U, all_S)) {
       colname <- paste(sort(colnames(x)[S]), collapse = ":")
       if (nchar(colname) == 0) {
         colnum <- 1
