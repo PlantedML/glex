@@ -129,7 +129,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
 
   # All subsets S (that appear in any of the trees)
   all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-    subsets(trees[Tree == tree & Feature_num > 0, sort(unique(as.integer(Feature_num)))])
+    subsets(trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))])
   })))
 
   # Keep only those with not more than max_interaction involved features
