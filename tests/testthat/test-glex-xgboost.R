@@ -38,3 +38,12 @@ test_that("features argument only calculates for given feautures", {
   expect_equal(colnames(glexb$m), c("cyl", "disp", "cyl:disp"))
 })
 
+test_that("features argument results in same values as without", {
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbose = 0)
+  glexb1 <- glex(xg, x, features = c("cyl", "disp"))
+  glexb2 <- glex(xg, x)
+  cols <- c("cyl", "disp", "cyl:disp")
+  expect_equal(glexb1$m[, ..cols], glexb2$m[, ..cols])
+})
+
