@@ -47,3 +47,10 @@ test_that("features argument results in same values as without", {
   expect_equal(glexb1$m[, ..cols], glexb2$m[, ..cols])
 })
 
+test_that("features argument works together with max_interaction", {
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbose = 0)
+  glexb <- glex(xg, x, features = c("cyl", "disp"), max_interaction = 1)
+  expect_equal(colnames(glexb$m), c("cyl", "disp"))
+})
+
