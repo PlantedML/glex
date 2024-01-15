@@ -141,7 +141,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     # Calculate matrix
     tree_info <- trees[Tree == tree, ]
 
-    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
+    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
     U <- subsets(T)
     mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                    tree_info$Quality, tree_info$Cover, U, 0)
