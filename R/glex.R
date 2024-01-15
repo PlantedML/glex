@@ -157,8 +157,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
     }, FUN.VALUE = character(1))
 
     # Calculate contribution, use only subsets with not more than max_interaction involved features
-    d <- lengths(U)
-    for (S in U[d <= max_interaction]) {
+    for (S in intersect(U, all_S)) {
       colname <- paste(sort(colnames(x)[S]), collapse = ":")
       if (nchar(colname) == 0) {
         colnum <- 1
