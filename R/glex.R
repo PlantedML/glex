@@ -125,7 +125,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, ...) {
   }
 
   # Convert features to numerics (leaf = 0)
-  trees[, Feature_num := as.numeric(factor(Feature, levels = c("Leaf", colnames(x)))) - 1]
+  trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
 
   # All subsets S (that appear in any of the trees)
   all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
