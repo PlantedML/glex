@@ -23,8 +23,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // recurse
-Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node);
-RcppExport SEXP _glex_recurse(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP) {
+Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericMatrix& lb, Rcpp::NumericMatrix& ub, Rcpp::IntegerVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node, Rcpp::Function probFunction);
+RcppExport SEXP _glex_recurse(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP lbSEXP, SEXP ubSEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP, SEXP probFunctionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,10 +34,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type yes(yesSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type no(noSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type quality(qualitySEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type cover(coverSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type lb(lbSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type ub(ubSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type cover(coverSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int> >& >::type U(USEXP);
     Rcpp::traits::input_parameter< unsigned int >::type node(nodeSEXP);
-    rcpp_result_gen = Rcpp::wrap(recurse(x, feature, split, yes, no, quality, cover, U, node));
+    Rcpp::traits::input_parameter< Rcpp::Function >::type probFunction(probFunctionSEXP);
+    rcpp_result_gen = Rcpp::wrap(recurse(x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -59,7 +62,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
-    {"_glex_recurse", (DL_FUNC) &_glex_recurse, 9},
+    {"_glex_recurse", (DL_FUNC) &_glex_recurse, 12},
     {"_glex_contribute", (DL_FUNC) &_glex_contribute, 6},
     {NULL, NULL, 0}
 };

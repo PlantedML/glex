@@ -5,8 +5,8 @@ find_term_matches <- function(main_term, terms) {
     .Call(`_glex_find_term_matches`, main_term, terms)
 }
 
-recurse <- function(x, feature, split, yes, no, quality, cover, U, node) {
-    .Call(`_glex_recurse`, x, feature, split, yes, no, quality, cover, U, node)
+recurse <- function(x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction) {
+    .Call(`_glex_recurse`, x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction)
 }
 
 contribute <- function(mat, m_all, S, T, T_subsets, colnum) {

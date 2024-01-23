@@ -215,44 +215,7 @@ calc_components <- function(trees, x, max_interaction, features, cov_args) {
   trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
   
   # Calculate coverage from theoretical distribution, if given
-  if (!is.null(cov_args)) {
-    p <- ncol(x)
-    if (!is.list(cov_args) || (length(cov_args) != 2) || 
-        !(is.vector(cov_args[[1]])) || (length(cov_args[[1]]) != p) || 
-        !(is.matrix(cov_args[[2]])) || (ncol(cov_args[[2]]) != p) || (nrow(cov_args[[2]]) != p)) {
-      stop("cov_args has to be a list with mean and sigma from multivariate normal.")
-    } else {
-      for (tt in 0:(trees[, max(Tree)])) {
-        max_node <- trees[Tree == tt, max(Node)]
-        num_nodes <- max_node + 1
-        lb <- matrix(-Inf, nrow = num_nodes, ncol = p)
-        ub <- matrix(Inf, nrow = num_nodes, ncol = p)
-        for (nn in 0:max_node) {
-          if (trees[Tree == tt & Node == nn, !is.na(Yes)]) {
-            left_child <- trees[Tree == tt & Node == nn, Yes]
-            right_child <- trees[Tree == tt & Node == nn, No]
-            splitvar <- trees[Tree == tt & Node == nn, Feature_num]
-            
-            # Children inherit bounds
-            ub[left_child + 1, ] <- ub[nn + 1, ]
-            ub[right_child + 1, ] <- ub[nn + 1, ]
-            lb[left_child + 1, ] <- lb[nn + 1, ]
-            lb[right_child + 1, ] <- lb[nn + 1, ]
-            
-            # Restrict by new split
-            ub[left_child + 1, splitvar] <- trees[Tree == tt & Node == nn, Split]
-            lb[right_child + 1, splitvar] <- trees[Tree == tt & Node == nn, Split]
-          }
-        }
-
-        # Overwrite coverage with theoretical values
-        for (nn in 0:max_node) {
-          n <- trees[Tree == tt, max(Cover)]
-          trees[Tree == tt & Node == nn, Cover := pmvnorm(lower = lb[nn + 1, ], upper = ub[nn + 1, ], mean = cov_args[[1]], sigma = cov_args[[2]], keepAttr = FALSE) * n]
-        }
-      }
-    }
-  }
+  
   
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
@@ -277,10 +240,36 @@ calc_components <- function(trees, x, max_interaction, features, cov_args) {
     # Calculate matrix
     tree_info <- trees[Tree == tree, ]
 
+    max_node <- trees[Tree == tree, max(Node)]
+    num_nodes <- max_node + 1
+    lb <- matrix(-Inf, nrow = num_nodes, ncol = p)
+    ub <- matrix(Inf, nrow = num_nodes, ncol = p)
+    for (nn in 0:max_node) {
+      if (trees[Tree == tree & Node == nn, !is.na(Yes)]) {
+        left_child <- trees[Tree == tree & Node == nn, Yes]
+        right_child <- trees[Tree == tree & Node == nn, No]
+        splitvar <- trees[Tree == tree & Node == nn, Feature_num]
+
+        # Children inherit bounds
+        ub[left_child + 1, ] <- ub[nn + 1, ]
+        ub[right_child + 1, ] <- ub[nn + 1, ]
+        lb[left_child + 1, ] <- lb[nn + 1, ]
+        lb[right_child + 1, ] <- lb[nn + 1, ]
+
+        # Restrict by new split
+        ub[left_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
+        lb[right_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
+      }
+    }
+
+    probFunction <- function(coords, lb, ub) {
+      pmvnorm(lower = lb, upper = ub, mean = cov_args[[1]][coords], sigma = cov_args[[2]][coords, coords])
+    }
+
     T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
     U <- subsets(T)
     mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-                   tree_info$Quality, tree_info$Cover, U, 0)
+                   tree_info$Quality, lb, ub, integer(0), U, 0, probFunction)
     colnames(mat) <- vapply(U, function(u) {
       paste(sort(colnames(x)[u]), collapse = ":")
     }, FUN.VALUE = character(1))
