@@ -92,7 +92,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, cov_args = NULL, ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = function (...) 1, ...) {
 
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
@@ -112,7 +112,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, cov_args)
+  res <- calc_components(trees, x, max_interaction, features, probFunction)
   res$intercept <- res$intercept + 0.5
   
   # Return components
@@ -145,7 +145,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, cov_args = NULL, ...) {
+glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = function (...) 1, ...) {
   
   # To avoid data.table check issues
   terminal <- NULL
@@ -185,7 +185,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, cov_
   colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
   
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, cov_args)
+  res <- calc_components(trees, x, max_interaction, features, probFunction)
   
   # Divide everything by the number of trees
   res$shap <- res$shap / object$num.trees
@@ -196,7 +196,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, cov_
   res
 } 
 
-calc_components <- function(trees, x, max_interaction, features, cov_args) {
+calc_components <- function(trees, x, max_interaction, features, probFunction = function (...) 1) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -260,10 +260,6 @@ calc_components <- function(trees, x, max_interaction, features, cov_args) {
         ub[left_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
         lb[right_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
       }
-    }
-
-    probFunction <- function(coords, lb, ub) {
-      pmvnorm(lower = lb, upper = ub, mean = cov_args[[1]][coords], sigma = cov_args[[2]][coords, coords])
     }
 
     T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)

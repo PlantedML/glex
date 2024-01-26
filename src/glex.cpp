@@ -46,7 +46,7 @@ Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature
           to_integrate_ub[k] = leaf_ub[k];
         }
 
-        p = Rcpp::as<double>(probFunction(to_integrate, to_integrate_lb, to_integrate_ub)); 
+        p = Rcpp::as<double>(probFunction(to_integrate, to_integrate_lb, to_integrate_ub));
       }
       Rcpp::NumericMatrix::Column to_fill = mat(Rcpp::_ , j);
       std::fill(to_fill.begin(), to_fill.end(), quality[node] * p);
