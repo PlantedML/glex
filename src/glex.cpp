@@ -42,8 +42,8 @@ Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature
         Rcpp::NumericVector to_integrate_ub(to_integrate.size());
 
         for (unsigned int k = 0; k < to_integrate.size(); ++k) {
-          to_integrate_lb[k] = leaf_lb[k];
-          to_integrate_ub[k] = leaf_ub[k];
+          to_integrate_lb[k] = leaf_lb[to_integrate[k]-1];
+          to_integrate_ub[k] = leaf_ub[to_integrate[k]-1];
         }
 
         p = Rcpp::as<double>(probFunction(to_integrate, to_integrate_lb, to_integrate_ub));
