@@ -242,8 +242,8 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
 
     max_node <- trees[Tree == tree, max(Node)]
     num_nodes <- max_node + 1
-    lb <- matrix(-Inf, nrow = num_nodes, ncol = p)
-    ub <- matrix(Inf, nrow = num_nodes, ncol = p)
+    lb <- matrix(-Inf, nrow = num_nodes, ncol = ncol(x))
+    ub <- matrix(Inf, nrow = num_nodes, ncol = ncol(x))
     for (nn in 0:max_node) {
       if (trees[Tree == tree & Node == nn, !is.na(Yes)]) {
         left_child <- trees[Tree == tree & Node == nn, Yes]
