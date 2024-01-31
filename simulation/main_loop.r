@@ -1,5 +1,6 @@
 old_glex <- glex::glex
 devtools::load_all()
+setwd('simulation')
 source("simulate_functions.r")
 source("summary.r")
 source("cv.r")
@@ -19,10 +20,14 @@ obtain_glex_objs <- function(dataset, model, cov_args) {
   glex_emp_p <- glex(model, x, probFunction = emp_p)
   glex_emp_p50 <- glex(model, x, probFunction = emp_p50)
   glex_emp_p100 <- glex(model, x, probFunction = emp_p100)
-  if (length(x) > 500) glex_emp_p500 <- glex(model, x, probFunction = emp_p500)
-  else glex_emp_p500 <- NULL
 
-  list(glex_true_p, glex_treeshap, glex_emp_p, glex_emp_p50, glex_emp_p100, glex_emp_p500)
+  glex_objs <- list(glex_true_p, glex_treeshap, glex_emp_p, glex_emp_p50, glex_emp_p100)
+
+  if (length(x) > 500) {
+    glex_emp_p500 <- glex(model, x, probFunction = emp_p500)
+    glex_objs <- append(glex_objs, glex_emp_p500)
+  }
+  glex_objs
 }
 
 obtain_shap_MSEs <- function(true_shap_fun, glex_true_p, to_explain) {
@@ -50,23 +55,46 @@ obtain_component_MSEs <- function(true_components_fun, glex_true_p, to_explain) 
 }
 
 
-simulate_inner <- function(n, c, s) {
+simulate_inner <- function(n, c, s, ...) {
   sim_dat_res <- simulate_dat_wrapped(n, c, s)
 
   dataset <- sim_dat_res$dat
   cov_args <- sim_dat_res$cov_args
 
-  res <- cv_and_obtain_learner(dataset)
+  res <- cv_and_obtain_learner(dataset, ...)
   model_mse <- res[[2]]$result$regr.mse
   model <- res[[1]]$model
 
   glex_objs <- obtain_glex_objs(dataset, model, cov_args)
-  shap_MSEs <- obtain_shap_MSEs(true_shap_fun = true_shap2, glex_true_p = glex_objs[[1]], to_explain = glex_objs[-1])
-  m_MSEs <- obtain_component_MSEs(true_components_fun = true_components_m, glex_true_p = glex_objs[[1]], to_explain = glex_objs[-1])
+  shap_MSEs <- obtain_shap_MSEs(
+    true_shap_fun = function(...) true_shap2(..., cov_base = c),
+    glex_true_p = glex_objs[[1]], 
+    to_explain = glex_objs[-1]
+  )
+  m_MSEs <- obtain_component_MSEs(
+    true_components_fun = function(...) true_components_m(..., cov_base = c),
+    glex_true_p = glex_objs[[1]], 
+    to_explain = glex_objs[-1]
+  )
 
   stats <- list(shap_MSEs, m_MSEs)
   list(dataset = dataset, model = model, glex_objs = glex_objs, stats = stats)
 }
 
+simulate_for_B <- function(n, c, s, B = 5, ...) {
+  lapply(1:B, function(iter) simulate_inner(n, c, s, ...))
+}
 
-res <- simulate_inner(1e3, 0.3, F)
+main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
+  combinations_to_try <- expand.grid(n = N, c = C, s = S)
+
+  complete_res <- list()
+  for (i in seq_along(nrow(combinations_to_try))) {
+    comb <- combinations_to_try[i, ]
+    sim_res <- simulate_for_B(comb$n, comb$c, comb$s, B)
+
+    complete_res[[i]] <- list(params = comb, sim_res = sim_res)
+  }
+
+  complete_res
+}
