@@ -1,6 +1,5 @@
 old_glex <- glex::glex
 devtools::load_all()
-setwd('simulation')
 source("simulate_functions.r")
 source("summary.r")
 source("cv.r")
@@ -81,8 +80,9 @@ simulate_inner <- function(n, c, s, ...) {
   list(dataset = dataset, model = model, glex_objs = glex_objs, stats = stats)
 }
 
-simulate_for_B <- function(n, c, s, B = 5, ...) {
-  lapply(1:B, function(iter) simulate_inner(n, c, s, ...))
+simulate_for_B <- function(n, c, s, B = 5, par = T, ...) {
+  if (par) future_lapply(1:B, function(iter) simulate_inner(n, c, s, ...))
+  else lapply(1:B, function(iter) simulate_inner(n, c, s, ...))
 }
 
 main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
@@ -98,5 +98,3 @@ main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
 
   complete_res
 }
-
-res <- simulate_inner(1e4, 0.3, F)
