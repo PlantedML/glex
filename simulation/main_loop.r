@@ -23,9 +23,9 @@ obtain_glex_objs <- function(dataset, model, cov_args) {
 
   glex_objs <- list(glex_true_p, glex_treeshap, glex_emp_p, glex_emp_p50, glex_emp_p100)
 
-  if (length(x) > 500) {
+  if (nrow(x) > 500) {
     glex_emp_p500 <- glex(model, x, probFunction = emp_p500)
-    glex_objs <- append(glex_objs, glex_emp_p500)
+    glex_objs[[length(glex_objs) + 1]] <- glex_emp_p500
   }
   glex_objs
 }
@@ -89,7 +89,7 @@ main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
   combinations_to_try <- expand.grid(n = N, c = C, s = S)
 
   complete_res <- list()
-  for (i in seq_along(nrow(combinations_to_try))) {
+  for (i in seq_len(nrow(combinations_to_try))) {
     comb <- combinations_to_try[i, ]
     sim_res <- simulate_for_B(comb$n, comb$c, comb$s, B)
 
@@ -98,3 +98,5 @@ main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
 
   complete_res
 }
+
+res <- simulate_inner(1e4, 0.3, F)
