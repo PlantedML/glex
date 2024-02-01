@@ -1,3 +1,8 @@
+library(future)
+library(future.apply)
+
+plan(multicore)
+
 source("main_loop.r")
 
 # Read command-line arguments
