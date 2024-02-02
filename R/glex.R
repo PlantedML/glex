@@ -269,7 +269,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
     colnames(mat) <- vapply(U, function(u) {
       paste(sort(colnames(x)[u]), collapse = ":")
     }, FUN.VALUE = character(1))
-    print('here')
+    print(paste("tree", tree, "of", max(trees$Tree)))
     # Init m matrix
     m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
     colnames(m_all) <- vapply(all_S, function(s) {
