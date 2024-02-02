@@ -54,8 +54,11 @@ obtain_component_MSEs <- function(true_components_fun, glex_true_p, to_explain) 
 }
 
 
-simulate_inner <- function(n, c, s, ..., sink = 0) {
-  sink(file = paste0("logs/log-", sink, "-", n, c, s, ".txt"))
+simulate_inner <- function(n, c, s, ..., sink = 0, par = T) {
+  if (par) {
+    sink(file = paste0("logs/log-", sink, "-", n, c, s, ".txt"))
+    future::plan(future::multicore)
+  }
   sim_dat_res <- simulate_dat_wrapped(n, c, s)
 
   dataset <- sim_dat_res$dat
@@ -83,10 +86,10 @@ simulate_inner <- function(n, c, s, ..., sink = 0) {
 
 simulate_for_B <- function(n, c, s, B = 5, par = T, ...) {
   if (par) future_lapply(1:B,
-    function(iter) simulate_inner(n, c, s, sink = iter, ...),
+    function(iter) simulate_inner(n, c, s, sink = iter, par = T, ...),
     future.seed = T
   )
-  else lapply(1:B, function(iter) simulate_inner(n, c, s, ...))
+  else lapply(1:B, function(iter) simulate_inner(n, c, s, par = F, ...))
 }
 
 main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
