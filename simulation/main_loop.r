@@ -6,26 +6,31 @@ source("cv.r")
 
 
 
-obtain_glex_objs <- function(dataset, model, cov_args) {
+obtain_glex_objs <- function(dataset, model, cov_args, only_emp_p = F) {
   x <- dataset$x
   true_p <- function(...) probFunction_(..., cov_args)
   emp_p <- function(...) probFunctionEmp_(..., x)
-  emp_p50 <- function(...) probFunctionEmp_(..., x[1:50, ])
-  emp_p100 <- function(...) probFunctionEmp_(..., x[1:100, ])
-  emp_p500 <- function(...) probFunctionEmp_(..., x[1:500, ])
+
 
   glex_treeshap <- old_glex(model, x)
   glex_true_p <- glex(model, x, probFunction = true_p)
   glex_emp_p <- glex(model, x, probFunction = emp_p)
-  glex_emp_p50 <- glex(model, x, probFunction = emp_p50)
-  glex_emp_p100 <- glex(model, x, probFunction = emp_p100)
+  glex_objs <- list(glex_treeshap, glex_true_p, glex_emp_p)
+  if (!only_emp_p) {
+    emp_p50 <- function(...) probFunctionEmp_(..., x[1:50, ])
+    emp_p100 <- function(...) probFunctionEmp_(..., x[1:100, ])
 
-  glex_objs <- list(glex_true_p, glex_treeshap, glex_emp_p, glex_emp_p50, glex_emp_p100)
+    glex_emp_p50 <- glex(model, x, probFunction = emp_p50)
+    glex_emp_p100 <- glex(model, x, probFunction = emp_p100)
+    glex_objs <- c(glex_objs, list(glex_emp_p50, glex_emp_p100))
 
-  if (nrow(x) > 500) {
-    glex_emp_p500 <- glex(model, x, probFunction = emp_p500)
-    glex_objs[[length(glex_objs) + 1]] <- glex_emp_p500
+    if (nrow(x) > 500) {
+      emp_p500 <- function(...) probFunctionEmp_(..., x[1:500, ])
+      glex_emp_p500 <- glex(model, x, probFunction = emp_p500)
+      glex_objs[[length(glex_objs) + 1]] <- glex_emp_p500
+    }
   }
+
   glex_objs
 }
 
@@ -54,7 +59,7 @@ obtain_component_MSEs <- function(true_components_fun, glex_true_p, to_explain) 
 }
 
 
-simulate_inner <- function(n, c, s, ..., sink = 0, par = T) {
+simulate_inner <- function(n, c, s, ..., only_emp_p = F, sink = 0, par = T) {
   if (par) {
     sink(file = paste0("logs/log-", sink, "-", n, c, s, ".txt"))
     future::plan(future::multicore)
@@ -68,15 +73,15 @@ simulate_inner <- function(n, c, s, ..., sink = 0, par = T) {
   model_mse <- res[[2]]$result$regr.mse
   model <- res[[1]]$model
 
-  glex_objs <- obtain_glex_objs(dataset, model, cov_args)
+  glex_objs <- obtain_glex_objs(dataset, model, cov_args, only_emp_p = only_emp_p)
   shap_MSEs <- obtain_shap_MSEs(
     true_shap_fun = function(...) true_shap2(..., cov_base = c),
-    glex_true_p = glex_objs[[1]], 
+    glex_true_p = glex_objs[[1]],
     to_explain = glex_objs[-1]
   )
   m_MSEs <- obtain_component_MSEs(
     true_components_fun = function(...) true_components_m(..., cov_base = c),
-    glex_true_p = glex_objs[[1]], 
+    glex_true_p = glex_objs[[1]],
     to_explain = glex_objs[-1]
   )
 
@@ -85,12 +90,27 @@ simulate_inner <- function(n, c, s, ..., sink = 0, par = T) {
 }
 
 simulate_for_B <- function(n, c, s, B = 5, par = T, ...) {
-  if (par) future_lapply(1:B,
-    function(iter) simulate_inner(n, c, s, sink = iter, par = T, ...),
-    future.seed = T
-  )
-  else lapply(1:B, function(iter) simulate_inner(n, c, s, par = F, ...))
+  if (par) {
+    future_lapply(1:B,
+      function(iter) simulate_inner(n, c, s, sink = iter, par = T, ...),
+      future.seed = T
+    )
+  } else {
+    lapply(1:B, function(iter) simulate_inner(n, c, s, par = F, ...))
+  }
 }
+
+simulate_for_N <- function(c, s, N, par = T, ...) {
+  if (par) {
+    future_lapply(N,
+      function(n) simulate_inner(n, c, s, sink = n, par = T, ...),
+      future.seed = T
+    )
+  } else {
+    lapply(1:B, function(iter) simulate_inner(n, c, s, par = F, ...))
+  }
+}
+
 
 main_loop <- function(B = 100, N = c(500, 5000), C = c(0.3, 0), S = c(T, F)) {
   combinations_to_try <- expand.grid(n = N, c = C, s = S)

@@ -22,7 +22,10 @@ print(paste("Simulating using parameters:", sim_params))
 print(paste("For this many iterations:", nsim))
 
 
-sim_res <- simulate_for_B(sim_params$n, sim_params$c, sim_params$s, B = nsim, par = T)
+# sim_res <- simulate_for_B(sim_params$n, sim_params$c, sim_params$s, B = nsim, par = T)
+
+N <- 10^(2:6)
+sim_res <- simulate_for_N(N = N, s = F, c = 0.3, only_emp_p = T)
 save(sim_res, file = paste0('sim_res', sim_params$n, sim_params$c, sim_params$s, '.RData'))
 
 print("Finished! and saved")
