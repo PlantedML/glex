@@ -11,9 +11,23 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
 
-\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, features = NULL, cov_args = NULL, ...)
+\method{glex}{xgb.Booster}(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = function(...) 1,
+  ...
+)
 
-\method{glex}{ranger}(object, x, max_interaction = NULL, features = NULL, cov_args = NULL, ...)
+\method{glex}{ranger}(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = function(...) 1,
+  ...
+)
 }
 \arguments{
 \item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}

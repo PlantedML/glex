@@ -3,7 +3,6 @@
 \docType{package}
 \name{glex-package}
 \alias{glex-package}
-\alias{_PACKAGE}
 \title{glex: Global Explanations for Tree-Based Models}
 \description{
 Global explanations for tree-based models by decomposing regression or classification functions into the sum of main components and interaction components of arbitrary order. Calculates SHAP values and q-interaction SHAP for all values of q for tree-based models such as xgboost.

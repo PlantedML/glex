@@ -201,6 +201,10 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   Tree <- NULL
   Feature <- NULL
   Feature_num <- NULL
+  Node <- NULL
+  Yes <- NULL
+  No <- NULL
+  Split <- NULL
   
   # Function to get all subsets of set
   subsets <- function(x) {
