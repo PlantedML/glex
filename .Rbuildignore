@@ -11,3 +11,4 @@
 ^README\.Rmd$
 ^codecov\.yml$
 ^data-raw$
+^simulation$
