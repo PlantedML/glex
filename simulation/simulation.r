@@ -1,11 +1,14 @@
+old_glex <- glex::glex
+
 devtools::load_all()
+setwd('simulation')
 source("simulate_functions.r")
+source("plot_functions.r")
 source("cv.r")
 
-
+mu <- c(0,0)
+sigma <- matrix(c(1, 0.3, 0.3, 1), ncol = 2)
 dataset <- simulate_dat(mu, sigma, n = 1e4)
-dataset$x_og <- dataset$x
-dataset$x <- dataset$x[, c(2, 1)] # switch columns
 
 dtrain <- xgb.DMatrix(data = dataset$x, label = dataset$y)
 
@@ -25,21 +28,15 @@ xg <- xgboost(
   verbose = 1
 )
 
+library(future)
+plan(multicore)
+cv_res <- cv_and_obtain_learner(dataset)
+xg <- cv_res$learner$model
+
 object1 <- glex::glex(xg, dataset$x, probFunction = probFunction)
-object2swapped <- glex::glex(xg, dataset$x, probFunction = probFunctionEmp)
+object2 <- glex::glex(xg, dataset$x, probFunction = probFunctionEmp)
+object3 <- old_glex(xg, dataset$x)
 
-dataset <- simulate_dat(mu, sigma, n = 1e3)
-
-res <- cv_and_obtain_learner(dataset)
-learner <- res[[1]]
-instance <- res[[2]]
-
-autoplot(instance, type = "pairs")
-autoplot(task, type = "pairs")
-
-xg <- learner$model
-object1 <- glex(xg, dataset$x, probFunction = probFunction)
-object2 <- glex(xg, dataset$x, probFunction = probFunctionEmp)
 
 # plots
 plot_shap(object1, object2, 1)
@@ -50,4 +47,9 @@ plot_shap_resid(object1, object2, 2, emp_only = T)
 
 plot_components(object1, object2, coords = "x1")
 plot_components(object1, object2, coords = "x2")
+
+plot_components(object3, object2, coords = "x1")
+plot_components(object3, object2, coords = "x2")
+
 plot_components(object1, object2, coords = c("x1", "x2"))
+plot_components(object3, object2, coords = c("x1", "x2"))

@@ -9,7 +9,7 @@ simulate_dat <- function(mu, sigma, n = 1e5) {
     ncol = p,
     dimnames = list(NULL, paste0("x", seq_len(p)))
   )
-  lp <- x[, 1] + x[, 2] + 2 * x[, 1] * x[, 2]
+  lp <- x[, 1] - x[, 2] + 2 * x[, 1] * x[, 2]
   y <- lp + rnorm(n)
 
   # Return the dataset
