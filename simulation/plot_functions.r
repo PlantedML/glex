@@ -18,7 +18,7 @@ plot_prob_function <- function(coord, ubs) {
     geom_point()
 }
 
-plot_prob_function_diff <- function(coord, ubs) {~~~
+plot_prob_function_diff <- function(coord, ubs) {
   true_cum <- unname(sapply(ubs, function(ub) probFunction(coord, lb = -Inf, ub)))
   emp_cum <- sapply(ubs, function(ub) probFunctionEmp(coord, lb = -Inf, ub))
 
