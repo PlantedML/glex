@@ -92,8 +92,10 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = function (...) 1, ...) {
-
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+  if (is.null(probFunction)) {
+    return(glex_old.xgb.Booster(object, x, max_interaction, ...))
+  }
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -220,6 +222,13 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   
   # Calculate coverage from theoretical distribution, if given
   
+  if (is.character(probFunction)) {
+    if (probFunction == "empirical") {
+      probFunction <- function(coords, lb, ub) {
+        mean(apply(t(x[, coords]) > lb & t(x[, coords]) < ub, 2, all))
+      }
+    }
+  }
   
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)

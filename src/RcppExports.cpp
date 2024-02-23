@@ -44,6 +44,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// recurseAlgorithm2
+Rcpp::NumericMatrix recurseAlgorithm2(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node);
+RcppExport SEXP _glex_recurseAlgorithm2(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type feature(featureSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type split(splitSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type yes(yesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type no(noSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type quality(qualitySEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type cover(coverSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int> >& >::type U(USEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type node(nodeSEXP);
+    rcpp_result_gen = Rcpp::wrap(recurseAlgorithm2(x, feature, split, yes, no, quality, cover, U, node));
+    return rcpp_result_gen;
+END_RCPP
+}
 // contribute
 void contribute(Rcpp::NumericMatrix& mat, Rcpp::NumericMatrix& m_all, Rcpp::IntegerVector& S, Rcpp::IntegerVector& T, std::vector<Rcpp::IntegerVector>& T_subsets, unsigned int colnum);
 RcppExport SEXP _glex_contribute(SEXP matSEXP, SEXP m_allSEXP, SEXP SSEXP, SEXP TSEXP, SEXP T_subsetsSEXP, SEXP colnumSEXP) {
@@ -63,6 +82,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_recurse", (DL_FUNC) &_glex_recurse, 12},
+    {"_glex_recurseAlgorithm2", (DL_FUNC) &_glex_recurseAlgorithm2, 9},
     {"_glex_contribute", (DL_FUNC) &_glex_contribute, 6},
     {NULL, NULL, 0}
 };
