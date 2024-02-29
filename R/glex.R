@@ -222,14 +222,6 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   
   # Calculate coverage from theoretical distribution, if given
   
-  if (is.character(probFunction)) {
-    if (probFunction == "empirical") {
-      probFunction <- function(coords, lb, ub) {
-        mean(apply(t(x[, coords]) > lb & t(x[, coords]) < ub, 2, all))
-      }
-    }
-  }
-  
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
     all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
@@ -277,7 +269,10 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
 
     T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
     U <- subsets(T)
-    mat <- recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
+    mat <- if(is.character(probFunction) && probFunction == "empirical") 
+              recurseRcppEmpProbfunction(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
+                   tree_info$Quality, lb, ub, integer(0), U, 0)
+            else recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                    tree_info$Quality, lb, ub, integer(0), U, 0, probFunction)
     colnames(mat) <- vapply(U, function(u) {
       paste(sort(colnames(x)[u]), collapse = ":")
