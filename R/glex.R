@@ -93,9 +93,6 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' }
 #' }
 glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
-  if (is.null(probFunction)) {
-    return(glex_old.xgb.Booster(object, x, max_interaction, ...))
-  }
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -147,8 +144,8 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = function (...) 1, ...) {
-  
+glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+
   # To avoid data.table check issues
   terminal <- NULL
   splitvarName <- NULL
@@ -198,7 +195,54 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   res
 } 
 
-calc_components <- function(trees, x, max_interaction, features, probFunction = function (...) 1) {
+# Function to get all subsets of set
+subsets <- function(x) {
+  if (length(x) == 1) {
+    list(integer(0), x)
+  } else {
+    do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
+  }
+}
+
+tree_fun_old <- function(tree, trees, x, all_S) {
+  # To avoid data.table check issues
+  Tree <- NULL
+  Feature <- NULL
+  Feature_num <- NULL
+
+  # Calculate matrix
+  tree_info <- trees[Tree == tree, ]
+
+  T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
+  U <- subsets(T)
+  mat <- recurseAlgorithm2(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
+                  tree_info$Quality, tree_info$Cover, U, 0)
+  colnames(mat) <- vapply(U, function(u) {
+    paste(sort(colnames(x)[u]), collapse = ":")
+  }, FUN.VALUE = character(1))
+
+  # Init m matrix
+  m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
+  # browser()
+  colnames(m_all) <- vapply(all_S, function(s) {
+    paste(sort(colnames(x)[s]), collapse = ":")
+  }, FUN.VALUE = character(1))
+
+  # Calculate contribution, use only subsets with not more than max_interaction involved features
+  for (S in intersect(U, all_S)) {
+    colname <- paste(sort(colnames(x)[S]), collapse = ":")
+    if (nchar(colname) == 0) {
+      colnum <- 1
+    } else {
+      colnum <- which(colnames(m_all) == colname)
+    }
+    contribute(mat, m_all, S, T, U, colnum-1)
+  }
+  # Return m matrix
+  m_all
+}
+
+tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -207,15 +251,70 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   Yes <- NULL
   No <- NULL
   Split <- NULL
-  
-  # Function to get all subsets of set
-  subsets <- function(x) {
-    if (length(x) == 1) {
-      list(integer(0), x)
-    } else {
-      do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
+
+  # Calculate matrix
+  tree_info <- trees[Tree == tree, ]
+
+  max_node <- trees[Tree == tree, max(Node)]
+  num_nodes <- max_node + 1
+  lb <- matrix(-Inf, nrow = num_nodes, ncol = ncol(x))
+  ub <- matrix(Inf, nrow = num_nodes, ncol = ncol(x))
+  for (nn in 0:max_node) {
+    if (trees[Tree == tree & Node == nn, !is.na(Yes)]) {
+      left_child <- trees[Tree == tree & Node == nn, Yes]
+      right_child <- trees[Tree == tree & Node == nn, No]
+      splitvar <- trees[Tree == tree & Node == nn, Feature_num]
+
+      # Children inherit bounds
+      ub[left_child + 1, ] <- ub[nn + 1, ]
+      ub[right_child + 1, ] <- ub[nn + 1, ]
+      lb[left_child + 1, ] <- lb[nn + 1, ]
+      lb[right_child + 1, ] <- lb[nn + 1, ]
+
+      # Restrict by new split
+      ub[left_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
+      lb[right_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
     }
   }
+
+  T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
+  U <- subsets(T)
+  mat <- if (is.null(probFunction)) {
+    recurseRcppEmpProbfunction(x, 
+    tree_info$Feature_num, tree_info$Split,
+    tree_info$Yes, tree_info$No,
+    tree_info$Quality, lb, ub, integer(0), U, 0)
+  } else {
+    recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
+          tree_info$Quality, lb, ub, integer(0), U, 0, probFunction)
+  }
+
+  colnames(mat) <- vapply(U, function(u) {
+    paste(sort(colnames(x)[u]), collapse = ":")
+  }, FUN.VALUE = character(1))
+  print(paste("tree", tree, "of", max(trees$Tree)))
+  # Init m matrix
+  m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
+  colnames(m_all) <- vapply(all_S, function(s) {
+    paste(sort(colnames(x)[s]), collapse = ":")
+  }, FUN.VALUE = character(1))
+
+  # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
+  for (S in intersect(U, all_S)) {
+    colname <- paste(sort(colnames(x)[S]), collapse = ":")
+    if (nchar(colname) == 0) {
+      colnum <- 1
+    } else {
+      colnum <- which(colnames(m_all) == colname)
+    }
+    contribute(mat, m_all, S, T, U, colnum-1)
+  }
+
+  # Return m matrix
+  m_all
+}
+
+calc_components <- function(trees, x, max_interaction, features, probFunction = NULL) {
 
   # Convert features to numerics (leaf = 0)
   trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
@@ -241,67 +340,16 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   all_S <- all_S[d <= max_interaction]
 
   # For each tree, calculate matrix and contribution
-  tree_fun <- function(tree) {
-    # Calculate matrix
-    tree_info <- trees[Tree == tree, ]
-
-    max_node <- trees[Tree == tree, max(Node)]
-    num_nodes <- max_node + 1
-    lb <- matrix(-Inf, nrow = num_nodes, ncol = ncol(x))
-    ub <- matrix(Inf, nrow = num_nodes, ncol = ncol(x))
-    for (nn in 0:max_node) {
-      if (trees[Tree == tree & Node == nn, !is.na(Yes)]) {
-        left_child <- trees[Tree == tree & Node == nn, Yes]
-        right_child <- trees[Tree == tree & Node == nn, No]
-        splitvar <- trees[Tree == tree & Node == nn, Feature_num]
-
-        # Children inherit bounds
-        ub[left_child + 1, ] <- ub[nn + 1, ]
-        ub[right_child + 1, ] <- ub[nn + 1, ]
-        lb[left_child + 1, ] <- lb[nn + 1, ]
-        lb[right_child + 1, ] <- lb[nn + 1, ]
-
-        # Restrict by new split
-        ub[left_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
-        lb[right_child + 1, splitvar] <- trees[Tree == tree & Node == nn, Split]
-      }
-    }
-
-    T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
-    U <- subsets(T)
-    mat <- if(is.character(probFunction) && probFunction == "empirical") 
-              recurseRcppEmpProbfunction(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-                   tree_info$Quality, lb, ub, integer(0), U, 0)
-            else recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-                   tree_info$Quality, lb, ub, integer(0), U, 0, probFunction)
-    colnames(mat) <- vapply(U, function(u) {
-      paste(sort(colnames(x)[u]), collapse = ":")
-    }, FUN.VALUE = character(1))
-
-    # Init m matrix
-    m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-    colnames(m_all) <- vapply(all_S, function(s) {
-      paste(sort(colnames(x)[s]), collapse = ":")
-    }, FUN.VALUE = character(1))
-
-    # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
-    for (S in intersect(U, all_S)) {
-      colname <- paste(sort(colnames(x)[S]), collapse = ":")
-      if (nchar(colname) == 0) {
-        colnum <- 1
-      } else {
-        colnum <- which(colnames(m_all) == colname)
-      }
-      contribute(mat, m_all, S, T, U, colnum-1)
-    }
-
-    # Return m matrix
-    m_all
-  }
 
   # Run in parallel if a parallel backend is registered
   j <- NULL
   idx <- 0:max(trees$Tree)
+
+  if (is.character(probFunction) && probFunction == "path-dependent")
+    tree_fun <- function(tree) tree_fun_old(tree, trees, x, all_S)
+  else
+    tree_fun <- function(tree) tree_fun_emp(tree, trees, x, all_S, probFunction)
+
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
   } else {
