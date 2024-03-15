@@ -7,7 +7,14 @@
 \alias{glex.ranger}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(object, x, max_interaction = NULL, features = NULL, ...)
+glex(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
 
@@ -16,7 +23,7 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
   x,
   max_interaction = NULL,
   features = NULL,
-  probFunction = function(...) 1,
+  probFunction = NULL,
   ...
 )
 
@@ -25,7 +32,7 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
   x,
   max_interaction = NULL,
   features = NULL,
-  probFunction = function(...) 1,
+  probFunction = NULL,
   ...
 )
 }
@@ -41,6 +48,8 @@ For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_dep
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
 \item{features}{Vector of column names in x to calculate components for. If \code{NULL}, all features are used.}
+
+\item{probFunction}{Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). If left null, the empirical marginal probabilities will be used}
 
 \item{...}{Further arguments passed to methods.}
 }
