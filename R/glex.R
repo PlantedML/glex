@@ -205,7 +205,7 @@ subsets <- function(x) {
   }
 }
 
-tree_fun_old <- function(tree, trees, x, all_S) {
+tree_fun_path_dependent <- function(tree, trees, x, all_S) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -346,7 +346,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   idx <- 0:max(trees$Tree)
 
   if (is.character(probFunction) && probFunction == "path-dependent")
-    tree_fun <- function(tree) tree_fun_old(tree, trees, x, all_S)
+    tree_fun <- function(tree) tree_fun_path_dependent(tree, trees, x, all_S)
   else
     tree_fun <- function(tree) tree_fun_emp(tree, trees, x, all_S, probFunction)
 
