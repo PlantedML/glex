@@ -15,8 +15,8 @@
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
-#' @param features Vector of column names in x to calculate components for. If \code{NULL}, all features are used.
-#' @param probFunction Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). If left null, the empirical marginal probabilities will be used
+#' @param features Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.
+#' @param probFunction Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL}, i.e. the empirical marginal probabilities will be used
 #' @param ... Further arguments passed to methods.
 #'
 #' @return Decomposition of the regression or classification function.
