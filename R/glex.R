@@ -16,7 +16,7 @@
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
 #' @param features Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.
-#' @param probFunction Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL}, i.e. the empirical marginal probabilities will be used
+#' @param probFunction Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL} or "emprical", i.e. the empirical marginal probabilities will be used
 #' @param ... Further arguments passed to methods.
 #'
 #' @return Decomposition of the regression or classification function.
@@ -314,6 +314,27 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   m_all
 }
 
+#' Internal tree function wrapper that returns the actual tree function
+#' @param trees data.table
+#' @param x observerations, matrix like data-structure
+#' @param all_S all combinations of interactions up to certain order
+#' @param probFunction probFunction that was supplied to \code{glex}
+tree_fun_wrapper <- function(trees, x, all_S, probFunction) {
+  if (is.character(probFunction)) {
+    if (probFunction == "path-dependent") {
+      return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
+    } else if (probFunction == "empirical") {
+      return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL))
+    } else {
+      stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
+    }
+  } else if (is.function(probFunction) || is.null(probFunction)) {
+    return(function(tree) tree_fun_emp(tree, trees, x, all_S, probFunction))
+  } else {
+    stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
+  }
+}
+
 calc_components <- function(trees, x, max_interaction, features, probFunction = NULL) {
 
   # Convert features to numerics (leaf = 0)
@@ -345,10 +366,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   j <- NULL
   idx <- 0:max(trees$Tree)
 
-  if (is.character(probFunction) && probFunction == "path-dependent")
-    tree_fun <- function(tree) tree_fun_path_dependent(tree, trees, x, all_S)
-  else
-    tree_fun <- function(tree) tree_fun_emp(tree, trees, x, all_S, probFunction)
+  tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction)
 
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
