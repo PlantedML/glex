@@ -21,7 +21,8 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex)
-[![glex status badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
+[![glex r-universe status badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
+[![CRAN status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/package=glex)
 <!-- badges: end -->
 
 Global explanations for tree-based models by decomposing regression or  
@@ -32,17 +33,17 @@ of interaction present in the model) for tree-based models such as
 XGBoost.
 
 See the accompanying paper for more details and exact definitions:
-“Unifying local and global model explanations by functional
-decomposition of low dimensional structures”
-[(arxiv)](https://arxiv.org/abs/2208.06151).
+"Unifying local and global model explanations by functional
+decomposition of low dimensional structures"
+([arxiv](https://arxiv.org/abs/2208.06151), [PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
 
 ## Installation
 
 You can install the development version of glex from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("remotes")
-remotes::install_github("PlantedML/glex")
+# install.packages("pak")
+pak::pak("PlantedML/glex")
 ```
 
 or from [r-universe][r-universe] with
@@ -50,7 +51,6 @@ or from [r-universe][r-universe] with
 ```r
 install.packages("glex", repos = "https://plantedml.r-universe.dev")
 ```
-
 
 ## What's Included
 
@@ -73,8 +73,8 @@ library(xgboost)
 # Visualization
 library(ggplot2)
 library(patchwork)
-theme_set(theme_minimal(base_size = 13))
 
+theme_set(theme_glex())
 set.seed(21)
 ```
 
@@ -138,28 +138,26 @@ The output additionally contains the degree of interaction, which can be used fo
 
 ```{r glex_vi-plot, fig.width=12}
 p_vi1 <- autoplot(vi_rpf, threshold = .05) + 
-  labs(title = NULL, tag = "RPF")
+  labs(title = NULL, subtitle = "RPF")
 
 p_vi2 <- autoplot(vi_xgb, threshold = .05) + 
-  labs(title = NULL, tag = "XGBoost")
+  labs(title = NULL, subtitle = "XGBoost")
 
 p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by term") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Variable importance scores by term")
 ```
 
 We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be particularly relevant for a given model.
 
 ```{r glex_vi-plot-by-degree, fig.height=5}
 p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
-  labs(title = NULL, tag = "RPF")
+  labs(title = NULL, subtitle = "RPF")
 
 p_vi2 <- autoplot(vi_xgb, by_degree = TRUE) + 
-  labs(title = NULL, tag = "XGBoost")
+  labs(title = NULL, subtitle = "XGBoost")
 
 p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by degree") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Variable importance scores by degree") 
 ```
 
 ### Feature Effects
@@ -171,15 +169,13 @@ p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Main effect for 'hp'") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Main effect for 'hp'")
 
 p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Two-way effects for 'hp' and 'wt'") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
 Currently there is support for plots of interactions up to the third degree, including continuous and categorical features. Unfortunately, three-way interactions of continuous features are not supported yet.
@@ -201,8 +197,7 @@ p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) +
 p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
   labs(tag = "XGBoost")
 
-p1 + p2 & theme(plot.tag.position = "bottom") & 
-  theme(plot.tag.position = "bottom")
+p1 + p2 & theme(plot.tag.position = "bottom")
 ```
 
 [xgb]: https://cran.r-project.org/package=xgboost
