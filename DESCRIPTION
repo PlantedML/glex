@@ -1,14 +1,15 @@
 Type: Package
 Package: glex
 Title: Global Explanations for Tree-Based Models
-Version: 0.3.0.9000
+Version: 0.4.0
 Authors@R: c(
     person(c("Marvin", "N."), "Wright", , "cran@wrig.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8542-6291")),
     person(c("Joseph", "Theo"), "Meyer", role = "aut"),
     person("Munir", "Hiabu", role = "aut"),
     person("Lukas", "Burk", , "burk@leibniz-bips.de", role = "aut",
-           comment = c(ORCID = "0000-0001-7528-3795"))
+           comment = c(ORCID = "0000-0001-7528-3795")),
+    person("Jinyang", "Liu", , "jl@math.ku.dk", role = "aut", comment = c(ORCID = "0009-0005-3167-9014"))
   )
 Description: Global explanations for tree-based models by decomposing
     regression or classification functions into the sum of main components

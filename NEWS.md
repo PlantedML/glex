@@ -1,3 +1,8 @@
+# glex 0.4.0 
+* Add support for ranger objects to `glex()`.
+* Add new optional parameter `probFunction` to `glex()` which specifies the probability function for weighting/marginalization of the leaves.  By default, `glex()` now uses the empirical marginal probabilities to perform the weighting. Previously, the weighting of the leaves was done based on a path-dependent method.
+
+
 # glex 0.3.0.9000 (Development version)
 
 * Add `theme_glex()` as a default theme to all plots.  
