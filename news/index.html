@@ -55,12 +55,10 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="glex-040">glex 0.4.0<a class="anchor" aria-label="anchor" href="#glex-040"></a></h2>
-<ul><li>Add support for ranger objects to <code><a href="../reference/glex.html">glex()</a></code>.</li>
-<li>Add new optional parameter <code>probFunction</code> to <code><a href="../reference/glex.html">glex()</a></code> which specifies the probability function for weighting/marginalization of the leaves. By default, <code><a href="../reference/glex.html">glex()</a></code> now uses the empirical marginal probabilities to perform the weighting. Previously, the weighting of the leaves was done based on a path-dependent method.</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.3.0.9000" id="glex-0309000-development-version">glex 0.3.0.9000 (Development version)<a class="anchor" aria-label="anchor" href="#glex-0309000-development-version"></a></h2>
-<ul><li>Add <code><a href="../reference/theme_glex.html">theme_glex()</a></code> as a default theme to all plots.<br>
+<ul><li>Add support for ranger objects to <code><a href="../reference/glex.html">glex()</a></code> (<a href="https://github.com/PlantedML/glex/pull/17" class="external-link">PR#17</a>).</li>
+<li>Add new optional parameter <code>probFunction</code> to <code><a href="../reference/glex.html">glex()</a></code> which specifies the probability function for weighting/marginalization of the leaves (<a href="https://github.com/PlantedML/glex/pull/17" class="external-link">PR#17</a>).<br>
+By default, <code><a href="../reference/glex.html">glex()</a></code> now uses the empirical marginal probabilities to perform the weighting. Previously, the weighting of the leaves was done based on a path-dependent method.</li>
+<li>Add <code><a href="../reference/theme_glex.html">theme_glex()</a></code> as a default theme to all plots.<br>
 This is almost identical to [<code><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">ggplot2::theme_minimal()</a></code>] aside from increased base font size and convenience flags to toggle vertical and horizontal grid lines.</li>
 <li>Add <code><a href="../reference/subset_components.html">subset_components()</a></code> and <code><a href="../reference/subset_components.html">subset_component_names()</a></code> to make it easier to extract only components belonging to a given main term.</li>
 <li>Add pre-processed version of <code>Bikeshare</code> data from <code>ISLR2</code> to streamlined examples.</li>
