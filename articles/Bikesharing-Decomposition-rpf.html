@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -129,20 +129,22 @@ day (1) or not (0)</li>
 <span><span class="va">bike</span> <span class="op">&lt;-</span> <span class="va">bike</span><span class="op">[</span><span class="va">weathersit</span> <span class="op">!=</span> <span class="st">"heavy rain/snow"</span>, <span class="op">]</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bike</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    season mnth day hr holiday weekday    workingday   weathersit temp  atemp</span></span>
-<span><span class="co">#&gt; 1: Winter  Jan   1  0       0       6 No Workingday        clear 0.24 0.2879</span></span>
-<span><span class="co">#&gt; 2: Winter  Jan   1  1       0       6 No Workingday        clear 0.22 0.2727</span></span>
-<span><span class="co">#&gt; 3: Winter  Jan   1  2       0       6 No Workingday        clear 0.22 0.2727</span></span>
-<span><span class="co">#&gt; 4: Winter  Jan   1  3       0       6 No Workingday        clear 0.24 0.2879</span></span>
-<span><span class="co">#&gt; 5: Winter  Jan   1  4       0       6 No Workingday        clear 0.24 0.2879</span></span>
-<span><span class="co">#&gt; 6: Winter  Jan   1  5       0       6 No Workingday cloudy/misty 0.24 0.2576</span></span>
-<span><span class="co">#&gt;     hum windspeed casual registered bikers</span></span>
-<span><span class="co">#&gt; 1: 0.81    0.0000      3         13     16</span></span>
-<span><span class="co">#&gt; 2: 0.80    0.0000      8         32     40</span></span>
-<span><span class="co">#&gt; 3: 0.80    0.0000      5         27     32</span></span>
-<span><span class="co">#&gt; 4: 0.75    0.0000      3         10     13</span></span>
-<span><span class="co">#&gt; 5: 0.75    0.0000      0          1      1</span></span>
-<span><span class="co">#&gt; 6: 0.75    0.0896      0          1      1</span></span></code></pre></div>
+<span><span class="co">#&gt;    season   mnth   day    hr holiday weekday    workingday   weathersit  temp</span></span>
+<span><span class="co">#&gt;    &lt;fctr&gt; &lt;fctr&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;   &lt;num&gt;        &lt;fctr&gt;       &lt;fctr&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: Winter    Jan     1     0       0       6 No Workingday        clear  0.24</span></span>
+<span><span class="co">#&gt; 2: Winter    Jan     1     1       0       6 No Workingday        clear  0.22</span></span>
+<span><span class="co">#&gt; 3: Winter    Jan     1     2       0       6 No Workingday        clear  0.22</span></span>
+<span><span class="co">#&gt; 4: Winter    Jan     1     3       0       6 No Workingday        clear  0.24</span></span>
+<span><span class="co">#&gt; 5: Winter    Jan     1     4       0       6 No Workingday        clear  0.24</span></span>
+<span><span class="co">#&gt; 6: Winter    Jan     1     5       0       6 No Workingday cloudy/misty  0.24</span></span>
+<span><span class="co">#&gt;     atemp   hum windspeed casual registered bikers</span></span>
+<span><span class="co">#&gt;     &lt;num&gt; &lt;num&gt;     &lt;num&gt;  &lt;num&gt;      &lt;num&gt;  &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: 0.2879  0.81    0.0000      3         13     16</span></span>
+<span><span class="co">#&gt; 2: 0.2727  0.80    0.0000      8         32     40</span></span>
+<span><span class="co">#&gt; 3: 0.2727  0.80    0.0000      5         27     32</span></span>
+<span><span class="co">#&gt; 4: 0.2879  0.75    0.0000      3         10     13</span></span>
+<span><span class="co">#&gt; 5: 0.2879  0.75    0.0000      0          1      1</span></span>
+<span><span class="co">#&gt; 6: 0.2576  0.75    0.0896      0          1      1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fitting-purification-component-extraction">Fitting, Purification, Component Extraction<a class="anchor" aria-label="anchor" href="#fitting-purification-component-extraction"></a>
@@ -312,7 +314,7 @@ all.</p>
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Marvin N. Wright, Joseph Theo Meyer, Munir Hiabu, Lukas Burk.</p>
+<p>Developed by Marvin N. Wright, Joseph Theo Meyer, Munir Hiabu, Lukas Burk, Jinyang Liu.</p>
 </div>
 
 <div class="pkgdown-footer-right">
