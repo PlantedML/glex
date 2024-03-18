@@ -5,8 +5,20 @@ find_term_matches <- function(main_term, terms) {
     .Call(`_glex_find_term_matches`, main_term, terms)
 }
 
-recurse <- function(x, feature, split, yes, no, quality, cover, U, node) {
-    .Call(`_glex_recurse`, x, feature, split, yes, no, quality, cover, U, node)
+empProbFunction <- function(x, coords, lb, ub) {
+    .Call(`_glex_empProbFunction`, x, coords, lb, ub)
+}
+
+recurseRcppEmpProbfunction <- function(x, feature, split, yes, no, quality, lb, ub, cover, U, node) {
+    .Call(`_glex_recurseRcppEmpProbfunction`, x, feature, split, yes, no, quality, lb, ub, cover, U, node)
+}
+
+recurse <- function(x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction) {
+    .Call(`_glex_recurse`, x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction)
+}
+
+recurseAlgorithm2 <- function(x, feature, split, yes, no, quality, cover, U, node) {
+    .Call(`_glex_recurseAlgorithm2`, x, feature, split, yes, no, quality, cover, U, node)
 }
 
 contribute <- function(mat, m_all, S, T, T_subsets, colnum) {

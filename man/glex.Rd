@@ -4,13 +4,37 @@
 \alias{glex}
 \alias{glex.rpf}
 \alias{glex.xgb.Booster}
+\alias{glex.ranger}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(object, x, max_interaction = NULL, ...)
+glex(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+)
 
-\method{glex}{rpf}(object, x, max_interaction = NULL, ...)
+\method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
 
-\method{glex}{xgb.Booster}(object, x, max_interaction = NULL, ...)
+\method{glex}{xgb.Booster}(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+)
+
+\method{glex}{ranger}(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}
@@ -22,6 +46,10 @@ Maximum interaction size to consider.
 Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
+
+\item{features}{Vector of column names in x to calculate components for. If \code{NULL}, all features are used.}
+
+\item{probFunction}{Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). If left null, the empirical marginal probabilities will be used}
 
 \item{...}{Further arguments passed to methods.}
 }
@@ -72,6 +100,22 @@ glex(xg, x[27:32, ])
 # Parallel execution
 doParallel::registerDoParallel()
 glex(xg, x[27:32, ])
+}
+}
+# ranger -----
+if (requireNamespace("ranger", quietly = TRUE)) {
+library(ranger)
+x <- as.matrix(mtcars[, -1])
+y <- mtcars$mpg
+rf <- ranger(x = x[1:26, ], y = y[1:26],
+             num.trees = 5, max.depth = 3, 
+             node.stats = TRUE)
+glex(rf, x[27:32, ])
+
+\dontrun{
+# Parallel execution
+doParallel::registerDoParallel()
+glex(rf, x[27:32, ])
 }
 }
 }
