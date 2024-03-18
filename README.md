@@ -8,8 +8,10 @@
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex)
-[![glex status
+[![glex r-universe status
 badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/package=glex)
 <!-- badges: end -->
 
 Global explanations for tree-based models by decomposing regression or  
@@ -22,7 +24,8 @@ XGBoost.
 See the accompanying paper for more details and exact definitions:
 “Unifying local and global model explanations by functional
 decomposition of low dimensional structures”
-([arxiv](https://arxiv.org/abs/2208.06151), [PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
+([arxiv](https://arxiv.org/abs/2208.06151),
+[PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
 
 ## Installation
 
@@ -30,8 +33,8 @@ You can install the development version of glex from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("remotes")
-remotes::install_github("PlantedML/glex")
+# install.packages("pak")
+pak::pak("PlantedML/glex")
 ```
 
 or from [r-universe](https://plantedml.r-universe.dev/packages) with
@@ -64,8 +67,8 @@ library(xgboost)
 # Visualization
 library(ggplot2)
 library(patchwork)
-theme_set(theme_minimal(base_size = 13))
 
+theme_set(theme_glex())
 set.seed(21)
 ```
 
@@ -152,11 +155,11 @@ vi_rpf[1:5, c("degree", "term", "m")]
 vi_xgb[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     hp 1.1360711
-#> 2:      1     wt 1.0361386
-#> 3:      1   disp 0.6661451
-#> 4:      1    cyl 0.5727933
-#> 5:      1   qsec 0.2129094
+#> 1:      1     hp 1.5980083
+#> 2:      1    cyl 0.5762864
+#> 3:      1     wt 0.5024355
+#> 4:      1   qsec 0.2867502
+#> 5:      2 cyl:hp 0.1098818
 ```
 
 The output additionally contains the degree of interaction, which can be
@@ -167,14 +170,13 @@ terms”:
 
 ``` r
 p_vi1 <- autoplot(vi_rpf, threshold = .05) + 
-  labs(title = NULL, tag = "RPF")
+  labs(title = NULL, subtitle = "RPF")
 
 p_vi2 <- autoplot(vi_xgb, threshold = .05) + 
-  labs(title = NULL, tag = "XGBoost")
+  labs(title = NULL, subtitle = "XGBoost")
 
 p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by term") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Variable importance scores by term")
 ```
 
 <img src="man/figures/README-glex_vi-plot-1.png" width="100%" />
@@ -186,14 +188,13 @@ a given model.
 
 ``` r
 p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
-  labs(title = NULL, tag = "RPF")
+  labs(title = NULL, subtitle = "RPF")
 
 p_vi2 <- autoplot(vi_xgb, by_degree = TRUE) + 
-  labs(title = NULL, tag = "XGBoost")
+  labs(title = NULL, subtitle = "XGBoost")
 
 p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by degree") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Variable importance scores by degree") 
 ```
 
 <img src="man/figures/README-glex_vi-plot-by-degree-1.png" width="100%" />
@@ -209,8 +210,7 @@ p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Main effect for 'hp'") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Main effect for 'hp'")
 ```
 
 <img src="man/figures/README-plot_components-1.png" width="100%" />
@@ -221,8 +221,7 @@ p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
 
 p1 + p2 + 
-  plot_annotation(title = "Two-way effects for 'hp' and 'wt'") & 
-  theme(plot.tag.position = "top")
+  plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
 <img src="man/figures/README-plot_components-2.png" width="100%" />
@@ -254,8 +253,7 @@ p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) +
 p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
   labs(tag = "XGBoost")
 
-p1 + p2 & theme(plot.tag.position = "bottom") & 
-  theme(plot.tag.position = "bottom")
+p1 + p2 & theme(plot.tag.position = "bottom")
 ```
 
 <img src="man/figures/README-glex_explain-1.png" width="100%" />
