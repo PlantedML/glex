@@ -113,7 +113,6 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
-  res$intercept <- res$intercept + 0.5
   
   # Return components
   res
