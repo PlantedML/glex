@@ -342,6 +342,11 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction) {
 #' @noRd
 calc_components <- function(trees, x, max_interaction, features, probFunction = NULL) {
 
+  # data.table NSE global variable workaround
+  Feature <- NULL
+  Feature_num <- NULL
+  Tree <- NULL
+
   # Convert features to numerics (leaf = 0)
   trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
 
