@@ -47,9 +47,9 @@ Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
-\item{features}{Vector of column names in x to calculate components for. If \code{NULL}, all features are used.}
+\item{features}{Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.}
 
-\item{probFunction}{Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). If left null, the empirical marginal probabilities will be used}
+\item{probFunction}{Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL} or "emprical", i.e. the empirical marginal probabilities will be used}
 
 \item{...}{Further arguments passed to methods.}
 }
@@ -108,7 +108,7 @@ library(ranger)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
 rf <- ranger(x = x[1:26, ], y = y[1:26],
-             num.trees = 5, max.depth = 3, 
+             num.trees = 5, max.depth = 3,
              node.stats = TRUE)
 glex(rf, x[27:32, ])
 
