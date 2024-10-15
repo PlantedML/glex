@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/Bikesharing-Decomposition-rpf: Bikesharing-Decomposition-rpf.html
   glex: glex.html
-last_built: 2024-10-14T15:37Z
+last_built: 2024-10-15T06:39Z
 urls:
   reference: http://plantedml.com/glex/reference
   article: http://plantedml.com/glex/articles
