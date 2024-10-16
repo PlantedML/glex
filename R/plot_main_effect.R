@@ -42,8 +42,7 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' A version of [`plot_main_effect`] with the intercept term (horizontal line) added,
 #' resulting in a partial dependence plot.
 #'
-#' @param object Object of class [`glex`].
-#' @param predictor (`character(1)`) predictor names, e.g. `"x1"`.
+#' @inheritParams plot_main_effect
 #' @param ... Used for future expansion.
 #'
 #' @return A `ggplot2` object.
