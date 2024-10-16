@@ -9,6 +9,9 @@ plot_pdp(object, predictor, rug_sides = "b", ...)
 \arguments{
 \item{object}{Object of class \code{\link{glex}}.}
 
+\item{predictor}{\code{(character(1))} predictor names, e.g. \code{"x1"} to plot
+main effect of \code{x1}.}
+
 \item{rug_sides}{\code{(character(1): "b")} Sides to plot rug (see \code{\link[ggplot2:geom_rug]{ggplot2::geom_rug()}}) plot on for continuous predictors..
 Default is \code{"b"} for both sides. Set to \code{"none"} to disable rug plot.}
 

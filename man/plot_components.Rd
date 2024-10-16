@@ -19,10 +19,10 @@ plot_twoway_effects(object, predictors, rug_sides = "b", ...)
 \arguments{
 \item{object}{Object of class \code{\link{glex}}.}
 
-\item{...}{Unused}
+\item{...}{Used for future expansion.}
 
-\item{predictor, predictors}{\code{(character)} vector of predictor names, e.g. \code{"x1"} to plot main effect of \code{x1}, and
-\code{c("x1", "x2")} to plot the interaction term \code{x1:x2}.}
+\item{predictor, predictors}{\code{(character)} vector of predictor names, e.g. \code{"x1"} to plot
+main effect of \code{x1}, and \code{c("x1", "x2")} to plot the interaction term \code{x1:x2}.}
 
 \item{rug_sides}{\code{(character(1): "b")} Sides to plot rug (see \code{\link[ggplot2:geom_rug]{ggplot2::geom_rug()}}) plot on for continuous predictors..
 Default is \code{"b"} for both sides. Set to \code{"none"} to disable rug plot.}

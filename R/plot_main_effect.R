@@ -5,11 +5,11 @@
 #'
 #' @rdname plot_components
 #' @param object Object of class [`glex`].
-#' @param predictor,predictors `(character)` vector of predictor names, e.g. `"x1"` to plot main effect of `x1`, and
-#'   `c("x1", "x2")` to plot the interaction term `x1:x2`.
+#' @param predictor,predictors `(character)` vector of predictor names, e.g. `"x1"` to plot
+#'   main effect of `x1`, and `c("x1", "x2")` to plot the interaction term `x1:x2`.
 #' @param rug_sides `(character(1): "b")` Sides to plot rug (see [ggplot2::geom_rug()]) plot on for continuous predictors..
 #' Default is `"b"` for both sides. Set to `"none"` to disable rug plot.
-#' @param ... Unused
+#' @param ... Used for future expansion.
 #'
 #' @return A `ggplot2` object.
 #' @import ggplot2
@@ -43,7 +43,8 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' resulting in a partial dependence plot.
 #'
 #' @inheritParams plot_main_effect
-#' @param ... Used for future expansion.
+#' @param predictor `(character(1))` predictor names, e.g. `"x1"` to plot
+#'   main effect of `x1`.
 #'
 #' @return A `ggplot2` object.
 #' @import ggplot2
