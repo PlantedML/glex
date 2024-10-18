@@ -1,4 +1,4 @@
-# glex 0.4.1
+# glex 0.4.0.9000
 
 * Add rug plot to `plot_*_effect[s]` functions for continuous predictors, defaulting to showing a rug on the bottom side (`rug_side = "b"`).
 
