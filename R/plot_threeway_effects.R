@@ -2,7 +2,7 @@
 #' @export
 #' @examples
 #' # plot_threeway_effects(components, c("hr", "temp", "workingday"))
-plot_threeway_effects <- function(object, predictors, ...) {
+plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_character(predictors, len = 3, unique = TRUE)
   checkmate::assert_subset(predictors, names(object$x), empty.ok = FALSE)
@@ -26,10 +26,13 @@ plot_threeway_effects <- function(object, predictors, ...) {
       y = .data[[x_cont[[2]]]],
       colour = .data[["m"]],
       fill = ggplot2::after_scale(.data[["colour"]])
-    )) +
-      ggplot2::geom_point(size = 2.5, shape = 21, stroke = 1) +
-      diverging_palette(limits = get_m_limits(xdf)) +
-      ggplot2::labs(color = label_m(predictors))
+    ))
+    p <- p + ggplot2::geom_point(size = 2.5, shape = 21, stroke = 1)
+    if (rug_sides != "none") {
+      p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
+    }
+    p <- p + diverging_palette(limits = get_m_limits(xdf))
+    p <- p + ggplot2::labs(color = label_m(predictors))
 
     if (!is.null(object$target_levels)) {
       p <- p + facet_grid(cols = vars(.data[["class"]]), rows = vars(.data[[x_cat]]), labeller = label_both)
@@ -46,10 +49,13 @@ plot_threeway_effects <- function(object, predictors, ...) {
       y = .data[["m"]],
       colour = .data[[x_cat[[1]]]],
       fill = ggplot2::after_scale(.data[["colour"]])
-    )) +
-      ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect") +
-      ggplot2::scale_color_brewer(palette = "Dark2") +
-      ggplot2::labs(y = label_m(predictors))
+    ))
+    p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect")
+    if (rug_sides != "none") {
+      p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
+    }
+    p <- p + ggplot2::scale_color_brewer(palette = "Dark2")
+    p <- p + ggplot2::labs(y = label_m(predictors))
 
     if (!is.null(object$target_levels)) {
       p <- p + facet_grid(cols = vars(.data[["class"]]), rows = vars(.data[[x_cat[[2]]]]), labeller = label_both, scales = "free_y")
@@ -81,6 +87,5 @@ plot_threeway_effects <- function(object, predictors, ...) {
   }
 
   # Final cleanup ----
-  p +
-    theme_glex()
+  p + theme_glex()
 }
