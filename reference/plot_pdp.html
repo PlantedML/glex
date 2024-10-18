@@ -36,7 +36,7 @@ resulting in a partial dependence plot."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Partial Dependence Plot</h1>
-      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/master/R/plot_pdp.R" class="external-link"><code>R/plot_pdp.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/master/R/plot_main_effect.R" class="external-link"><code>R/plot_main_effect.R</code></a></small>
       <div class="d-none name"><code>plot_pdp.Rd</code></div>
     </div>
 
@@ -47,7 +47,7 @@ resulting in a partial dependence plot.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_pdp</span><span class="op">(</span><span class="va">object</span>, <span class="va">predictor</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_pdp</span><span class="op">(</span><span class="va">object</span>, <span class="va">predictor</span>, rug_sides <span class="op">=</span> <span class="st">"b"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -59,7 +59,13 @@ resulting in a partial dependence plot.</p>
 
 
 <dt id="arg-predictor">predictor<a class="anchor" aria-label="anchor" href="#arg-predictor"></a></dt>
-<dd><p>(<code>character(1)</code>) predictor names, e.g. <code>"x1"</code>.</p></dd>
+<dd><p><code>(character(1))</code> predictor names, e.g. <code>"x1"</code> to plot
+main effect of <code>x1</code>.</p></dd>
+
+
+<dt id="arg-rug-sides">rug_sides<a class="anchor" aria-label="anchor" href="#arg-rug-sides"></a></dt>
+<dd><p><code>(character(1): "b")</code> Sides to plot rug (see <code><a href="https://ggplot2.tidyverse.org/reference/geom_rug.html" class="external-link">ggplot2::geom_rug()</a></code>) plot on for continuous predictors..
+Default is <code>"b"</code> for both sides. Set to <code>"none"</code> to disable rug plot.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
