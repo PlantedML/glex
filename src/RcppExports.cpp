@@ -38,17 +38,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // augmentExpectation
-double augmentExpectation(NumericVector& x, NumericMatrix& dataset, NumericMatrix& tree, NumericVector& to_explain, SEXP leaf_data_ptr);
-RcppExport SEXP _glex_augmentExpectation(SEXP xSEXP, SEXP datasetSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP leaf_data_ptrSEXP) {
+double augmentExpectation(NumericVector& x, NumericMatrix& tree, NumericVector& to_explain, SEXP leaf_data_ptr);
+RcppExport SEXP _glex_augmentExpectation(SEXP xSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP leaf_data_ptrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix& >::type dataset(datasetSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< NumericVector& >::type to_explain(to_explainSEXP);
     Rcpp::traits::input_parameter< SEXP >::type leaf_data_ptr(leaf_data_ptrSEXP);
-    rcpp_result_gen = Rcpp::wrap(augmentExpectation(x, dataset, tree, to_explain, leaf_data_ptr));
+    rcpp_result_gen = Rcpp::wrap(augmentExpectation(x, tree, to_explain, leaf_data_ptr));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -171,7 +170,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_glex_augmentAndTakeExpectation", (DL_FUNC) &_glex_augmentAndTakeExpectation, 4},
     {"_glex_augmentTree", (DL_FUNC) &_glex_augmentTree, 2},
-    {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 5},
+    {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 4},
     {"_glex_marginalizeAllSplittedSubsetsinTree", (DL_FUNC) &_glex_marginalizeAllSplittedSubsetsinTree, 2},
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},

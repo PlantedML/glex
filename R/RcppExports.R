@@ -9,8 +9,8 @@ augmentTree <- function(tree, dataset) {
     .Call(`_glex_augmentTree`, tree, dataset)
 }
 
-augmentExpectation <- function(x, dataset, tree, to_explain, leaf_data_ptr) {
-    .Call(`_glex_augmentExpectation`, x, dataset, tree, to_explain, leaf_data_ptr)
+augmentExpectation <- function(x, tree, to_explain, leaf_data_ptr) {
+    .Call(`_glex_augmentExpectation`, x, tree, to_explain, leaf_data_ptr)
 }
 
 marginalizeAllSplittedSubsetsinTree <- function(x, tree) {
