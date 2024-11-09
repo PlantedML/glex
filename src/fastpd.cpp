@@ -102,7 +102,7 @@ LeafData augmentTree_(NumericMatrix &tree, NumericMatrix &dataset)
     return leaf_data;
 }
 
-double augmentExpectation_(NumericVector &x, NumericMatrix &dataset, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data)
+double augmentExpectation_(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data)
 {
 
     std::stack<unsigned int> to_process;
@@ -159,7 +159,7 @@ double augmentExpectation_(NumericVector &x, NumericMatrix &dataset, NumericMatr
 double augmentAndTakeExpectation(NumericVector &x, NumericMatrix &dataset, NumericMatrix &tree, NumericVector &to_explain)
 {
     LeafData leaf_data = augmentTree_(tree, dataset);
-    return augmentExpectation_(x, dataset, tree, to_explain, leaf_data);
+    return augmentExpectation_(x, tree, to_explain, leaf_data);
 }
 
 // [[Rcpp::export]]
@@ -171,10 +171,10 @@ XPtr<LeafData> augmentTree(NumericMatrix &tree, NumericMatrix &dataset)
 }
 
 // [[Rcpp::export]]
-double augmentExpectation(NumericVector &x, NumericMatrix &dataset, NumericMatrix &tree, NumericVector &to_explain, SEXP leaf_data_ptr)
+double augmentExpectation(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, SEXP leaf_data_ptr)
 {
     const Rcpp::XPtr<LeafData> leaf_data(leaf_data_ptr);
-    return augmentExpectation_(x, dataset, tree, to_explain, *leaf_data);
+    return augmentExpectation_(x, tree, to_explain, *leaf_data);
 }
 
 bool containsNumber(Rcpp::IntegerVector &vec, int target);
