@@ -12,6 +12,7 @@ struct AugmentedData {
 };
 
 struct LeafData {
+    std::set<unsigned int> all_encountered;
     std::map<unsigned int, std::set<unsigned int>> encountered;
     std::map<unsigned int, ProbsMap> leafProbs;
 };
