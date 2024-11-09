@@ -13,6 +13,10 @@ augmentExpectation <- function(x, dataset, tree, to_explain, leaf_data_ptr) {
     .Call(`_glex_augmentExpectation`, x, dataset, tree, to_explain, leaf_data_ptr)
 }
 
+marginalizeAllSplittedSubsetsinTree <- function(x, tree) {
+    .Call(`_glex_marginalizeAllSplittedSubsetsinTree`, x, tree)
+}
+
 find_term_matches <- function(main_term, terms) {
     .Call(`_glex_find_term_matches`, main_term, terms)
 }
