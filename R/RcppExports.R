@@ -17,6 +17,10 @@ marginalizeAllSplittedSubsetsinTree <- function(x, tree) {
     .Call(`_glex_marginalizeAllSplittedSubsetsinTree`, x, tree)
 }
 
+explainTreeFastPD <- function(x, tree, to_explain_list) {
+    .Call(`_glex_explainTreeFastPD`, x, tree, to_explain_list)
+}
+
 find_term_matches <- function(main_term, terms) {
     .Call(`_glex_find_term_matches`, main_term, terms)
 }

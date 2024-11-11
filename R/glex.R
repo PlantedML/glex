@@ -314,7 +314,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   m_all
 }
 
-tree_fun_emp_augmented <- function(tree, trees, x, all_S) {
+tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
   Tree <- NULL
   Feature_num <- NULL
   Feature <- NULL
@@ -322,40 +322,15 @@ tree_fun_emp_augmented <- function(tree, trees, x, all_S) {
   PathData <- NULL
   # Calculate matrix
   tree_info <- trees[Tree == tree, ]
-  T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
-  U <- subsets(T)
-
   tree_info[, Feature := Feature_num - 1L]
-  trees_mat <- tree_info[, .(Tree, Node, Split, Yes, No, Quality, Cover, Feature)]
-  trees_mat[is.na(trees_mat)] <- -1L
-  trees_mat <- as.matrix(trees_mat)
+  tree_mat <- tree_info[, .(Tree, Node, Split, Yes, No, Quality, Cover, Feature)]
+  tree_mat[is.na(tree_mat)] <- -1L
+  tree_mat <- as.matrix(tree_mat)
 
-  mat <- marginalizeAllSplittedSubsetsinTree(x, trees_mat)
-
-  colnames(mat) <- vapply(U, function(u) {
-    paste(sort(colnames(x)[u]), collapse = ":")
-  }, FUN.VALUE = character(1))
-  # Init m matrix
-  m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-  colnames(m_all) <- vapply(all_S, function(s) {
-    paste(sort(colnames(x)[s]), collapse = ":")
-  }, FUN.VALUE = character(1))
-
-  # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
-  for (S in intersect(U, all_S)) {
-    colname <- paste(sort(colnames(x)[S]), collapse = ":")
-    if (nchar(colname) == 0) {
-      colnum <- 1
-    } else {
-      colnum <- which(colnames(m_all) == colname)
-    }
-    contribute(mat, m_all, S, T, U, colnum-1)
-  }
-
-  # Return m matrix
+  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L))
   m_all
-
 }
+
 
 #' Internal tree function wrapper that returns the actual tree function
 #' @param trees data.table
@@ -374,7 +349,7 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction) {
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
     }
   } else if (is.function(probFunction) || is.null(probFunction)) {
-    return(function(tree) tree_fun_emp_augmented(tree, trees, x, all_S, probFunction))
+    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S))
   } else {
     stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
   }
