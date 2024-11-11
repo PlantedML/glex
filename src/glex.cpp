@@ -268,4 +268,3 @@ void contribute(Rcpp::NumericMatrix& mat, Rcpp::NumericMatrix& m_all, Rcpp::Inte
     }
   }
 }
-

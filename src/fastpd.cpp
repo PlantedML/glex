@@ -177,19 +177,21 @@ double augmentExpectation(NumericVector &x, NumericMatrix &tree, NumericVector &
 }
 
 bool containsNumber(Rcpp::IntegerVector &vec, int target);
-std::vector<std::set<unsigned int>> get_all_subsets_(std::vector<unsigned int> &set)
+std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set)
 {
     std::vector<std::set<unsigned int>> result;
     unsigned int n = set.size();
     for (unsigned int i = 0; i < (1 << n); ++i)
     {
         std::set<unsigned int> subset;
+        auto it = set.begin();
         for (unsigned int j = 0; j < n; ++j)
         {
             if (i & (1 << j))
             {
-                subset.insert(set[j]);
+                subset.insert(*it);
             }
+            it++;
         }
         result.push_back(subset);
     }
@@ -268,7 +270,83 @@ Rcpp::NumericMatrix marginalizeAllSplittedSubsetsinTree(
     NumericMatrix &tree)
 {
     LeafData leaf_data = augmentTree_(tree, x);
-    std::vector<unsigned int> all_encountered(leaf_data.all_encountered.begin(), leaf_data.all_encountered.end());
-    std::vector<std::set<unsigned int>> U = get_all_subsets_(all_encountered);
+    std::vector<std::set<unsigned int>> U = get_all_subsets_(leaf_data.all_encountered);
     return recurseMarginalizeU_(x, tree, U, 0, leaf_data);
+}
+
+void contributeFastPD(
+    Rcpp::NumericMatrix &mat,
+    Rcpp::NumericMatrix &m_all,
+    std::set<unsigned int> &S,
+    std::set<unsigned int> &T,
+    std::vector<std::set<unsigned int>> &T_subsets,
+    unsigned int colnum)
+{
+    std::set<unsigned int> sTS;
+    std::set_difference(T.begin(), T.end(), S.begin(), S.end(), std::inserter(sTS, sTS.begin()));
+
+    for (unsigned int i = 0; i < T_subsets.size(); ++i)
+    {
+        std::set<unsigned int> U = T_subsets[i];
+        if (sTS.size() != 0)
+        {
+            std::set<unsigned int> ssTSU;
+            std::set_difference(sTS.begin(), sTS.end(), U.begin(), U.end(), std::inserter(ssTSU, ssTSU.begin()));
+            if (ssTSU.size() != 0)
+                continue;
+        }
+
+        std::set<unsigned int> sTU;
+        std::set_difference(T.begin(), T.end(), U.begin(), U.end(), std::inserter(sTU, sTU.begin()));
+        
+        
+        if (((S.size() - sTU.size()) % 2) == 0)
+            m_all(Rcpp::_, colnum) = m_all(Rcpp::_, colnum) + mat(Rcpp::_, i);
+        else
+            m_all(Rcpp::_, colnum) = m_all(Rcpp::_, colnum) - mat(Rcpp::_, i);
+    }
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix explainTreeFastPD(
+    Rcpp::NumericMatrix &x,
+    NumericMatrix &tree,
+    Rcpp::List &to_explain_list)
+{
+    std::vector<std::set<unsigned int>> to_explain;
+    for (int i = 0; i < to_explain_list.size(); i++)
+    {
+        std::set<unsigned int> to_explain_set = std::set<unsigned int>(as<IntegerVector>(to_explain_list[i]).begin(), as<IntegerVector>(to_explain_list[i]).end());
+        to_explain.push_back(to_explain_set);
+    }
+    LeafData leaf_data = augmentTree_(tree, x);
+    std::vector<std::set<unsigned int>> U = get_all_subsets_(leaf_data.all_encountered);
+    NumericMatrix mat = recurseMarginalizeU_(x, tree, U, 0, leaf_data);
+
+    unsigned int to_explain_size = to_explain.size();
+    NumericMatrix m_all = NumericMatrix(x.nrow(), to_explain_size);
+    CharacterVector m_all_col_names = CharacterVector(to_explain_size);
+    CharacterVector x_col_names = colnames(x);
+
+    // Step 3: Find the intersection of the two sets
+    std::vector<std::set<unsigned int>> intersection;
+    for (int S_idx = 0; S_idx < to_explain_size; S_idx++)
+    {
+        std::set<unsigned int> S = to_explain[S_idx];
+
+        if (int k = S.size(); k != 0)  {
+            auto it = S.begin();
+            std::ostringstream oss;
+            for (int i = 0; i < k-1; i++, it++) oss << x_col_names[*it] << ":";
+            oss << x_col_names[*it];
+            m_all_col_names[S_idx] = oss.str();
+        }
+
+        if (std::find(U.begin(), U.end(), S) == U.end())
+            continue;
+        // std::set<unsigned int> S_set = std::set<unsigned int>(S.begin(), S.end());
+        contributeFastPD(mat, m_all, S, leaf_data.all_encountered, U, S_idx);
+    }
+    colnames(m_all) = m_all_col_names;
+    return m_all;
 }

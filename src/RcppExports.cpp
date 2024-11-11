@@ -63,6 +63,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// explainTreeFastPD
+Rcpp::NumericMatrix explainTreeFastPD(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list);
+RcppExport SEXP _glex_explainTreeFastPD(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List& >::type to_explain_list(to_explain_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(explainTreeFastPD(x, tree, to_explain_list));
+    return rcpp_result_gen;
+END_RCPP
+}
 // find_term_matches
 std::vector<int> find_term_matches(std::string main_term, std::vector<std::string> terms);
 RcppExport SEXP _glex_find_term_matches(SEXP main_termSEXP, SEXP termsSEXP) {
@@ -172,6 +185,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glex_augmentTree", (DL_FUNC) &_glex_augmentTree, 2},
     {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 4},
     {"_glex_marginalizeAllSplittedSubsetsinTree", (DL_FUNC) &_glex_marginalizeAllSplittedSubsetsinTree, 2},
+    {"_glex_explainTreeFastPD", (DL_FUNC) &_glex_explainTreeFastPD, 3},
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},
     {"_glex_recurseRcppEmpProbfunction", (DL_FUNC) &_glex_recurseRcppEmpProbfunction, 11},
