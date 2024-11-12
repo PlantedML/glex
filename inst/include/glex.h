@@ -1,4 +1,7 @@
 
+#ifndef GLEX_H_
+#define GLEX_H_
+
 #include <set>
 #include <map>
 #include <vector>
@@ -27,3 +30,5 @@ enum Index
     NO = 3,
     QUALITY = 4,
 };
+
+#endif // GLEX_H_
