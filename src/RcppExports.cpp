@@ -11,6 +11,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// augmentTree
+XPtr<LeafData> augmentTree(NumericMatrix& tree, NumericMatrix& dataset);
+RcppExport SEXP _glex_augmentTree(SEXP treeSEXP, SEXP datasetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type dataset(datasetSEXP);
+    rcpp_result_gen = Rcpp::wrap(augmentTree(tree, dataset));
+    return rcpp_result_gen;
+END_RCPP
+}
 // augmentAndTakeExpectation
 double augmentAndTakeExpectation(NumericVector& x, NumericMatrix& dataset, NumericMatrix& tree, NumericVector& to_explain);
 RcppExport SEXP _glex_augmentAndTakeExpectation(SEXP xSEXP, SEXP datasetSEXP, SEXP treeSEXP, SEXP to_explainSEXP) {
@@ -22,18 +34,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< NumericVector& >::type to_explain(to_explainSEXP);
     rcpp_result_gen = Rcpp::wrap(augmentAndTakeExpectation(x, dataset, tree, to_explain));
-    return rcpp_result_gen;
-END_RCPP
-}
-// augmentTree
-XPtr<LeafData> augmentTree(NumericMatrix& tree, NumericMatrix& dataset);
-RcppExport SEXP _glex_augmentTree(SEXP treeSEXP, SEXP datasetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix& >::type dataset(datasetSEXP);
-    rcpp_result_gen = Rcpp::wrap(augmentTree(tree, dataset));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -51,18 +51,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// marginalizeAllSplittedSubsetsinTree
-Rcpp::NumericMatrix marginalizeAllSplittedSubsetsinTree(Rcpp::NumericMatrix& x, NumericMatrix& tree);
-RcppExport SEXP _glex_marginalizeAllSplittedSubsetsinTree(SEXP xSEXP, SEXP treeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
-    rcpp_result_gen = Rcpp::wrap(marginalizeAllSplittedSubsetsinTree(x, tree));
-    return rcpp_result_gen;
-END_RCPP
-}
 // explainTreeFastPD
 Rcpp::NumericMatrix explainTreeFastPD(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list);
 RcppExport SEXP _glex_explainTreeFastPD(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP) {
@@ -73,6 +61,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< Rcpp::List& >::type to_explain_list(to_explain_listSEXP);
     rcpp_result_gen = Rcpp::wrap(explainTreeFastPD(x, tree, to_explain_list));
+    return rcpp_result_gen;
+END_RCPP
+}
+// marginalizeAllSplittedSubsetsinTree
+NumericMatrix marginalizeAllSplittedSubsetsinTree(NumericMatrix& x, NumericMatrix& tree);
+RcppExport SEXP _glex_marginalizeAllSplittedSubsetsinTree(SEXP xSEXP, SEXP treeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
+    rcpp_result_gen = Rcpp::wrap(marginalizeAllSplittedSubsetsinTree(x, tree));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -103,7 +103,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // recurseRcppEmpProbfunction
-Rcpp::NumericMatrix recurseRcppEmpProbfunction(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericMatrix& lb, Rcpp::NumericMatrix& ub, Rcpp::IntegerVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node);
+Rcpp::NumericMatrix recurseRcppEmpProbfunction(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericMatrix& lb, Rcpp::NumericMatrix& ub, Rcpp::IntegerVector& cover, std::vector<std::vector<unsigned int>>& U, unsigned int node);
 RcppExport SEXP _glex_recurseRcppEmpProbfunction(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP lbSEXP, SEXP ubSEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -117,14 +117,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type lb(lbSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type ub(ubSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type cover(coverSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int> >& >::type U(USEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int>>& >::type U(USEXP);
     Rcpp::traits::input_parameter< unsigned int >::type node(nodeSEXP);
     rcpp_result_gen = Rcpp::wrap(recurseRcppEmpProbfunction(x, feature, split, yes, no, quality, lb, ub, cover, U, node));
     return rcpp_result_gen;
 END_RCPP
 }
 // recurse
-Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericMatrix& lb, Rcpp::NumericMatrix& ub, Rcpp::IntegerVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node, Rcpp::Function probFunction);
+Rcpp::NumericMatrix recurse(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericMatrix& lb, Rcpp::NumericMatrix& ub, Rcpp::IntegerVector& cover, std::vector<std::vector<unsigned int>>& U, unsigned int node, Rcpp::Function probFunction);
 RcppExport SEXP _glex_recurse(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP lbSEXP, SEXP ubSEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP, SEXP probFunctionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -138,7 +138,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type lb(lbSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type ub(ubSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type cover(coverSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int> >& >::type U(USEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int>>& >::type U(USEXP);
     Rcpp::traits::input_parameter< unsigned int >::type node(nodeSEXP);
     Rcpp::traits::input_parameter< Rcpp::Function >::type probFunction(probFunctionSEXP);
     rcpp_result_gen = Rcpp::wrap(recurse(x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction));
@@ -146,7 +146,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // recurseAlgorithm2
-Rcpp::NumericMatrix recurseAlgorithm2(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int> >& U, unsigned int node);
+Rcpp::NumericMatrix recurseAlgorithm2(Rcpp::NumericMatrix& x, Rcpp::IntegerVector& feature, Rcpp::NumericVector& split, Rcpp::IntegerVector& yes, Rcpp::IntegerVector& no, Rcpp::NumericVector& quality, Rcpp::NumericVector& cover, std::vector<std::vector<unsigned int>>& U, unsigned int node);
 RcppExport SEXP _glex_recurseAlgorithm2(SEXP xSEXP, SEXP featureSEXP, SEXP splitSEXP, SEXP yesSEXP, SEXP noSEXP, SEXP qualitySEXP, SEXP coverSEXP, SEXP USEXP, SEXP nodeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -158,7 +158,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type no(noSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type quality(qualitySEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type cover(coverSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int> >& >::type U(USEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<unsigned int>>& >::type U(USEXP);
     Rcpp::traits::input_parameter< unsigned int >::type node(nodeSEXP);
     rcpp_result_gen = Rcpp::wrap(recurseAlgorithm2(x, feature, split, yes, no, quality, cover, U, node));
     return rcpp_result_gen;
@@ -181,11 +181,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_glex_augmentAndTakeExpectation", (DL_FUNC) &_glex_augmentAndTakeExpectation, 4},
     {"_glex_augmentTree", (DL_FUNC) &_glex_augmentTree, 2},
+    {"_glex_augmentAndTakeExpectation", (DL_FUNC) &_glex_augmentAndTakeExpectation, 4},
     {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 4},
-    {"_glex_marginalizeAllSplittedSubsetsinTree", (DL_FUNC) &_glex_marginalizeAllSplittedSubsetsinTree, 2},
     {"_glex_explainTreeFastPD", (DL_FUNC) &_glex_explainTreeFastPD, 3},
+    {"_glex_marginalizeAllSplittedSubsetsinTree", (DL_FUNC) &_glex_marginalizeAllSplittedSubsetsinTree, 2},
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},
     {"_glex_recurseRcppEmpProbfunction", (DL_FUNC) &_glex_recurseRcppEmpProbfunction, 11},
