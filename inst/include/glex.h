@@ -18,3 +18,12 @@ struct LeafData
     std::map<unsigned int, std::set<unsigned int>> encountered;
     std::map<unsigned int, ProbsMap> leafProbs;
 };
+
+enum Index
+{
+    FEATURE = 0,
+    SPLIT = 1,
+    YES = 2,
+    NO = 3,
+    QUALITY = 4,
+};

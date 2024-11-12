@@ -315,15 +315,11 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
 }
 
 tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
-  Tree <- NULL
-  Feature_num <- NULL
-  Feature <- NULL
-  Node <- NULL
-  PathData <- NULL
   # Calculate matrix
-  tree_info <- trees[Tree == tree, ]
-  tree_info[, Feature := Feature_num - 1L]
-  tree_mat <- tree_info[, .(Tree, Node, Split, Yes, No, Quality, Cover, Feature)]
+  tree_info <- trees[get("Tree") == tree, ]
+  tree_info[, "Feature" := get("Feature_num") - 1L]
+  to_select <- c("Feature", "Split", "Yes", "No", "Quality")
+  tree_mat <- tree_info[, ..to_select]
   tree_mat[is.na(tree_mat)] <- -1L
   tree_mat <- as.matrix(tree_mat)
 

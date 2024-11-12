@@ -9,8 +9,8 @@ void augmentTreeRecurseStep(AugmentedData passed_down, LeafData &leaf_data, Nume
 {
     NumericMatrix::Row current_node = tree(node, _);
 
-    int current_feature = current_node[7];
-    double split = current_node[2];
+    int current_feature = current_node[Index::FEATURE];
+    double split = current_node[Index::SPLIT];
 
     if (current_feature == -1)
     {
@@ -79,8 +79,8 @@ void augmentTreeRecurseStep(AugmentedData passed_down, LeafData &leaf_data, Nume
         }
     }
 
-    unsigned int yes = current_node[3];
-    unsigned int no = current_node[4];
+    unsigned int yes = current_node[Index::YES];
+    unsigned int no = current_node[Index::NO];
 
     augmentTreeRecurseStep(passed_down_yes, leaf_data, tree, dataset, yes);
     augmentTreeRecurseStep(passed_down_no, leaf_data, tree, dataset, no);
@@ -117,8 +117,8 @@ double augmentExpectation_(NumericVector &x, NumericMatrix &tree, NumericVector 
         to_process.pop();
 
         NumericMatrix::Row current_node = tree(node_idx, _);
-        int current_feature = current_node[7];
-        double split = current_node[2];
+        int current_feature = current_node[Index::FEATURE];
+        double split = current_node[Index::SPLIT];
 
         if (current_feature == -1)
         {
@@ -130,7 +130,7 @@ double augmentExpectation_(NumericVector &x, NumericMatrix &tree, NumericVector 
                     std::inserter(to_marginalize, to_marginalize.begin()));
 
             double p = leaf_data.leafProbs[node_idx][to_marginalize];
-            result += tree(node_idx, 5) * p;
+            result += tree(node_idx, Index::QUALITY) * p;
             continue;
         }
 
@@ -138,17 +138,17 @@ double augmentExpectation_(NumericVector &x, NumericMatrix &tree, NumericVector 
         {
             if (x[current_feature] < split)
             {
-                to_process.push(current_node[3]);
+                to_process.push(current_node[Index::YES]);
             }
             else
             {
-                to_process.push(current_node[4]);
+                to_process.push(current_node[Index::NO]);
             }
         }
         else
         {
-            to_process.push(current_node[3]);
-            to_process.push(current_node[4]);
+            to_process.push(current_node[Index::YES]);
+            to_process.push(current_node[Index::NO]);
         }
     }
 
@@ -205,7 +205,7 @@ Rcpp::NumericMatrix recurseMarginalizeU_(
     LeafData &leaf_data)
 {
     NumericMatrix::Row current_node = tree(node, _);
-    int current_feature = current_node[7];
+    int current_feature = current_node[Index::FEATURE];
 
     // Start with all 0
     unsigned int n = x.nrow();
@@ -223,7 +223,7 @@ Rcpp::NumericMatrix recurseMarginalizeU_(
                 std::inserter(to_explain, to_explain.begin()));
 
             double p = leaf_data.leafProbs[node][to_explain];
-            double quality = tree(node, 5);
+            double quality = tree(node, Index::QUALITY);
             double expected_value = quality * p;
 
             Rcpp::NumericMatrix::Column to_fill = mat(Rcpp::_, j);
@@ -232,8 +232,8 @@ Rcpp::NumericMatrix recurseMarginalizeU_(
     }
     else
     {
-        unsigned int yes = current_node[3];
-        unsigned int no = current_node[4];
+        unsigned int yes = current_node[Index::YES];
+        unsigned int no = current_node[Index::NO];
 
         // Call both children, they give a matrix each of all obs and subsets
         Rcpp::NumericMatrix mat_yes = recurseMarginalizeU_(x, tree, U, yes, leaf_data);
@@ -251,7 +251,7 @@ Rcpp::NumericMatrix recurseMarginalizeU_(
             }
             else
             {
-                double split = current_node[2];
+                double split = current_node[Index::SPLIT];
                 // For subsets where feature is in, split to left/right
                 for (unsigned int i = 0; i < n; ++i)
                 {
