@@ -1,4 +1,3 @@
-
 #ifndef GLEX_H_
 #define GLEX_H_
 
@@ -17,9 +16,13 @@ struct AugmentedData
 
 struct LeafData
 {
+  unsigned int max_interaction;
   std::set<unsigned int> all_encountered;
   std::map<unsigned int, std::set<unsigned int>> encountered;
   std::map<unsigned int, ProbsMap> leafProbs;
+
+  // Constructor to initialize max_interaction
+  LeafData(unsigned int max_interaction) : max_interaction(max_interaction) {}
 };
 
 enum Index
