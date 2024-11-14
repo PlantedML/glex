@@ -13,8 +13,8 @@ augmentExpectation <- function(x, tree, to_explain, leaf_data_ptr) {
     .Call(`_glex_augmentExpectation`, x, tree, to_explain, leaf_data_ptr)
 }
 
-explainTreeFastPD <- function(x, tree, to_explain_list) {
-    .Call(`_glex_explainTreeFastPD`, x, tree, to_explain_list)
+explainTreeFastPD <- function(x, tree, to_explain_list, max_interaction) {
+    .Call(`_glex_explainTreeFastPD`, x, tree, to_explain_list, max_interaction)
 }
 
 marginalizeAllSplittedSubsetsinTree <- function(x, tree) {

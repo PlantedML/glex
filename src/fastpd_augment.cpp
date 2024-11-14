@@ -94,7 +94,7 @@ void augmentTreeRecurseStepUptoMaxInteraction(
   augmentTreeRecurseStepUptoMaxInteraction(passed_down_no, leaf_data, tree, dataset, max_interaction, no);
 }
 
-LeafData augmentTree_(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction = UINT_MAX)
+LeafData augmentTree_(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
 {
   AugmentedData result;
 
@@ -111,6 +111,11 @@ LeafData augmentTree_(NumericMatrix &tree, NumericMatrix &dataset, unsigned int 
   augmentTreeRecurseStepUptoMaxInteraction(to_pass_down, leaf_data, tree, dataset, max_interaction, 0);
 
   return leaf_data;
+}
+
+LeafData augmentTree_(NumericMatrix &tree, NumericMatrix &dataset)
+{
+  return augmentTree_(tree, dataset, UINT_MAX);
 }
 
 // [[Rcpp::export]]

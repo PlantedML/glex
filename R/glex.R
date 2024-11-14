@@ -314,7 +314,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   m_all
 }
 
-tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
+tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
   # Calculate matrix
   tree_info <- trees[get("Tree") == tree, ]
   tree_info[, "Feature" := get("Feature_num") - 1L]
@@ -323,7 +323,12 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
   tree_mat[is.na(tree_mat)] <- -1L
   tree_mat <- as.matrix(tree_mat)
 
-  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L))
+  m_all <- explainTreeFastPD(
+    x,
+    tree_mat,
+    lapply(all_S, function(S) S - 1L),
+    max_interaction
+  )
   m_all
 }
 
@@ -335,7 +340,7 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
 #' @param probFunction probFunction that was supplied to \code{glex}
 #' @keywords internal
 #' @noRd
-tree_fun_wrapper <- function(trees, x, all_S, probFunction) {
+tree_fun_wrapper <- function(trees, x, all_S, max_interaction, probFunction) {
   if (is.character(probFunction)) {
     if (probFunction == "path-dependent") {
       return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
@@ -345,7 +350,7 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction) {
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
     }
   } else if (is.function(probFunction) || is.null(probFunction)) {
-    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S))
+    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S, max_interaction))
   } else {
     stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
   }
@@ -390,7 +395,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   j <- NULL
   idx <- 0:max(trees$Tree)
 
-  tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction)
+  tree_fun <- tree_fun_wrapper(trees, x, all_S, max_interaction, probFunction)
 
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
