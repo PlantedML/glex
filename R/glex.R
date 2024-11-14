@@ -110,6 +110,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
+  trees$Type <- "XGB"
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
@@ -183,6 +184,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   trees[, terminal := NULL]
   trees[, prediction := NULL]
   colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
+  trees$Type <- "Ranger"
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
@@ -323,7 +325,8 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
   tree_mat[is.na(tree_mat)] <- -1L
   tree_mat <- as.matrix(tree_mat)
 
-  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L))
+  is_ranger <- tree_info$Type[1] == "Ranger"
+  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), is_ranger)
   m_all
 }
 
