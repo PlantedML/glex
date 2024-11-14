@@ -15,7 +15,8 @@ Rcpp::IntegerVector removeValue(Rcpp::IntegerVector &vec, int valueToRemove)
   return vec;
 }
 
-std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set)
+std::vector<std::set<unsigned int>> get_all_subsets_(
+    std::set<unsigned int> &set)
 {
   std::vector<std::set<unsigned int>> result;
   unsigned int n = set.size();
@@ -34,6 +35,43 @@ std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set
     result.push_back(subset);
   }
   return result;
+}
+
+void recurse_subset(
+    const std::set<unsigned int> &arr,
+    std::set<unsigned int> &currentSubset,
+    std::vector<std::set<unsigned int>> &subsets,
+    int maxSize,
+    int index)
+{
+  // Add the current subset to the result if it's within the maxSize limit
+  if (currentSubset.size() <= maxSize)
+  {
+    subsets.push_back(currentSubset);
+  }
+
+  // Stop recursion if maxSize is reached
+  if (currentSubset.size() == maxSize || index >= arr.size())
+    return;
+
+  // Recursively generate subsets starting from the current index
+  for (auto it = std::next(arr.begin(), index); it != arr.end(); ++it)
+  {
+    // Include arr[i] in the subset
+    currentSubset.insert(*it);
+    recurse_subset(arr, currentSubset, subsets, maxSize, *it + 1);
+    currentSubset.erase(*it);
+  }
+}
+
+std::vector<std::set<unsigned int>> get_all_subsets(
+    std::set<unsigned int> &arr,
+    unsigned int maxSize = UINT_MAX)
+{
+  std::vector<std::set<unsigned int>> subsets;
+  std::set<unsigned int> currentSubset = {};
+  recurse_subset(arr, currentSubset, subsets, maxSize, 0);
+  return subsets;
 }
 
 // [[Rcpp::export]]
