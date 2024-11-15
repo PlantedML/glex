@@ -110,6 +110,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
+  trees$Type <- "XGB"
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
@@ -183,6 +184,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   trees[, terminal := NULL]
   trees[, prediction := NULL]
   colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
+  trees$Type <- "Ranger"
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
@@ -314,6 +316,21 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   m_all
 }
 
+tree_fun_emp_fastPD <- function(tree, trees, x, all_S) {
+  # Calculate matrix
+  tree_info <- trees[get("Tree") == tree, ]
+  tree_info[, "Feature" := get("Feature_num") - 1L]
+  to_select <- c("Feature", "Split", "Yes", "No", "Quality")
+  tree_mat <- tree_info[, ..to_select]
+  tree_mat[is.na(tree_mat)] <- -1L
+  tree_mat <- as.matrix(tree_mat)
+
+  is_ranger <- tree_info$Type[1] == "Ranger"
+  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), is_ranger)
+  m_all
+}
+
+
 #' Internal tree function wrapper that returns the actual tree function
 #' @param trees data.table
 #' @param x observerations, matrix like data-structure
@@ -331,7 +348,7 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction) {
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
     }
   } else if (is.function(probFunction) || is.null(probFunction)) {
-    return(function(tree) tree_fun_emp(tree, trees, x, all_S, probFunction))
+    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S))
   } else {
     stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
   }

@@ -1,5 +1,4 @@
 test_that("max_interaction respects xgb's max_depth", {
-
   x <- as.matrix(mtcars[, -1])
 
   # xgb default: 6
@@ -54,3 +53,14 @@ test_that("features argument works together with max_interaction", {
   expect_equal(colnames(glexb$m), c("cyl", "disp"))
 })
 
+test_that("Prediction is approx. same as sum of decomposition + intercept, xgboost", {
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(x, mtcars$mpg, nrounds = 15, verbose = 0)
+  pred_train <- predict(xg, x)
+
+  res_train <- glex(xg, x)
+  expect_equal(res_train$intercept + rowSums(res_train$m),
+    pred_train,
+    tolerance = 1e-5
+  )
+})
