@@ -3,7 +3,7 @@
 
 using namespace Rcpp;
 
-LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset)
+LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
 {
   AugmentedData result;
 
@@ -15,24 +15,34 @@ LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset)
   std::iota(to_pass_down.pathData[{}].begin(), to_pass_down.pathData[{}].end(), 0);
   LeafData leaf_data = LeafData();
 
-  augmentTreeRecurseStepRanger(to_pass_down, leaf_data, tree, dataset, 0);
+  augmentTreeRecurseStepRanger(to_pass_down, leaf_data, tree, dataset, 0, max_interaction);
+  return leaf_data;
+}
+
+LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
+{
+  AugmentedData result;
+
+  AugmentedData to_pass_down = {
+      .encountered = std::set<unsigned int>(),
+      .pathData = PathData(),
+  };
+  to_pass_down.pathData[{}] = std::vector<unsigned int>(dataset.nrow());
+  std::iota(to_pass_down.pathData[{}].begin(), to_pass_down.pathData[{}].end(), 0);
+  LeafData leaf_data = LeafData();
+
+  augmentTreeRecurseStepXgboost(to_pass_down, leaf_data, tree, dataset, 0, max_interaction);
   return leaf_data;
 }
 
 LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset)
 {
-  AugmentedData result;
+  return augmentTreeXgboost(tree, dataset, dataset.ncol());
+}
 
-  AugmentedData to_pass_down = {
-      .encountered = std::set<unsigned int>(),
-      .pathData = PathData(),
-  };
-  to_pass_down.pathData[{}] = std::vector<unsigned int>(dataset.nrow());
-  std::iota(to_pass_down.pathData[{}].begin(), to_pass_down.pathData[{}].end(), 0);
-  LeafData leaf_data = LeafData();
-
-  augmentTreeRecurseStepXgboost(to_pass_down, leaf_data, tree, dataset, 0);
-  return leaf_data;
+LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset)
+{
+  return augmentTreeRanger(tree, dataset, dataset.ncol());
 }
 
 void augmentTreeRecurseStepRanger(
@@ -40,7 +50,8 @@ void augmentTreeRecurseStepRanger(
     LeafData &leaf_data,
     NumericMatrix &tree,
     NumericMatrix &dataset,
-    unsigned int node)
+    unsigned int node,
+    unsigned int max_interaction)
 {
   NumericMatrix::Row current_node = tree(node, _);
 
@@ -106,6 +117,9 @@ void augmentTreeRecurseStepRanger(
 
     for (const auto &[subset, path_dat] : passed_down.pathData)
     {
+      if (subset.size() >= max_interaction)
+        continue;
+
       std::set to_add = subset;
       to_add.insert(current_feature);
 
@@ -117,8 +131,8 @@ void augmentTreeRecurseStepRanger(
   unsigned int yes = current_node[Index::YES];
   unsigned int no = current_node[Index::NO];
 
-  augmentTreeRecurseStepRanger(passed_down_yes, leaf_data, tree, dataset, yes);
-  augmentTreeRecurseStepRanger(passed_down_no, leaf_data, tree, dataset, no);
+  augmentTreeRecurseStepRanger(passed_down_yes, leaf_data, tree, dataset, yes, max_interaction);
+  augmentTreeRecurseStepRanger(passed_down_no, leaf_data, tree, dataset, no, max_interaction);
 }
 
 void augmentTreeRecurseStepXgboost(
@@ -126,7 +140,8 @@ void augmentTreeRecurseStepXgboost(
     LeafData &leaf_data,
     NumericMatrix &tree,
     NumericMatrix &dataset,
-    unsigned int node)
+    unsigned int node,
+    unsigned int max_interaction)
 {
   NumericMatrix::Row current_node = tree(node, _);
 
@@ -192,6 +207,8 @@ void augmentTreeRecurseStepXgboost(
 
     for (const auto &[subset, path_dat] : passed_down.pathData)
     {
+      if (subset.size() >= max_interaction)
+        continue;
       std::set to_add = subset;
       to_add.insert(current_feature);
 
@@ -203,6 +220,6 @@ void augmentTreeRecurseStepXgboost(
   unsigned int yes = current_node[Index::YES];
   unsigned int no = current_node[Index::NO];
 
-  augmentTreeRecurseStepXgboost(passed_down_yes, leaf_data, tree, dataset, yes);
-  augmentTreeRecurseStepXgboost(passed_down_no, leaf_data, tree, dataset, no);
+  augmentTreeRecurseStepXgboost(passed_down_yes, leaf_data, tree, dataset, yes, max_interaction);
+  augmentTreeRecurseStepXgboost(passed_down_no, leaf_data, tree, dataset, no, max_interaction);
 }
