@@ -2,6 +2,32 @@
 #include "../inst/include/glex.h"
 
 using namespace Rcpp;
+std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set);
+
+void contributeFastPD2(
+    NumericMatrix &mat,
+    NumericMatrix &m_all,
+    std::set<unsigned int> &S,
+    std::vector<std::set<unsigned int>> &T_subsets,
+    unsigned int colnum)
+{
+  std::vector<std::set<unsigned int>> Vs = get_all_subsets_(S);
+  for (unsigned int i = 0; i < Vs.size(); ++i)
+  {
+    std::set<unsigned int> V = Vs[i];
+    auto it = std::find(T_subsets.begin(), T_subsets.end(), V);
+    unsigned int idx = std::distance(T_subsets.begin(), it);
+
+    if ((S.size() - V.size()) % 2 == 0)
+    {
+      m_all(_, colnum) = m_all(_, colnum) + mat(_, idx);
+    }
+    else
+    {
+      m_all(_, colnum) = m_all(_, colnum) - mat(_, idx);
+    }
+  }
+}
 
 void contributeFastPD(
     Rcpp::NumericMatrix &mat,
