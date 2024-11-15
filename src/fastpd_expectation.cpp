@@ -19,6 +19,9 @@ Rcpp::NumericMatrix recurseMarginalizeUXgboost(
     std::vector<std::set<unsigned int>> &U, unsigned int node,
     LeafData &leaf_data);
 
+double augmentExpectationRanger(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data);
+double augmentExpectationXgboost(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data);
+
 // [[Rcpp::export]]
 double augmentAndTakeExpectation(NumericVector &x, NumericMatrix &dataset, NumericMatrix &tree, NumericVector &to_explain, bool is_ranger)
 {

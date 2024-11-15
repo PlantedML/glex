@@ -2,6 +2,20 @@
 #include "../inst/include/glex.h"
 
 using namespace Rcpp;
+void augmentTreeRecurseStepRanger(
+    AugmentedData passed_down,
+    LeafData &leaf_data,
+    NumericMatrix &tree,
+    NumericMatrix &dataset,
+    unsigned int node,
+    unsigned int max_interaction);
+void augmentTreeRecurseStepXgboost(
+    AugmentedData passed_down,
+    LeafData &leaf_data,
+    NumericMatrix &tree,
+    NumericMatrix &dataset,
+    unsigned int node,
+    unsigned int max_interaction);
 
 LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
 {
