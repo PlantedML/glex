@@ -107,8 +107,8 @@ NumericMatrix recurseMarginalizeSXgboost(
     unsigned int no = current_node[Index::NO];
 
     // Call both children, they give a matrix each of all obs and subsets
-    NumericMatrix mat_yes = recurseMarginalizeSRanger(x, tree, Ss, yes, leaf_data);
-    NumericMatrix mat_no = recurseMarginalizeSRanger(x, tree, Ss, no, leaf_data);
+    NumericMatrix mat_yes = recurseMarginalizeSXgboost(x, tree, Ss, yes, leaf_data);
+    NumericMatrix mat_no = recurseMarginalizeSXgboost(x, tree, Ss, no, leaf_data);
 
     for (unsigned int j = 0; j < Ss.size(); ++j)
     {

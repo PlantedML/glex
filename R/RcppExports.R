@@ -17,8 +17,8 @@ marginalizeAllSplittedSubsetsinTree <- function(x, tree, is_ranger) {
     .Call(`_glex_marginalizeAllSplittedSubsetsinTree`, x, tree, is_ranger)
 }
 
-explainTreeFastPD <- function(x, tree, to_explain_list, is_ranger) {
-    .Call(`_glex_explainTreeFastPD`, x, tree, to_explain_list, is_ranger)
+explainTreeFastPD <- function(x, tree, to_explain_list, max_interaction, is_ranger) {
+    .Call(`_glex_explainTreeFastPD`, x, tree, to_explain_list, max_interaction, is_ranger)
 }
 
 find_term_matches <- function(main_term, terms) {
