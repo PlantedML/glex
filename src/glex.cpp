@@ -17,7 +17,7 @@ double empProbFunction(Rcpp::NumericMatrix &x, Rcpp::IntegerVector &coords, Rcpp
     for (int j = 0; j < m; ++j)
     {                          // Loop over selected columns
       int col = coords[j] - 1; // Adjust for 0-based indexing in C++
-      if (x(i, col) <= lb[j] || x(i, col) >= ub[j])
+      if (x(i, col) <= lb[j] || x(i, col) > ub[j])
       {
         withinBounds = false;
         break; // Exit loop if any variable is out of bounds

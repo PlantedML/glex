@@ -343,6 +343,9 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction) {
     if (probFunction == "path-dependent") {
       return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
     } else if (probFunction == "empirical") {
+      if (trees$Type[1] != "Ranger") {
+        warning("Using 'empirical' for XGBoost models can result in inaccuracies. Use the default (probFunction = NULL) instead.")
+      }
       return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL))
     } else {
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
