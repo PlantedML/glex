@@ -1,3 +1,5 @@
+library(ranger)
+
 test_that("FastPD equals empirical leaf weighting", {
   set.seed(1)
   n <- 5e2
@@ -7,11 +9,10 @@ test_that("FastPD equals empirical leaf weighting", {
   x[, 2] <- 0.3 * x[, 1] + sqrt(1 - 0.3^2) * x[, 2] # Add covariance
   y <- x[, 1] + x[, 2] + 2 * x[, 1] * x[, 2] + rnorm(n)
 
-  dtrain <- xgb.DMatrix(data = x, label = y)
-  xg <- xgboost(data = dtrain, max_depth = 4, eta = 1, nrounds = 15, objective = "reg:squarederror")
+  rf <- ranger(x = x, y = y, num.trees = 5, max.depth = 4, node.stats = TRUE)
 
-  fastpd <- glex(xg, x)
-  empirical_leaf_weighting <- glex(xg, x, probFunction = "empirical")
+  fastpd <- glex(rf, x)
+  empirical_leaf_weighting <- glex(rf, x, probFunction = "empirical")
 
   expect_equal(fastpd$m, empirical_leaf_weighting$m)
   expect_equal(fastpd$intercept, empirical_leaf_weighting$intercept) # Check intercept
@@ -19,14 +20,18 @@ test_that("FastPD equals empirical leaf weighting", {
 
 test_that("FastPD equals empirical leaf weighting for lower interactions", {
   x <- as.matrix(mtcars[, -1])
-  xg <- xgboost(x, mtcars$mpg, nrounds = 15, verbose = 0)
+  rf <- ranger(
+    x = x, y = mtcars$mpg,
+    node.stats = TRUE,
+    num.trees = 5, max.depth = 4
+  )
 
-  fastpd <- glex(xg, x, max_interaction = 2)
-  empirical_leaf_weighting <- glex(xg, x, probFunction = "empirical", max_interaction = 2)
+  fastpd <- glex(rf, x, max_interaction = 2)
+  empirical_leaf_weighting <- glex(rf, x, probFunction = "empirical", max_interaction = 2)
 
   expect_equal(
     fastpd$m,
     empirical_leaf_weighting$m,
-    tolerance = 1e-5
+    ignore_attr = TRUE
   )
 })
