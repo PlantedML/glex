@@ -1,7 +1,7 @@
 Type: Package
 Package: glex
 Title: Global Explanations for Tree-Based Models
-Version: 0.4.0.9000
+Version: 0.4.1
 Authors@R: c(
     person(c("Marvin", "N."), "Wright", , "cran@wrig.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8542-6291")),
@@ -9,7 +9,8 @@ Authors@R: c(
     person("Munir", "Hiabu", role = "aut"),
     person("Lukas", "Burk", , "burk@leibniz-bips.de", role = "aut",
            comment = c(ORCID = "0000-0001-7528-3795")),
-    person("Jinyang", "Liu", , "jl@math.ku.dk", role = "aut", comment = c(ORCID = "0009-0005-3167-9014"))
+    person("Jinyang", "Liu", , "jl@math.ku.dk", role = "aut",
+           comment = c(ORCID = "0009-0005-3167-9014"))
   )
 Description: Global explanations for tree-based models by decomposing
     regression or classification functions into the sum of main components
@@ -19,6 +20,8 @@ Description: Global explanations for tree-based models by decomposing
 License: GPL-3
 URL: https://github.com/PlantedML/glex, http://plantedml.com/glex/
 BugReports: https://github.com/PlantedML/glex/issues
+Depends:
+    R (>= 3.0)
 Imports: 
     checkmate,
     data.table,
@@ -35,10 +38,10 @@ Suggests:
     knitr,
     patchwork,
     randomPlantedForest,
+    ranger,
     rmarkdown,
     testthat (>= 3.0.0),
-    xgboost, 
-    ranger
+    xgboost
 LinkingTo: 
     Rcpp
 VignetteBuilder: 
@@ -47,8 +50,6 @@ Remotes:
     PlantedML/randomPlantedForest
 Config/testthat/edition: 3
 Encoding: UTF-8
+LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Depends: 
-    R (>= 2.10)
-LazyData: true

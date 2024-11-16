@@ -1,5 +1,6 @@
-# glex 0.4.0.9000
+# glex 0.4.1
 
+* Added FastPD [arXiv](https://arxiv.org/abs/2410.13448) as default `probFunction` in `glex`.
 * Add rug plot to `plot_*_effect[s]` functions for continuous predictors, defaulting to showing a rug on the bottom side (`rug_side = "b"`).
 
 # glex 0.4.0
