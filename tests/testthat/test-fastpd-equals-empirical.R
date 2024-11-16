@@ -4,7 +4,7 @@ test_that("FastPD equals empirical leaf weighting", {
   p <- 2
   x <- matrix(rnorm(n * p), ncol = p)
   colnames(x) <- paste0("x", 1:p)
-  x[, 2] <- 0.3 * x[, 1] + sqrt(1 - 0.3^2) * x[, 2]  # Add covariance
+  x[, 2] <- 0.3 * x[, 1] + sqrt(1 - 0.3^2) * x[, 2] # Add covariance
   y <- x[, 1] + x[, 2] + 2 * x[, 1] * x[, 2] + rnorm(n)
 
   dtrain <- xgb.DMatrix(data = x, label = y)
@@ -14,5 +14,19 @@ test_that("FastPD equals empirical leaf weighting", {
   empirical_leaf_weighting <- glex(xg, x, probFunction = "empirical")
 
   expect_equal(fastpd$m, empirical_leaf_weighting$m)
-  expect_equal(fastpd$intercept, empirical_leaf_weighting$intercept)  # Check intercept
+  expect_equal(fastpd$intercept, empirical_leaf_weighting$intercept) # Check intercept
+})
+
+test_that("FastPD equals empirical leaf weighting for lower interactions", {
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(x, mtcars$mpg, nrounds = 15, verbose = 0)
+
+  fastpd <- glex(xg, x, max_interaction = 2)
+  empirical_leaf_weighting <- glex(xg, x, probFunction = "empirical", max_interaction = 2)
+
+  expect_equal(
+    fastpd$m,
+    empirical_leaf_weighting$m,
+    tolerance = 1e-5
+  )
 })
