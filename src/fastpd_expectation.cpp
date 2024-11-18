@@ -5,57 +5,57 @@
 #include "../inst/include/glex.h"
 
 using namespace Rcpp;
-LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset);
-LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset);
+LeafData augmentTreeWeakComparison(NumericMatrix &tree, NumericMatrix &dataset);
+LeafData augmentTreeStrictComparison(NumericMatrix &tree, NumericMatrix &dataset);
 std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set);
 
-Rcpp::NumericMatrix recurseMarginalizeURanger(
+Rcpp::NumericMatrix recurseMarginalizeUWeakComparison(
     Rcpp::NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &U, unsigned int node,
     LeafData &leaf_data);
 
-Rcpp::NumericMatrix recurseMarginalizeUXgboost(
+Rcpp::NumericMatrix recurseMarginalizeUStrictComparison(
     Rcpp::NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &U, unsigned int node,
     LeafData &leaf_data);
 
-double augmentExpectationRanger(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data);
-double augmentExpectationXgboost(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data);
+double augmentExpectationWeakComparison(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data);
+double augmentExpectationStrictComparison(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data);
 
 // [[Rcpp::export]]
-double augmentAndTakeExpectation(NumericVector &x, NumericMatrix &dataset, NumericMatrix &tree, NumericVector &to_explain, bool is_ranger)
+double augmentAndTakeExpectation(NumericVector &x, NumericMatrix &dataset, NumericMatrix &tree, NumericVector &to_explain, bool is_weak_inequality)
 {
-  LeafData leaf_data = is_ranger ? augmentTreeRanger(tree, dataset) : augmentTreeXgboost(tree, dataset);
-  return is_ranger ? augmentExpectationRanger(x, tree, to_explain, leaf_data) : augmentExpectationXgboost(x, tree, to_explain, leaf_data);
+  LeafData leaf_data = is_weak_inequality ? augmentTreeWeakComparison(tree, dataset) : augmentTreeStrictComparison(tree, dataset);
+  return is_weak_inequality ? augmentExpectationWeakComparison(x, tree, to_explain, leaf_data) : augmentExpectationStrictComparison(x, tree, to_explain, leaf_data);
 }
 
 // [[Rcpp::export]]
-XPtr<LeafData> augmentTree(NumericMatrix &tree, NumericMatrix &dataset, bool is_ranger)
+XPtr<LeafData> augmentTree(NumericMatrix &tree, NumericMatrix &dataset, bool is_weak_inequality)
 {
-  LeafData *leaf_data = new LeafData(is_ranger ? augmentTreeRanger(tree, dataset) : augmentTreeXgboost(tree, dataset)); // Dynamically allocate
-  XPtr<LeafData> ptr(leaf_data, true);                                                                                  // true enables automatic memory management
+  LeafData *leaf_data = new LeafData(is_weak_inequality ? augmentTreeWeakComparison(tree, dataset) : augmentTreeStrictComparison(tree, dataset)); // Dynamically allocate
+  XPtr<LeafData> ptr(leaf_data, true);                                                                                                            // true enables automatic memory management
   return ptr;
 }
 
 // [[Rcpp::export]]
-double augmentExpectation(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, SEXP leaf_data_ptr, bool is_ranger)
+double augmentExpectation(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, SEXP leaf_data_ptr, bool is_weak_inequality)
 {
   const Rcpp::XPtr<LeafData> leaf_data(leaf_data_ptr);
-  return is_ranger ? augmentExpectationRanger(x, tree, to_explain, *leaf_data) : augmentExpectationXgboost(x, tree, to_explain, *leaf_data);
+  return is_weak_inequality ? augmentExpectationWeakComparison(x, tree, to_explain, *leaf_data) : augmentExpectationStrictComparison(x, tree, to_explain, *leaf_data);
 }
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix marginalizeAllSplittedSubsetsinTree(
     Rcpp::NumericMatrix &x,
     NumericMatrix &tree,
-    bool is_ranger)
+    bool is_weak_inequality)
 {
-  LeafData leaf_data = is_ranger ? augmentTreeRanger(tree, x) : augmentTreeXgboost(tree, x);
+  LeafData leaf_data = is_weak_inequality ? augmentTreeWeakComparison(tree, x) : augmentTreeStrictComparison(tree, x);
   std::vector<std::set<unsigned int>> U = get_all_subsets_(leaf_data.all_encountered);
-  return is_ranger ? recurseMarginalizeURanger(x, tree, U, 0, leaf_data) : recurseMarginalizeUXgboost(x, tree, U, 0, leaf_data);
+  return is_weak_inequality ? recurseMarginalizeUWeakComparison(x, tree, U, 0, leaf_data) : recurseMarginalizeUStrictComparison(x, tree, U, 0, leaf_data);
 }
 
-double augmentExpectationRanger(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data)
+double augmentExpectationWeakComparison(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data)
 {
   std::stack<unsigned int> to_process;
   to_process.push(0);
@@ -107,7 +107,7 @@ double augmentExpectationRanger(NumericVector &x, NumericMatrix &tree, NumericVe
   return result;
 }
 
-double augmentExpectationXgboost(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data)
+double augmentExpectationStrictComparison(NumericVector &x, NumericMatrix &tree, NumericVector &to_explain, LeafData &leaf_data)
 {
   std::stack<unsigned int> to_process;
   to_process.push(0);

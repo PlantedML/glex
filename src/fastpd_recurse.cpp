@@ -4,7 +4,7 @@
 
 using namespace Rcpp;
 
-NumericMatrix recurseMarginalizeSRanger(
+NumericMatrix recurseMarginalizeSWeakComparison(
     NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &Ss, unsigned int node,
     LeafData &leaf_data)
@@ -41,8 +41,8 @@ NumericMatrix recurseMarginalizeSRanger(
     unsigned int no = current_node[Index::NO];
 
     // Call both children, they give a matrix each of all obs and subsets
-    NumericMatrix mat_yes = recurseMarginalizeSRanger(x, tree, Ss, yes, leaf_data);
-    NumericMatrix mat_no = recurseMarginalizeSRanger(x, tree, Ss, no, leaf_data);
+    NumericMatrix mat_yes = recurseMarginalizeSWeakComparison(x, tree, Ss, yes, leaf_data);
+    NumericMatrix mat_no = recurseMarginalizeSWeakComparison(x, tree, Ss, no, leaf_data);
 
     for (unsigned int j = 0; j < Ss.size(); ++j)
     {
@@ -70,7 +70,7 @@ NumericMatrix recurseMarginalizeSRanger(
   return mat;
 }
 
-NumericMatrix recurseMarginalizeSXgboost(
+NumericMatrix recurseMarginalizeSStrictComparison(
     NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &Ss, unsigned int node,
     LeafData &leaf_data)
@@ -107,8 +107,8 @@ NumericMatrix recurseMarginalizeSXgboost(
     unsigned int no = current_node[Index::NO];
 
     // Call both children, they give a matrix each of all obs and subsets
-    NumericMatrix mat_yes = recurseMarginalizeSXgboost(x, tree, Ss, yes, leaf_data);
-    NumericMatrix mat_no = recurseMarginalizeSXgboost(x, tree, Ss, no, leaf_data);
+    NumericMatrix mat_yes = recurseMarginalizeSStrictComparison(x, tree, Ss, yes, leaf_data);
+    NumericMatrix mat_no = recurseMarginalizeSStrictComparison(x, tree, Ss, no, leaf_data);
 
     for (unsigned int j = 0; j < Ss.size(); ++j)
     {
@@ -136,7 +136,7 @@ NumericMatrix recurseMarginalizeSXgboost(
   return mat;
 }
 
-Rcpp::NumericMatrix recurseMarginalizeURanger(
+Rcpp::NumericMatrix recurseMarginalizeUWeakComparison(
     Rcpp::NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &U, unsigned int node,
     LeafData &leaf_data)
@@ -173,8 +173,8 @@ Rcpp::NumericMatrix recurseMarginalizeURanger(
     unsigned int no = current_node[Index::NO];
 
     // Call both children, they give a matrix each of all obs and subsets
-    Rcpp::NumericMatrix mat_yes = recurseMarginalizeURanger(x, tree, U, yes, leaf_data);
-    Rcpp::NumericMatrix mat_no = recurseMarginalizeURanger(x, tree, U, no, leaf_data);
+    Rcpp::NumericMatrix mat_yes = recurseMarginalizeUWeakComparison(x, tree, U, yes, leaf_data);
+    Rcpp::NumericMatrix mat_no = recurseMarginalizeUWeakComparison(x, tree, U, no, leaf_data);
 
     for (unsigned int j = 0; j < U.size(); ++j)
     {
@@ -202,7 +202,7 @@ Rcpp::NumericMatrix recurseMarginalizeURanger(
   return mat;
 }
 
-Rcpp::NumericMatrix recurseMarginalizeUXgboost(
+Rcpp::NumericMatrix recurseMarginalizeUStrictComparison(
     Rcpp::NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &U, unsigned int node,
     LeafData &leaf_data)
@@ -239,8 +239,8 @@ Rcpp::NumericMatrix recurseMarginalizeUXgboost(
     unsigned int no = current_node[Index::NO];
 
     // Call both children, they give a matrix each of all obs and subsets
-    Rcpp::NumericMatrix mat_yes = recurseMarginalizeUXgboost(x, tree, U, yes, leaf_data);
-    Rcpp::NumericMatrix mat_no = recurseMarginalizeUXgboost(x, tree, U, no, leaf_data);
+    Rcpp::NumericMatrix mat_yes = recurseMarginalizeUStrictComparison(x, tree, U, yes, leaf_data);
+    Rcpp::NumericMatrix mat_no = recurseMarginalizeUStrictComparison(x, tree, U, no, leaf_data);
 
     for (unsigned int j = 0; j < U.size(); ++j)
     {

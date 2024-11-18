@@ -2,14 +2,14 @@
 #include "../inst/include/glex.h"
 
 using namespace Rcpp;
-void augmentTreeRecurseStepRanger(
+void augmentTreeRecurseStepWeakComparison(
     AugmentedData passed_down,
     LeafData &leaf_data,
     NumericMatrix &tree,
     NumericMatrix &dataset,
     unsigned int node,
     unsigned int max_interaction);
-void augmentTreeRecurseStepXgboost(
+void augmentTreeRecurseStrictComparison(
     AugmentedData passed_down,
     LeafData &leaf_data,
     NumericMatrix &tree,
@@ -17,7 +17,7 @@ void augmentTreeRecurseStepXgboost(
     unsigned int node,
     unsigned int max_interaction);
 
-LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
+LeafData augmentTreeWeakComparison(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
 {
   AugmentedData result;
 
@@ -29,11 +29,11 @@ LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset, unsigned
   std::iota(to_pass_down.pathData[{}].begin(), to_pass_down.pathData[{}].end(), 0);
   LeafData leaf_data = LeafData();
 
-  augmentTreeRecurseStepRanger(to_pass_down, leaf_data, tree, dataset, 0, max_interaction);
+  augmentTreeRecurseStepWeakComparison(to_pass_down, leaf_data, tree, dataset, 0, max_interaction);
   return leaf_data;
 }
 
-LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
+LeafData augmentTreeStrictComparison(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction)
 {
   AugmentedData result;
 
@@ -45,21 +45,21 @@ LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset, unsigne
   std::iota(to_pass_down.pathData[{}].begin(), to_pass_down.pathData[{}].end(), 0);
   LeafData leaf_data = LeafData();
 
-  augmentTreeRecurseStepXgboost(to_pass_down, leaf_data, tree, dataset, 0, max_interaction);
+  augmentTreeRecurseStrictComparison(to_pass_down, leaf_data, tree, dataset, 0, max_interaction);
   return leaf_data;
 }
 
-LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset)
+LeafData augmentTreeStrictComparison(NumericMatrix &tree, NumericMatrix &dataset)
 {
-  return augmentTreeXgboost(tree, dataset, dataset.ncol());
+  return augmentTreeStrictComparison(tree, dataset, dataset.ncol());
 }
 
-LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset)
+LeafData augmentTreeWeakComparison(NumericMatrix &tree, NumericMatrix &dataset)
 {
-  return augmentTreeRanger(tree, dataset, dataset.ncol());
+  return augmentTreeWeakComparison(tree, dataset, dataset.ncol());
 }
 
-void augmentTreeRecurseStepRanger(
+void augmentTreeRecurseStepWeakComparison(
     AugmentedData passed_down,
     LeafData &leaf_data,
     NumericMatrix &tree,
@@ -145,11 +145,11 @@ void augmentTreeRecurseStepRanger(
   unsigned int yes = current_node[Index::YES];
   unsigned int no = current_node[Index::NO];
 
-  augmentTreeRecurseStepRanger(passed_down_yes, leaf_data, tree, dataset, yes, max_interaction);
-  augmentTreeRecurseStepRanger(passed_down_no, leaf_data, tree, dataset, no, max_interaction);
+  augmentTreeRecurseStepWeakComparison(passed_down_yes, leaf_data, tree, dataset, yes, max_interaction);
+  augmentTreeRecurseStepWeakComparison(passed_down_no, leaf_data, tree, dataset, no, max_interaction);
 }
 
-void augmentTreeRecurseStepXgboost(
+void augmentTreeRecurseStrictComparison(
     AugmentedData passed_down,
     LeafData &leaf_data,
     NumericMatrix &tree,
@@ -234,6 +234,6 @@ void augmentTreeRecurseStepXgboost(
   unsigned int yes = current_node[Index::YES];
   unsigned int no = current_node[Index::NO];
 
-  augmentTreeRecurseStepXgboost(passed_down_yes, leaf_data, tree, dataset, yes, max_interaction);
-  augmentTreeRecurseStepXgboost(passed_down_no, leaf_data, tree, dataset, no, max_interaction);
+  augmentTreeRecurseStrictComparison(passed_down_yes, leaf_data, tree, dataset, yes, max_interaction);
+  augmentTreeRecurseStrictComparison(passed_down_no, leaf_data, tree, dataset, no, max_interaction);
 }

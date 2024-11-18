@@ -110,7 +110,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
-  trees$Type <- "XGB"
+  trees$Type <- "<"
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
@@ -184,7 +184,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   trees[, terminal := NULL]
   trees[, prediction := NULL]
   colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
-  trees$Type <- "Ranger"
+  trees$Type <- "<="
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
@@ -325,8 +325,8 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
   tree_mat[is.na(tree_mat)] <- -1L
   tree_mat <- as.matrix(tree_mat)
 
-  is_ranger <- tree_info$Type[1] == "Ranger"
-  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_ranger)
+  is_weak_inequality <- tree_info$Type[1] == "<="
+  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
   m_all
 }
 
@@ -343,8 +343,8 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction) {
     if (probFunction == "path-dependent") {
       return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
     } else if (probFunction == "empirical") {
-      if (trees$Type[1] != "Ranger") {
-        warning("Using 'empirical' for XGBoost models can result in inaccuracies. Use the default (probFunction = NULL) instead.")
+      if (trees$Type[1] != "<=") {
+        warning("Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead.")
       }
       return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL))
     } else {

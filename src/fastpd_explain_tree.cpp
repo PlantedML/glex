@@ -5,14 +5,14 @@ using namespace Rcpp;
 
 std::vector<std::set<unsigned int>> get_all_subsets(std::set<unsigned int> &set, unsigned int maxSize);
 
-LeafData augmentTreeRanger(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction);
-LeafData augmentTreeXgboost(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction);
+LeafData augmentTreeWeakComparison(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction);
+LeafData augmentTreeStrictComparison(NumericMatrix &tree, NumericMatrix &dataset, unsigned int max_interaction);
 
-NumericMatrix recurseMarginalizeSRanger(
+NumericMatrix recurseMarginalizeSWeakComparison(
     NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &Ss, unsigned int node,
     LeafData &leaf_data);
-NumericMatrix recurseMarginalizeSXgboost(
+NumericMatrix recurseMarginalizeSStrictComparison(
     NumericMatrix &x, NumericMatrix &tree,
     std::vector<std::set<unsigned int>> &Ss, unsigned int node,
     LeafData &leaf_data);
@@ -30,10 +30,10 @@ Rcpp::NumericMatrix explainTreeFastPD(
     NumericMatrix &tree,
     Rcpp::List &to_explain_list,
     unsigned int max_interaction,
-    bool is_ranger)
+    bool is_weak_inequality)
 {
   // Augment step
-  LeafData leaf_data = is_ranger ? augmentTreeRanger(tree, x, max_interaction) : augmentTreeXgboost(tree, x, max_interaction);
+  LeafData leaf_data = is_weak_inequality ? augmentTreeWeakComparison(tree, x, max_interaction) : augmentTreeStrictComparison(tree, x, max_interaction);
   std::vector<std::set<unsigned int>> U = get_all_subsets(leaf_data.all_encountered, max_interaction);
 
   // Explain/expectation/marginalization step
@@ -69,7 +69,7 @@ Rcpp::NumericMatrix explainTreeFastPD(
   }
 
   // Compute expectation of all necessary subsets
-  NumericMatrix mat = is_ranger ? recurseMarginalizeSRanger(x, tree, U, 0, leaf_data) : recurseMarginalizeSXgboost(x, tree, U, 0, leaf_data);
+  NumericMatrix mat = is_weak_inequality ? recurseMarginalizeSWeakComparison(x, tree, U, 0, leaf_data) : recurseMarginalizeSStrictComparison(x, tree, U, 0, leaf_data);
 
   for (int S_idx : needToComputePDfunctionsFor)
   {
