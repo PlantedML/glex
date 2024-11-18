@@ -64,6 +64,17 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
     predictors = features
   )
   # class(ret) <- c("glex", "rpf_components", class(ret))
+  ret$m <- cbind(ret$intercept, ret$m)
+  colnames(ret$m)[1] <- "intercept"
+  if (
+    object$mode == "regression" &&
+    is.numeric(max_interaction) &&
+    max_interaction < object$params$max_interaction
+  ) {
+    preds <- predict(object, x)
+    ret$m[, "rest"] <- preds$.pred - rowSums(ret$m)
+  }
+
   ret
 }
 
@@ -115,7 +126,17 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
   res$intercept <- res$intercept + 0.5
+  res$m[, "intercept"] <- res$intercept
 
+  if (
+    "objective" %in% names(object$params) &&
+    startsWith(object$params$objective, "reg:") &&
+    is.numeric(max_interaction) &&
+    max_interaction < xgb_max_depth
+  ) {
+    preds <- predict(object, x)
+    res$m[, "rest"] <- preds - rowSums(res$m)
+  }
   # Return components
   res
 }
@@ -194,6 +215,14 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   res$m <- res$m / object$num.trees
   res$intercept <- res$intercept / object$num.trees
 
+  if (
+    object$treetype == "Regression" &&
+    is.numeric(max_interaction) &&
+    max_interaction < rf_max_depth
+  ) {
+    preds <- predict(object, x)
+    res$m[, "rest"] <- preds$predictions - rowSums(res$m)
+  }
   # Return components
   res
 }
