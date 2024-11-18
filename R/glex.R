@@ -108,7 +108,9 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
-
+  if (!is.matrix(x)) {
+    x <- as.matrix(x)
+  }
   # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
   # If max_depth is not defined in xgb, we assume its default of 6.
   xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6L, object$params$max_depth)
@@ -184,7 +186,9 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   if (is.null(object$forest$num.samples.nodes)) {
     stop("ranger needs to be called with node.stats=TRUE for glex.")
   }
-
+  if (!is.matrix(x)) {
+    x <- as.matrix(x)
+  }
   # If max_interaction is not specified, we set it to the max.depth param of the ranger model.
   # If max.depth is not defined in ranger, we assume 6 as in xgboost.
   rf_max_depth <- ifelse((is.null(object$max.depth) || object$max.depth == 0), 6L, object$max.depth)
