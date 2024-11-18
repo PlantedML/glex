@@ -403,7 +403,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   } else {
     m_all <- foreach(j = idx, .combine = "+") %do% tree_fun(j)
   }
-
+  colnames(m_all)[1] <- "intercept"
   d <- get_degree(colnames(m_all))
 
   # Overall feature effect is sum of all elements where feature is involved
@@ -423,7 +423,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   # Return shap values, decomposition and intercept
   ret <- list(
     shap = data.table::setDT(as.data.frame(shap)),
-    m = data.table::setDT(as.data.frame(m_all[, -1])),
+    m = data.table::setDT(as.data.frame(m_all)),
     intercept = unique(m_all[, 1]),
     x = data.table::setDT(as.data.frame(x))
   )
