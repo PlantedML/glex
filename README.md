@@ -105,8 +105,8 @@ prediction for each observation:
 
 ``` r
 # Calculating sum of components and sum of SHAP values
-sum_m_rpf <- rowSums(glex_rpf$m) + glex_rpf$intercept
-sum_m_xgb <- rowSums(glex_xgb$m) + glex_xgb$intercept
+sum_m_rpf <- rowSums(glex_rpf$m)
+sum_m_xgb <- rowSums(glex_xgb$m)
 sum_shap_xgb <- rowSums(glex_xgb$shap) + glex_xgb$intercept
 
 # Model predictions
