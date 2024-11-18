@@ -11,21 +11,25 @@
 #' @examples
 #' # Random Planted Forest -----
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
-#' library(randomPlantedForest)
-#' rp <- rpf(mpg ~ hp + wt + drat, data = mtcars[1:26, ], max_interaction = 2)
+#'   library(randomPlantedForest)
+#'   rp <- rpf(mpg ~ hp + wt + drat, data = mtcars[1:26, ], max_interaction = 2)
 #'
-#' glex(rp, mtcars[27:32, ])
+#'   glex(rp, mtcars[27:32, ])
 #' }
 print.glex <- function(x, ...) {
-
   n <- nrow(x$x)
-  n_m <- ncol(x$m)
+  n_m <- ncol(x$m) - 1
   max_deg <- max(get_degree(names(x$m)))
-  max_deg_lab <- switch(as.character(max_deg), "1" = "degree", "degrees")
+  max_deg_lab <- switch(as.character(max_deg),
+    "1" = "degree",
+    "degrees"
+  )
 
   cat("glex object of subclass", class(x)[[2]], "\n")
-  cat("Explaining predictions of", n, "observations with", n_m,
-      "terms of up to", max_deg, max_deg_lab)
+  cat(
+    "Explaining predictions of", n, "observations with", n_m,
+    "terms of up to", max_deg, max_deg_lab
+  )
   cat("\n\n")
   str(x, list.len = 5)
 }

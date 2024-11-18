@@ -3,9 +3,11 @@ n <- 100
 p <- 2
 beta <- c(1, 1)
 beta0 <- 0
-x <- matrix(rnorm(n = n * p), ncol = p,
-            dimnames = list(NULL, paste0('x', seq_len(p))))
-lp <- x %*% beta + beta0 + 2*x[, 1] * x[, 2]
+x <- matrix(rnorm(n = n * p),
+  ncol = p,
+  dimnames = list(NULL, paste0("x", seq_len(p)))
+)
+lp <- x %*% beta + beta0 + 2 * x[, 1] * x[, 2]
 y <- lp + rnorm(n)
 
 x_train <- x[1:50, ]
@@ -37,50 +39,58 @@ resbin_test <- glex(xgbin, x_test)
 
 test_that("regr: Prediction is approx. same as sum of shap + intercept, training data", {
   expect_equal(res_train$intercept + rowSums(res_train$shap),
-               pred_train,
-               tolerance = 1e-5)
+    pred_train,
+    tolerance = 1e-5
+  )
 })
 
 test_that("binary: Prediction is approx. same as sum of shap + intercept, training data", {
   expect_equal(resbin_train$intercept + rowSums(resbin_train$shap),
-               predbin_train,
-               tolerance = 1e-5)
+    predbin_train,
+    tolerance = 1e-5
+  )
 })
 
 test_that("regr: Prediction is approx. same as sum of shap + intercept, test data", {
   expect_equal(res_test$intercept + rowSums(res_test$shap),
-               pred_test,
-               tolerance = 1e-5)
+    pred_test,
+    tolerance = 1e-5
+  )
 })
 
 test_that("binary: Prediction is approx. same as sum of shap + intercept, test data", {
   expect_equal(resbin_test$intercept + rowSums(resbin_test$shap),
-               predbin_test,
-               tolerance = 1e-5)
+    predbin_test,
+    tolerance = 1e-5
+  )
 })
 
 test_that("regr: Prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$m),
-               pred_train,
-               tolerance = 1e-5)
+  expect_equal(rowSums(res_train$m),
+    pred_train,
+    tolerance = 1e-5
+  )
 })
 
 test_that("classif: Prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(resbin_train$intercept + rowSums(resbin_train$m),
-               predbin_train,
-               tolerance = 1e-5)
+  expect_equal(rowSums(resbin_train$m),
+    predbin_train,
+    tolerance = 1e-5
+  )
 })
 
 test_that("regr: Prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$m),
-               pred_test,
-               tolerance = 1e-5)
+  expect_equal(rowSums(res_test$m),
+    pred_test,
+    tolerance = 1e-5
+  )
 })
 
 test_that("binary: Prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(resbin_test$intercept + rowSums(resbin_test$m),
-               predbin_test,
-               tolerance = 1e-5)
+  expect_equal(rowSums(resbin_test$m),
+    predbin_test,
+    tolerance = 1e-5
+  )
 })
 
 test_that("Shap is computed correctly with overlapping colnames", {
@@ -88,10 +98,12 @@ test_that("Shap is computed correctly with overlapping colnames", {
   p <- 2
   beta <- c(1, 1)
   beta0 <- 0
-  x <- matrix(rnorm(n = n * p), ncol = p,
-              dimnames = list(NULL, paste0('x', seq_len(p))))
+  x <- matrix(rnorm(n = n * p),
+    ncol = p,
+    dimnames = list(NULL, paste0("x", seq_len(p)))
+  )
 
-  lp <- x %*% beta + beta0 + 2*x[, 1] * x[, 2]
+  lp <- x %*% beta + beta0 + 2 * x[, 1] * x[, 2]
   y <- lp + rnorm(n)
 
   # xgboost
@@ -113,5 +125,4 @@ test_that("Shap is computed correctly with overlapping colnames", {
 
   # We only check values for equality, colnames will of course differ
   expect_equal(unname(overlapping_names), unname(unique_names))
-
 })
