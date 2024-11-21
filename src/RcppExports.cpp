@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // augmentAndTakeExpectation
-double augmentAndTakeExpectation(NumericVector& x, NumericMatrix& dataset, NumericMatrix& tree, NumericVector& to_explain, bool is_ranger);
-RcppExport SEXP _glex_augmentAndTakeExpectation(SEXP xSEXP, SEXP datasetSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP is_rangerSEXP) {
+double augmentAndTakeExpectation(NumericVector& x, NumericMatrix& dataset, NumericMatrix& tree, NumericVector& to_explain, bool is_weak_inequality);
+RcppExport SEXP _glex_augmentAndTakeExpectation(SEXP xSEXP, SEXP datasetSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,27 +21,27 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type dataset(datasetSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< NumericVector& >::type to_explain(to_explainSEXP);
-    Rcpp::traits::input_parameter< bool >::type is_ranger(is_rangerSEXP);
-    rcpp_result_gen = Rcpp::wrap(augmentAndTakeExpectation(x, dataset, tree, to_explain, is_ranger));
+    Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
+    rcpp_result_gen = Rcpp::wrap(augmentAndTakeExpectation(x, dataset, tree, to_explain, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
 // augmentTree
-XPtr<LeafData> augmentTree(NumericMatrix& tree, NumericMatrix& dataset, bool is_ranger);
-RcppExport SEXP _glex_augmentTree(SEXP treeSEXP, SEXP datasetSEXP, SEXP is_rangerSEXP) {
+XPtr<LeafData> augmentTree(NumericMatrix& tree, NumericMatrix& dataset, bool is_weak_inequality);
+RcppExport SEXP _glex_augmentTree(SEXP treeSEXP, SEXP datasetSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type dataset(datasetSEXP);
-    Rcpp::traits::input_parameter< bool >::type is_ranger(is_rangerSEXP);
-    rcpp_result_gen = Rcpp::wrap(augmentTree(tree, dataset, is_ranger));
+    Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
+    rcpp_result_gen = Rcpp::wrap(augmentTree(tree, dataset, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
 // augmentExpectation
-double augmentExpectation(NumericVector& x, NumericMatrix& tree, NumericVector& to_explain, SEXP leaf_data_ptr, bool is_ranger);
-RcppExport SEXP _glex_augmentExpectation(SEXP xSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP leaf_data_ptrSEXP, SEXP is_rangerSEXP) {
+double augmentExpectation(NumericVector& x, NumericMatrix& tree, NumericVector& to_explain, SEXP leaf_data_ptr, bool is_weak_inequality);
+RcppExport SEXP _glex_augmentExpectation(SEXP xSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP leaf_data_ptrSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -49,35 +49,36 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< NumericVector& >::type to_explain(to_explainSEXP);
     Rcpp::traits::input_parameter< SEXP >::type leaf_data_ptr(leaf_data_ptrSEXP);
-    Rcpp::traits::input_parameter< bool >::type is_ranger(is_rangerSEXP);
-    rcpp_result_gen = Rcpp::wrap(augmentExpectation(x, tree, to_explain, leaf_data_ptr, is_ranger));
+    Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
+    rcpp_result_gen = Rcpp::wrap(augmentExpectation(x, tree, to_explain, leaf_data_ptr, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
 // marginalizeAllSplittedSubsetsinTree
-Rcpp::NumericMatrix marginalizeAllSplittedSubsetsinTree(Rcpp::NumericMatrix& x, NumericMatrix& tree, bool is_ranger);
-RcppExport SEXP _glex_marginalizeAllSplittedSubsetsinTree(SEXP xSEXP, SEXP treeSEXP, SEXP is_rangerSEXP) {
+Rcpp::NumericMatrix marginalizeAllSplittedSubsetsinTree(Rcpp::NumericMatrix& x, NumericMatrix& tree, bool is_weak_inequality);
+RcppExport SEXP _glex_marginalizeAllSplittedSubsetsinTree(SEXP xSEXP, SEXP treeSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
-    Rcpp::traits::input_parameter< bool >::type is_ranger(is_rangerSEXP);
-    rcpp_result_gen = Rcpp::wrap(marginalizeAllSplittedSubsetsinTree(x, tree, is_ranger));
+    Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
+    rcpp_result_gen = Rcpp::wrap(marginalizeAllSplittedSubsetsinTree(x, tree, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
 // explainTreeFastPD
-Rcpp::NumericMatrix explainTreeFastPD(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list, bool is_ranger);
-RcppExport SEXP _glex_explainTreeFastPD(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP is_rangerSEXP) {
+Rcpp::NumericMatrix explainTreeFastPD(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
+RcppExport SEXP _glex_explainTreeFastPD(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< Rcpp::List& >::type to_explain_list(to_explain_listSEXP);
-    Rcpp::traits::input_parameter< bool >::type is_ranger(is_rangerSEXP);
-    rcpp_result_gen = Rcpp::wrap(explainTreeFastPD(x, tree, to_explain_list, is_ranger));
+    Rcpp::traits::input_parameter< unsigned int >::type max_interaction(max_interactionSEXP);
+    Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
+    rcpp_result_gen = Rcpp::wrap(explainTreeFastPD(x, tree, to_explain_list, max_interaction, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -190,7 +191,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glex_augmentTree", (DL_FUNC) &_glex_augmentTree, 3},
     {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 5},
     {"_glex_marginalizeAllSplittedSubsetsinTree", (DL_FUNC) &_glex_marginalizeAllSplittedSubsetsinTree, 3},
-    {"_glex_explainTreeFastPD", (DL_FUNC) &_glex_explainTreeFastPD, 4},
+    {"_glex_explainTreeFastPD", (DL_FUNC) &_glex_explainTreeFastPD, 5},
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},
     {"_glex_recurseRcppEmpProbfunction", (DL_FUNC) &_glex_recurseRcppEmpProbfunction, 11},
