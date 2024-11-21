@@ -28,38 +28,40 @@
 #' set.seed(1)
 #' # Random Planted Forest -----
 #' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
-#' library(randomPlantedForest)
+#'   library(randomPlantedForest)
 #'
-#' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
+#'   rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 #'
-#' glex_rpf <- glex(rp, mtcars[27:32, ])
+#'   glex_rpf <- glex(rp, mtcars[27:32, ])
 #'
-#' # All terms
-#' vi_rpf <- glex_vi(glex_rpf)
+#'   # All terms
+#'   vi_rpf <- glex_vi(glex_rpf)
 #'
-#' library(ggplot2)
-#' # Filter to contributions greater 0.05 on the scale of the target
-#' autoplot(vi_rpf, threshold = 0.05)
-#' # Summarize by degree of interaction
-#' autoplot(vi_rpf, by_degree = TRUE)
-#' # Filter by relative contributions greater 0.1%
-#' autoplot(vi_rpf, scale = "relative", threshold = 0.001)
+#'   library(ggplot2)
+#'   # Filter to contributions greater 0.05 on the scale of the target
+#'   autoplot(vi_rpf, threshold = 0.05)
+#'   # Summarize by degree of interaction
+#'   autoplot(vi_rpf, by_degree = TRUE)
+#'   # Filter by relative contributions greater 0.1%
+#'   autoplot(vi_rpf, scale = "relative", threshold = 0.001)
 #' }
 #'
 #' # xgboost -----
 #' if (requireNamespace("xgboost", quietly = TRUE)) {
-#' library(xgboost)
-#' x <- as.matrix(mtcars[, -1])
-#' y <- mtcars$mpg
-#' xg <- xgboost(data = x[1:26, ], label = y[1:26],
-#'               params = list(max_depth = 4, eta = .1),
-#'               nrounds = 10, verbose = 0)
-#' glex_xgb <- glex(xg, x[27:32, ])
-#' vi_xgb <- glex_vi(glex_xgb)
+#'   library(xgboost)
+#'   x <- as.matrix(mtcars[, -1])
+#'   y <- mtcars$mpg
+#'   xg <- xgboost(
+#'     data = x[1:26, ], label = y[1:26],
+#'     params = list(max_depth = 4, eta = .1),
+#'     nrounds = 10, verbose = 0
+#'   )
+#'   glex_xgb <- glex(xg, x[27:32, ])
+#'   vi_xgb <- glex_vi(glex_xgb)
 #'
-#' library(ggplot2)
-#' autoplot(vi_xgb)
-#' autoplot(vi_xgb, by_degree = TRUE)
+#'   library(ggplot2)
+#'   autoplot(vi_xgb)
+#'   autoplot(vi_xgb, by_degree = TRUE)
 #' }
 glex_vi <- function(object, ...) {
   checkmate::assert_class(object, classes = "glex")
@@ -67,7 +69,7 @@ glex_vi <- function(object, ...) {
   # FIXME: data.table NSE warnings
   term <- degree <- m <- m_rel <- NULL
 
-  m_long <- melt_m(object$m, object$target_levels)
+  m_long <- melt_m(object$m[, -c("intercept")], object$target_levels)
 
   if (!is.null(object$target_levels)) {
     vars_by <- c("term", "class")

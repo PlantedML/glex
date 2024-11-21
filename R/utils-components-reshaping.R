@@ -27,8 +27,10 @@ melt_m <- function(m, levels = NULL) {
   term <- NULL
   # We need an id.var for melt to avoid a warning, but don't want to modify m permanently
   m[, ".id" := .I]
-  m_long <- data.table::melt(m, id.vars = ".id", value.name = "m",
-                             variable.name = "term", variable.factor = FALSE)
+  m_long <- data.table::melt(m,
+    id.vars = ".id", value.name = "m",
+    variable.name = "term", variable.factor = FALSE
+  )
   # clean up that temporary id column again while modifying by reference
   m[, ".id" := NULL]
 
@@ -45,7 +47,7 @@ reshape_m_multiclass <- function(object) {
   checkmate::assert_character(object$target_levels, min.len = 2)
 
   mlong <- melt_m(object$m, object$target_levels)
-  data.table::dcast(mlong, .id + class  ~ term, value.var = "m")
+  data.table::dcast(mlong, .id + class ~ term, value.var = "m")
 }
 
 #' Helper to split multiclass terms of format <term>__class:<class>
@@ -62,4 +64,3 @@ split_names <- function(mn, split_string = "__class:", target_index = 2) {
     unlist(strsplit(x, split = split_string, fixed = TRUE))[target_index]
   }, character(1), USE.NAMES = FALSE)
 }
-

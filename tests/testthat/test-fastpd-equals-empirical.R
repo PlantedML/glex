@@ -15,7 +15,6 @@ test_that("FastPD equals empirical leaf weighting", {
   empirical_leaf_weighting <- glex(rf, x, probFunction = "empirical")
 
   expect_equal(fastpd$m, empirical_leaf_weighting$m)
-  expect_equal(fastpd$intercept, empirical_leaf_weighting$intercept) # Check intercept
 })
 
 test_that("FastPD equals empirical leaf weighting for lower interactions", {

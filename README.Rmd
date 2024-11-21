@@ -85,10 +85,11 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-xg <- xgboost(data = x[1:26, ], label = y[1:26],
-              params = list(max_depth = 3, eta = .1),
-              nrounds = 30, verbose = 0)
-
+xg <- xgboost(
+  data = x[1:26, ], label = y[1:26],
+  params = list(max_depth = 3, eta = .1),
+  nrounds = 30, verbose = 0
+)
 ```
 
 Using the model objects and a dataset to explain (such as a test set in this case), we can create `glex` objects
@@ -106,8 +107,8 @@ Both `m` and `shap` satisfy the property that their sums (per observation) toget
 
 ```{r comp-sum}
 # Calculating sum of components and sum of SHAP values
-sum_m_rpf <- rowSums(glex_rpf$m) + glex_rpf$intercept
-sum_m_xgb <- rowSums(glex_xgb$m) + glex_xgb$intercept
+sum_m_rpf <- rowSums(glex_rpf$m)
+sum_m_xgb <- rowSums(glex_xgb$m)
 sum_shap_xgb <- rowSums(glex_xgb$shap) + glex_xgb$intercept
 
 # Model predictions
@@ -137,10 +138,10 @@ vi_xgb[1:5, c("degree", "term", "m")]
 The output additionally contains the degree of interaction, which can be used for filtering and aggregating. Here we filter for terms with contributions above a `threshold` of `0.05` to get a more compact plot, with terms below the threshold aggregated into one labelled "Remaining terms":
 
 ```{r glex_vi-plot, fig.width=12}
-p_vi1 <- autoplot(vi_rpf, threshold = .05) + 
+p_vi1 <- autoplot(vi_rpf, threshold = .05) +
   labs(title = NULL, subtitle = "RPF")
 
-p_vi2 <- autoplot(vi_xgb, threshold = .05) + 
+p_vi2 <- autoplot(vi_xgb, threshold = .05) +
   labs(title = NULL, subtitle = "XGBoost")
 
 p_vi1 + p_vi2 +
@@ -150,14 +151,14 @@ p_vi1 + p_vi2 +
 We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be particularly relevant for a given model.
 
 ```{r glex_vi-plot-by-degree, fig.height=5}
-p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
+p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) +
   labs(title = NULL, subtitle = "RPF")
 
-p_vi2 <- autoplot(vi_xgb, by_degree = TRUE) + 
+p_vi2 <- autoplot(vi_xgb, by_degree = TRUE) +
   labs(title = NULL, subtitle = "XGBoost")
 
 p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by degree") 
+  plot_annotation(title = "Variable importance scores by degree")
 ```
 
 ### Feature Effects
@@ -168,13 +169,13 @@ We can also plot prediction components against observed feature values, which ad
 p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
 
-p1 + p2 + 
+p1 + p2 +
   plot_annotation(title = "Main effect for 'hp'")
 
 p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
 
-p1 + p2 + 
+p1 + p2 +
   plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
@@ -192,9 +193,9 @@ Finally, we can explore the prediction for a single observation by displaying it
 For compactness, we only plot one feature and collapse all interaction terms above the second degree into one as their combined effect is very small.
 
 ```{r glex_explain}
-p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) + 
+p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) +
   labs(tag = "RPF")
-p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
+p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) +
   labs(tag = "XGBoost")
 
 p1 + p2 & theme(plot.tag.position = "bottom")
