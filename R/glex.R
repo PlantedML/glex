@@ -64,6 +64,17 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
     predictors = features
   )
   # class(ret) <- c("glex", "rpf_components", class(ret))
+  ret$m <- cbind(ret$intercept, ret$m)
+  colnames(ret$m)[1] <- "intercept"
+  if (
+    object$mode == "regression" &&
+    is.numeric(max_interaction) &&
+    max_interaction < object$params$max_interaction
+  ) {
+    preds <- predict(object, x)
+    ret$m[, "rest"] <- preds$.pred - rowSums(ret$m)
+  }
+
   ret
 }
 
@@ -97,7 +108,9 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
-
+  if (!is.matrix(x)) {
+    x <- as.matrix(x)
+  }
   # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
   # If max_depth is not defined in xgb, we assume its default of 6.
   xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6L, object$params$max_depth)
@@ -115,7 +128,17 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, probFunction)
   res$intercept <- res$intercept + 0.5
+  res$m[, "intercept"] <- res$intercept
 
+  if (
+    "objective" %in% names(object$params) &&
+    startsWith(object$params$objective, "reg:") &&
+    is.numeric(max_interaction) &&
+    max_interaction < xgb_max_depth
+  ) {
+    preds <- predict(object, x)
+    res$m[, "rest"] <- preds - rowSums(res$m)
+  }
   # Return components
   res
 }
@@ -163,7 +186,9 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   if (is.null(object$forest$num.samples.nodes)) {
     stop("ranger needs to be called with node.stats=TRUE for glex.")
   }
-
+  if (!is.matrix(x)) {
+    x <- as.matrix(x)
+  }
   # If max_interaction is not specified, we set it to the max.depth param of the ranger model.
   # If max.depth is not defined in ranger, we assume 6 as in xgboost.
   rf_max_depth <- ifelse((is.null(object$max.depth) || object$max.depth == 0), 6L, object$max.depth)
@@ -194,6 +219,14 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   res$m <- res$m / object$num.trees
   res$intercept <- res$intercept / object$num.trees
 
+  if (
+    object$treetype == "Regression" &&
+    is.numeric(max_interaction) &&
+    max_interaction < rf_max_depth
+  ) {
+    preds <- predict(object, x)
+    res$m[, "rest"] <- preds$predictions - rowSums(res$m)
+  }
   # Return components
   res
 }
@@ -403,7 +436,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   } else {
     m_all <- foreach(j = idx, .combine = "+") %do% tree_fun(j)
   }
-
+  colnames(m_all)[1] <- "intercept"
   d <- get_degree(colnames(m_all))
 
   # Overall feature effect is sum of all elements where feature is involved
@@ -423,7 +456,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   # Return shap values, decomposition and intercept
   ret <- list(
     shap = data.table::setDT(as.data.frame(shap)),
-    m = data.table::setDT(as.data.frame(m_all[, -1])),
+    m = data.table::setDT(as.data.frame(m_all)),
     intercept = unique(m_all[, 1]),
     x = data.table::setDT(as.data.frame(x))
   )
