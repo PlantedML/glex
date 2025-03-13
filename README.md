@@ -6,10 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
-[![Codecov test
-coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex)
-[![glex r-universe status
-badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
+[![glex status
+badge](https://plantedml.r-universe.dev/glex/badges/version)](https://plantedml.r-universe.dev/glex)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/package=glex)
 <!-- badges: end -->
@@ -126,12 +124,12 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 #>      pred_rpf sum_m_rpf
-#> [1,] 28.51040  28.51040
-#> [2,] 26.00074  26.00074
-#> [3,] 17.35199  17.35199
-#> [4,] 19.57216  19.57216
-#> [5,] 14.98252  14.98252
-#> [6,] 23.90269  23.90269
+#> [1,] 29.34468  29.34468
+#> [2,] 28.28776  28.28776
+#> [3,] 18.10135  18.10135
+#> [4,] 20.31319  20.31319
+#> [5,] 14.80156  14.80156
+#> [6,] 23.96188  23.96188
 ```
 
 ### Variable Importances
@@ -147,11 +145,11 @@ vi_xgb <- glex_vi(glex_xgb)
 vi_rpf[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     hp 1.6508213
-#> 2:      1   disp 1.1314800
-#> 3:      1     wt 0.9222168
-#> 4:      1   drat 0.6066751
-#> 5:      1    cyl 0.4174009
+#> 1:      1     wt 1.4893211
+#> 2:      1   disp 1.2539334
+#> 3:      1     hp 1.1017759
+#> 4:      1    cyl 0.7172987
+#> 5:      1   drat 0.5465836
 vi_xgb[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>

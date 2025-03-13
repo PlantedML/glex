@@ -20,8 +20,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/PlantedML/glex/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex)
-[![glex r-universe status badge](https://plantedml.r-universe.dev/badges/glex)](https://plantedml.r-universe.dev/glex)
+[![glex status badge](https://plantedml.r-universe.dev/glex/badges/version)](https://plantedml.r-universe.dev/glex)
 [![CRAN status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/package=glex)
 <!-- badges: end -->
 
