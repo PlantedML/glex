@@ -34,12 +34,14 @@ plot_twoway_effects <- function(object, predictors, rug_sides = "b", ...) {
 
   # 2x continuous ----
   if (setequal(x_types, "continuous")) {
-
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[x_cont[[1]]]],
-      y = .data[[x_cont[[2]]]],
-      !!!fillaes
-    ))
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[x_cont[[1]]]],
+        y = .data[[x_cont[[2]]]],
+        !!!fillaes
+      )
+    )
     p <- p + ggplot2::geom_point(size = 2.5, shape = 21, stroke = 1)
     p <- p + diverging_palette(limits = get_m_limits(xdf))
     p <- p + ggplot2::labs(color = label_m(predictors))
@@ -50,11 +52,14 @@ plot_twoway_effects <- function(object, predictors, rug_sides = "b", ...) {
 
   # 2x categorical ----
   if (setequal(x_types, "categorical")) {
-
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[x_cat[[1]]]], y = .data[[x_cat[[2]]]],
-      !!!fillaes
-    ))
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[x_cat[[1]]]],
+        y = .data[[x_cat[[2]]]],
+        !!!fillaes
+      )
+    )
     p <- p + ggplot2::geom_tile()
     p <- p + diverging_palette(limits = get_m_limits(xdf))
     p <- p + ggplot2::labs(color = label_m(predictors))
@@ -62,10 +67,14 @@ plot_twoway_effects <- function(object, predictors, rug_sides = "b", ...) {
 
   # 1x categorical 1x continuous ----
   if (setequal(x_types, c("categorical", "continuous"))) {
-
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[x_cont]], y = .data[["m"]], color = .data[[x_cat]]
-    ))
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[x_cont]],
+        y = .data[["m"]],
+        color = .data[[x_cat]]
+      )
+    )
     p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect")
     p <- p + ggplot2::geom_hline(yintercept = 0, linetype = "6161")
     if (rug_sides != "none") {

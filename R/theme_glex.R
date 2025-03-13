@@ -17,11 +17,19 @@
 #' ggplot(mtcars, aes(wt, mpg)) +
 #'   geom_point() +
 #'   theme_glex()
-theme_glex <- function(base_size = 13, base_family = "", base_line_size = base_size / 22,
-         base_rect_size = base_size / 22, grid_x = TRUE, grid_y = FALSE) {
+theme_glex <- function(
+  base_size = 13,
+  base_family = "",
+  base_line_size = base_size / 22,
+  base_rect_size = base_size / 22,
+  grid_x = TRUE,
+  grid_y = FALSE
+) {
   theme_res <- theme_bw(
-    base_size = base_size, base_family = base_family,
-    base_line_size = base_line_size, base_rect_size = base_rect_size
+    base_size = base_size,
+    base_family = base_family,
+    base_line_size = base_line_size,
+    base_rect_size = base_rect_size
   ) %+replace%
     theme(
       axis.ticks = element_blank(),
@@ -37,17 +45,19 @@ theme_glex <- function(base_size = 13, base_family = "", base_line_size = base_s
     )
 
   if (!grid_y) {
-    theme_res <- theme_res %+replace% theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor.x = element_blank(),
-    )
+    theme_res <- theme_res %+replace%
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+      )
   }
 
   if (!grid_x) {
-    theme_res <- theme_res %+replace% theme(
-      panel.grid.major.y = element_blank(),
-      panel.grid.minor.y = element_blank(),
-    )
+    theme_res <- theme_res %+replace%
+      theme(
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+      )
   }
 
   theme_res

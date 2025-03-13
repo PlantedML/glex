@@ -83,7 +83,12 @@ test_that("multiclass rpf", {
 
 test_that("multiclass rpf plot", {
   skip_if_not_installed("randomPlantedForest")
-  rp <- rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3, deterministic = TRUE)
+  rp <- rpf(
+    yk ~ x1 + x2 + x3,
+    data = xdat,
+    max_interaction = 3,
+    deterministic = TRUE
+  )
   gl <- glex(rp, xdat)
 
   vi <- glex_vi(gl)

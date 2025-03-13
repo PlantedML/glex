@@ -78,7 +78,13 @@ plot_pdp <- function(object, predictor, rug_sides = "b", ...) {
 #' - `plot_pdp()` shows "Prediction" as y-axis label rather than m_(term)
 #'
 #' @noRd
-plot_main_effect_impl <- function(object, predictor, pdp = FALSE, rug_sides = "b", ...) {
+plot_main_effect_impl <- function(
+  object,
+  predictor,
+  pdp = FALSE,
+  rug_sides = "b",
+  ...
+) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_string(predictor) # Must be a single predictor
   checkmate::assert_subset(predictor, colnames(object$x), empty.ok = FALSE)
@@ -91,10 +97,15 @@ plot_main_effect_impl <- function(object, predictor, pdp = FALSE, rug_sides = "b
   x_type <- get_x_types(object, predictor)
 
   if (x_type == "continuous") {
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[predictor]], y = .data[["m"]])
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[predictor]],
+        y = .data[["m"]]
+      )
     )
-    p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect", color = "#194155")
+    p <- p +
+      ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect", color = "#194155")
     if (rug_sides != "none") {
       p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
     }
@@ -102,8 +113,11 @@ plot_main_effect_impl <- function(object, predictor, pdp = FALSE, rug_sides = "b
   }
 
   if (x_type == "categorical") {
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(x = .data[[predictor]], y = .data[["m"]]))
-    p <- p + ggplot2::geom_col(alpha = .8, width = 1/2, fill = "#194155")
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(x = .data[[predictor]], y = .data[["m"]])
+    )
+    p <- p + ggplot2::geom_col(alpha = .8, width = 1 / 2, fill = "#194155")
     p <- p + theme(panel.grid.major.x = element_blank())
   }
 

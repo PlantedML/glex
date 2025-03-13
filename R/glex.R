@@ -28,14 +28,23 @@
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
 #' @export
-glex <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+glex <- function(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+) {
   UseMethod("glex")
 }
 
 #' @noRd
 glex.default <- function(object, ...) {
   stop(
-    "`glex()` is not defined for a '", class(object)[1], "'.",
+    "`glex()` is not defined for a '",
+    class(object)[1],
+    "'.",
     call. = FALSE
   )
 }
@@ -55,12 +64,16 @@ glex.default <- function(object, ...) {
 #' }
 glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
-    stop(paste0("randomPlantedForest needs to be installed: ",
-                "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
+    stop(paste0(
+      "randomPlantedForest needs to be installed: ",
+      "remotes::install_github(\"PlantedML/randomPlantedForest\")"
+    ))
   }
 
   ret <- randomPlantedForest::predict_components(
-    object = object, new_data = x, max_interaction = max_interaction,
+    object = object,
+    new_data = x,
+    max_interaction = max_interaction,
     predictors = features
   )
   # class(ret) <- c("glex", "rpf_components", class(ret))
@@ -93,14 +106,25 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+glex.xgb.Booster <- function(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+) {
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
 
   # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
   # If max_depth is not defined in xgb, we assume its default of 6.
-  xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6L, object$params$max_depth)
+  xgb_max_depth <- ifelse(
+    is.null(object$params$max_depth),
+    6L,
+    object$params$max_depth
+  )
 
   if (is.null(max_interaction)) {
     max_interaction <- xgb_max_depth
@@ -146,8 +170,14 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
-
+glex.ranger <- function(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+) {
   # To avoid data.table check issues
   terminal <- NULL
   splitvarName <- NULL
@@ -166,7 +196,11 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
 
   # If max_interaction is not specified, we set it to the max.depth param of the ranger model.
   # If max.depth is not defined in ranger, we assume 6 as in xgboost.
-  rf_max_depth <- ifelse((is.null(object$max.depth) || object$max.depth == 0), 6L, object$max.depth)
+  rf_max_depth <- ifelse(
+    (is.null(object$max.depth) || object$max.depth == 0),
+    6L,
+    object$max.depth
+  )
 
   if (is.null(max_interaction)) {
     max_interaction <- rf_max_depth
@@ -176,14 +210,23 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
 
   # Convert model into xgboost format
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
-    as.data.table(ranger::treeInfo(object, tree = i))[, tree := i-1]
+    as.data.table(ranger::treeInfo(object, tree = i))[, tree := i - 1]
   }))
   trees[terminal == TRUE, splitvarName := "Leaf"]
   trees[terminal == TRUE, splitStat := prediction]
   trees[, splitvarID := NULL]
   trees[, terminal := NULL]
   trees[, prediction := NULL]
-  colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
+  colnames(trees) <- c(
+    "Node",
+    "Yes",
+    "No",
+    "Feature",
+    "Split",
+    "Cover",
+    "Quality",
+    "Tree"
+  )
   trees$Type <- "<="
 
   # Calculate components
@@ -218,18 +261,35 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
 
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
   U <- subsets(T)
-  mat <- recurseAlgorithm2(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-                  tree_info$Quality, tree_info$Cover, U, 0)
-  colnames(mat) <- vapply(U, function(u) {
-    paste(sort(colnames(x)[u]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  mat <- recurseAlgorithm2(
+    x,
+    tree_info$Feature_num,
+    tree_info$Split,
+    tree_info$Yes,
+    tree_info$No,
+    tree_info$Quality,
+    tree_info$Cover,
+    U,
+    0
+  )
+  colnames(mat) <- vapply(
+    U,
+    function(u) {
+      paste(sort(colnames(x)[u]), collapse = ":")
+    },
+    FUN.VALUE = character(1)
+  )
 
   # Init m matrix
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
   # browser()
-  colnames(m_all) <- vapply(all_S, function(s) {
-    paste(sort(colnames(x)[s]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  colnames(m_all) <- vapply(
+    all_S,
+    function(s) {
+      paste(sort(colnames(x)[s]), collapse = ":")
+    },
+    FUN.VALUE = character(1)
+  )
 
   # Calculate contribution, use only subsets with not more than max_interaction involved features
   for (S in intersect(U, all_S)) {
@@ -239,7 +299,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
     } else {
       colnum <- which(colnames(m_all) == colname)
     }
-    contribute(mat, m_all, S, T, U, colnum-1)
+    contribute(mat, m_all, S, T, U, colnum - 1)
   }
   # Return m matrix
   m_all
@@ -283,23 +343,52 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
   U <- subsets(T)
   mat <- if (is.null(probFunction)) {
-    recurseRcppEmpProbfunction(x,
-    tree_info$Feature_num, tree_info$Split,
-    tree_info$Yes, tree_info$No,
-    tree_info$Quality, lb, ub, integer(0), U, 0)
+    recurseRcppEmpProbfunction(
+      x,
+      tree_info$Feature_num,
+      tree_info$Split,
+      tree_info$Yes,
+      tree_info$No,
+      tree_info$Quality,
+      lb,
+      ub,
+      integer(0),
+      U,
+      0
+    )
   } else {
-    recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-          tree_info$Quality, lb, ub, integer(0), U, 0, probFunction)
+    recurse(
+      x,
+      tree_info$Feature_num,
+      tree_info$Split,
+      tree_info$Yes,
+      tree_info$No,
+      tree_info$Quality,
+      lb,
+      ub,
+      integer(0),
+      U,
+      0,
+      probFunction
+    )
   }
 
-  colnames(mat) <- vapply(U, function(u) {
-    paste(sort(colnames(x)[u]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  colnames(mat) <- vapply(
+    U,
+    function(u) {
+      paste(sort(colnames(x)[u]), collapse = ":")
+    },
+    FUN.VALUE = character(1)
+  )
   # Init m matrix
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-  colnames(m_all) <- vapply(all_S, function(s) {
-    paste(sort(colnames(x)[s]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  colnames(m_all) <- vapply(
+    all_S,
+    function(s) {
+      paste(sort(colnames(x)[s]), collapse = ":")
+    },
+    FUN.VALUE = character(1)
+  )
 
   # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
   for (S in intersect(U, all_S)) {
@@ -309,7 +398,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
     } else {
       colnum <- which(colnames(m_all) == colname)
     }
-    contribute(mat, m_all, S, T, U, colnum-1)
+    contribute(mat, m_all, S, T, U, colnum - 1)
   }
 
   # Return m matrix
@@ -326,7 +415,13 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
-  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  m_all <- explainTreeFastPD(
+    x,
+    tree_mat,
+    lapply(all_S, function(S) S - 1L),
+    max_interaction,
+    is_weak_inequality
+  )
   m_all
 }
 
@@ -344,45 +439,74 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction) {
       return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
     } else if (probFunction == "empirical") {
       if (trees$Type[1] != "<=") {
-        warning("Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead.")
+        warning(
+          "Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead."
+        )
       }
       return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL))
     } else {
-      stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
+      stop(
+        "The probability function can either be 'path-dependent' or 'empirical' when specified as a string"
+      )
     }
   } else if (is.function(probFunction) || is.null(probFunction)) {
-    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S, max_interaction))
+    return(
+      function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S, max_interaction)
+    )
   } else {
-    stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
+    stop(
+      "The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function"
+    )
   }
 }
 
 #' Internal function to calculate the components
 #' @keywords internal
 #' @noRd
-calc_components <- function(trees, x, max_interaction, features, probFunction = NULL) {
-
+calc_components <- function(
+  trees,
+  x,
+  max_interaction,
+  features,
+  probFunction = NULL
+) {
   # data.table NSE global variable workaround
   Feature <- NULL
   Feature_num <- NULL
   Tree <- NULL
 
   # Convert features to numerics (leaf = 0)
-  trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
+  trees[,
+    Feature_num := as.integer(factor(
+      Feature,
+      levels = c("Leaf", colnames(x))
+    )) -
+      1L
+  ]
 
   # Calculate coverage from theoretical distribution, if given
 
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
-    all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))])
-    })))
+    all_S <- unique(do.call(
+      c,
+      lapply(0:max(trees$Tree), function(tree) {
+        subsets(trees[
+          Tree == tree & Feature_num > 0,
+          sort(unique(Feature_num))
+        ])
+      })
+    ))
   } else {
     # All subsets with supplied features
     if (!all(features %in% colnames(x))) {
       stop("All selected features have to be column names of x.")
     }
-    features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
+    features_num <- as.integer(factor(
+      features,
+      levels = c("Leaf", colnames(x))
+    )) -
+      1L
     all_S <- subsets(sort(unique(features_num)))
   }
 
@@ -410,15 +534,19 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
 
   # SHAP values are the sum of the m's * 1/d
-  shap <- vapply(colnames(x), function(col) {
-    idx <- find_term_matches(col, colnames(interactions))
+  shap <- vapply(
+    colnames(x),
+    function(col) {
+      idx <- find_term_matches(col, colnames(interactions))
 
-    if (length(idx) == 0) {
-      numeric(nrow(interactions))
-    } else {
-      rowSums(interactions[, idx, drop = FALSE])
-    }
-  }, FUN.VALUE = numeric(nrow(x)))
+      if (length(idx) == 0) {
+        numeric(nrow(interactions))
+      } else {
+        rowSums(interactions[, idx, drop = FALSE])
+      }
+    },
+    FUN.VALUE = numeric(nrow(x))
+  )
 
   # Return shap values, decomposition and intercept
   ret <- list(
