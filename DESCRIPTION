@@ -48,7 +48,9 @@ VignetteBuilder:
     knitr
 Remotes:
     PlantedML/randomPlantedForest
+Additional_repositories: https://plantedml.r-universe.dev
 Config/testthat/edition: 3
+Config/testthat/parallel: true
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
