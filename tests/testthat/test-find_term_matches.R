@@ -2,7 +2,6 @@ test_that("find_term_matches works", {
   # Try ot some p, degree combinations
   for (p in 2:6) {
     for (degree in seq_len(p)) {
-
       main_terms <- letters[seq_len(p)]
 
       # Generate terms from main to `degree` of interaction
@@ -14,7 +13,11 @@ test_that("find_term_matches works", {
       for (match_term in main_terms) {
         expect_equal(
           find_term_matches(match_term, term_list),
-          which(vapply(strsplit(term_list, ":"), function(i) match_term %in% i, FUN.VALUE = logical(1)))
+          which(vapply(
+            strsplit(term_list, ":"),
+            function(i) match_term %in% i,
+            FUN.VALUE = logical(1)
+          ))
         )
       }
     }
@@ -25,7 +28,11 @@ test_that("find_term_matches works", {
   match_term <- "x"
   expect_equal(
     find_term_matches(match_term, term_list),
-    which(vapply(strsplit(term_list, ":"), function(i) match_term %in% i, FUN.VALUE = logical(1)))
+    which(vapply(
+      strsplit(term_list, ":"),
+      function(i) match_term %in% i,
+      FUN.VALUE = logical(1)
+    ))
   )
 
   # No matches return empty integer
@@ -33,7 +40,10 @@ test_that("find_term_matches works", {
 
   # If the term to match contains : it doesn't find anything, which is expected (but suboptimal)
   # It should not error though
-  expect_equal(find_term_matches("x:a", c("a", "b", "cdx:b", "x:a")), integer(0))
+  expect_equal(
+    find_term_matches("x:a", c("a", "b", "cdx:b", "x:a")),
+    integer(0)
+  )
 
   # Unsupported types
   expect_error(find_term_matches(5, c("a", "b", "cdx:b", "x:a")))

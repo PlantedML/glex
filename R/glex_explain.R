@@ -44,13 +44,14 @@
 #' glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
 #' }
 glex_explain <- function(
-    object, id,
-    threshold = 0, max_interaction = NULL,
-    predictors = NULL,
-    class = NULL,
-    barheight = 0.5
+  object,
+  id,
+  threshold = 0,
+  max_interaction = NULL,
+  predictors = NULL,
+  class = NULL,
+  barheight = 0.5
 ) {
-
   checkmate::assert_class(object, "glex")
   checkmate::assert_int(id, lower = 1, upper = nrow(object$x))
   checkmate::assert_int(max_interaction, lower = 1, null.ok = TRUE)
@@ -108,16 +109,30 @@ glex_explain <- function(
     if (threshold > 0) {
       mtemp <- rbind(
         mtemp[abs(mtemp[["m_scaled"]]) > threshold, ],
-        mtemp[abs(mtemp[["m_scaled"]]) <= threshold,
-              list(m_scaled = sum(m_scaled), term = "Remaining terms", degree = 100), by = "class"]
+        mtemp[
+          abs(mtemp[["m_scaled"]]) <= threshold,
+          list(
+            m_scaled = sum(m_scaled),
+            term = "Remaining terms",
+            degree = 100
+          ),
+          by = "class"
+        ]
       )
     }
 
     if (!is.null(max_interaction)) {
       mtemp <- rbind(
         mtemp[degree <= max_interaction, ],
-        mtemp[degree > max_interaction,
-              list(m_scaled = sum(m_scaled), term = "Remaining terms", degree = 100), by = "class"]
+        mtemp[
+          degree > max_interaction,
+          list(
+            m_scaled = sum(m_scaled),
+            term = "Remaining terms",
+            degree = 100
+          ),
+          by = "class"
+        ]
       )
     }
 
@@ -128,7 +143,13 @@ glex_explain <- function(
 
     # left and right x position of the rectangles for each contribution term. it makes sense I swear.
     # crucial part is that the intercept (avgpred) serves as reference/anchor point
-    mtemp[, xright := c(head(avgpred + cumsum(m_scaled), -1), avgpred + sum(m_scaled)), by = "class"]
+    mtemp[,
+      xright := c(
+        head(avgpred + cumsum(m_scaled), -1),
+        avgpred + sum(m_scaled)
+      ),
+      by = "class"
+    ]
     mtemp[, xleft := c(avgpred, head(xright, -1)), by = "class"]
 
     mtemp[, reference_term := main_term]
@@ -143,8 +164,10 @@ glex_explain <- function(
   names(xtemp) <- xnames
 
   # helper df of shap values to plot them in as separate rectangles, at last (lowest) position (determined by term_int)
-  xshap <- xdf[, list(shap = sum(m_scaled), term_int = max(term_int) + 1),
-               by = c("reference_term", "class")]
+  xshap <- xdf[,
+    list(shap = sum(m_scaled), term_int = max(term_int) + 1),
+    by = c("reference_term", "class")
+  ]
   xshap[, xleft := avgpred + shap]
   xshap[, xright := avgpred]
 
@@ -161,30 +184,41 @@ glex_explain <- function(
   p <- ggplot(xdf, aes(y = term_int, fill = as.character(sign(m_scaled))))
 
   if (is.null(object$target_levels)) {
-    p <- p + facet_wrap(
-      vars(reference_term),
-      scales = "free_x", labeller = labeller(reference_term = xtemp)
-    )
+    p <- p +
+      facet_wrap(
+        vars(reference_term),
+        scales = "free_x",
+        labeller = labeller(reference_term = xtemp)
+      )
   } else {
-    p <- p + facet_wrap(
-      vars(.data[["reference_term"]], .data[["class"]]),
-      scales = "free_x", labeller = labeller(reference_term = xtemp, class = label_both)
-    )
+    p <- p +
+      facet_wrap(
+        vars(.data[["reference_term"]], .data[["class"]]),
+        scales = "free_x",
+        labeller = labeller(reference_term = xtemp, class = label_both)
+      )
   }
 
   # geoms
   p <- p +
     geom_vline(xintercept = avgpred, linetype = "6161") +
     # Draw contribution bars
-    geom_segment(aes(
-      y = term_int - barheight/2, yend = term_int + 1 + barheight/2,
-      x = xright, xend = after_stat(x),
-      color = as.character(sign(m_scaled))
-    ), linetype = "solid") +
+    geom_segment(
+      aes(
+        y = term_int - barheight / 2,
+        yend = term_int + 1 + barheight / 2,
+        x = xright,
+        xend = after_stat(x),
+        color = as.character(sign(m_scaled))
+      ),
+      linetype = "solid"
+    ) +
     geom_rect(
       aes(
-        xmin = xleft, xmax = xright,
-        ymin = term_int - barheight/2, ymax = term_int + barheight/2
+        xmin = xleft,
+        xmax = xright,
+        ymin = term_int - barheight / 2,
+        ymax = term_int + barheight / 2
       ),
       alpha = .75
     ) +
@@ -193,31 +227,40 @@ glex_explain <- function(
       data = xshap,
       aes(
         fill = as.character(sign(shap)),
-        xmin = xleft, xmax = xright,
-        ymin = term_int - barheight/2, ymax = term_int + barheight/2
+        xmin = xleft,
+        xmax = xright,
+        ymin = term_int - barheight / 2,
+        ymax = term_int + barheight / 2
       ),
       alpha = .75
     ) +
     # Label SHAP values below other bars
     geom_label(
-      data = xshap, aes(
+      data = xshap,
+      aes(
         label = sprintf("SHAP: %s", format(shap, digits = 2)),
-        x = xright, fill = NULL,
+        x = xright,
+        fill = NULL,
         hjust = pmin(1.05, 0.95 + sign(shap))
       )
     ) +
     # Label contribution values
     geom_label(
-      aes(x = xleft,
+      aes(
+        x = xleft,
         label = sprintf("%s: %s", term, round(m_scaled, 2)),
-        hjust = pmin(1.05, 0.95 + sign(m_scaled))),
-      color = "white", alpha = .75
+        hjust = pmin(1.05, 0.95 + sign(m_scaled))
+      ),
+      color = "white",
+      alpha = .75
     )
 
   # scales / coords
   p <- p +
     scico::scale_fill_scico_d(
-      palette = "vikO", begin = .75, end = .25,
+      palette = "vikO",
+      begin = .75,
+      end = .25,
       guide = "none",
       aesthetics = c("color", "fill")
     ) +
@@ -228,7 +271,11 @@ glex_explain <- function(
   # Labels and theming
   p <- p +
     labs(
-      title = sprintf("Decomposition for ID %d with predicted value %s", id, pred),
+      title = sprintf(
+        "Decomposition for ID %d with predicted value %s",
+        id,
+        pred
+      ),
       subtitle = sprintf("Centered around average prediction: %1.2f", avgpred),
       x = "Average prediction +/- m",
       y = NULL
@@ -249,4 +296,3 @@ glex_explain <- function(
   p +
     theme_glex()
 }
-

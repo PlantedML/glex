@@ -21,13 +21,20 @@ test_that("FastPD equals empirical leaf weighting", {
 test_that("FastPD equals empirical leaf weighting for lower interactions", {
   x <- as.matrix(mtcars[, -1])
   rf <- ranger(
-    x = x, y = mtcars$mpg,
+    x = x,
+    y = mtcars$mpg,
     node.stats = TRUE,
-    num.trees = 5, max.depth = 4
+    num.trees = 5,
+    max.depth = 4
   )
 
   fastpd <- glex(rf, x, max_interaction = 2)
-  empirical_leaf_weighting <- glex(rf, x, probFunction = "empirical", max_interaction = 2)
+  empirical_leaf_weighting <- glex(
+    rf,
+    x,
+    probFunction = "empirical",
+    max_interaction = 2
+  )
 
   expect_equal(
     fastpd$m,

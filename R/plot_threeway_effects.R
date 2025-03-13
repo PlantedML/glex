@@ -15,18 +15,22 @@ plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
 
   # 3x continuous ----
   if (all(x_types == "continuous")) {
-    stop("Can't visualize 3 continuous predictor effects (yet?), feel free to make a suggestion!")
+    stop(
+      "Can't visualize 3 continuous predictor effects (yet?), feel free to make a suggestion!"
+    )
   }
 
   # 1x categorical 2x continuous ----
   if (all(sort(x_types) == c("categorical", "continuous", "continuous"))) {
-
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[x_cont[[1]]]],
-      y = .data[[x_cont[[2]]]],
-      colour = .data[["m"]],
-      fill = ggplot2::after_scale(.data[["colour"]])
-    ))
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[x_cont[[1]]]],
+        y = .data[[x_cont[[2]]]],
+        colour = .data[["m"]],
+        fill = ggplot2::after_scale(.data[["colour"]])
+      )
+    )
     p <- p + ggplot2::geom_point(size = 2.5, shape = 21, stroke = 1)
     if (rug_sides != "none") {
       p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
@@ -35,7 +39,12 @@ plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
     p <- p + ggplot2::labs(color = label_m(predictors))
 
     if (!is.null(object$target_levels)) {
-      p <- p + facet_grid(cols = vars(.data[["class"]]), rows = vars(.data[[x_cat]]), labeller = label_both)
+      p <- p +
+        facet_grid(
+          cols = vars(.data[["class"]]),
+          rows = vars(.data[[x_cat]]),
+          labeller = label_both
+        )
     } else {
       p <- p + ggplot2::facet_wrap(ggplot2::vars(.data[[x_cat]]))
     }
@@ -43,13 +52,15 @@ plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
 
   # 2x categorical 1x continuous ----
   if (all(sort(x_types) == c("categorical", "categorical", "continuous"))) {
-
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[x_cont]],
-      y = .data[["m"]],
-      colour = .data[[x_cat[[1]]]],
-      fill = ggplot2::after_scale(.data[["colour"]])
-    ))
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[x_cont]],
+        y = .data[["m"]],
+        colour = .data[[x_cat[[1]]]],
+        fill = ggplot2::after_scale(.data[["colour"]])
+      )
+    )
     p <- p + ggplot2::geom_line(linewidth = 1.2, key_glyph = "rect")
     if (rug_sides != "none") {
       p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
@@ -58,21 +69,33 @@ plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
     p <- p + ggplot2::labs(y = label_m(predictors))
 
     if (!is.null(object$target_levels)) {
-      p <- p + facet_grid(cols = vars(.data[["class"]]), rows = vars(.data[[x_cat[[2]]]]), labeller = label_both, scales = "free_y")
+      p <- p +
+        facet_grid(
+          cols = vars(.data[["class"]]),
+          rows = vars(.data[[x_cat[[2]]]]),
+          labeller = label_both,
+          scales = "free_y"
+        )
     } else {
-      p <- p + ggplot2::facet_wrap(ggplot2::vars(.data[[x_cat[[2]]]]), scales = "free_y")
+      p <- p +
+        ggplot2::facet_wrap(
+          ggplot2::vars(.data[[x_cat[[2]]]]),
+          scales = "free_y"
+        )
     }
   }
 
   # 3x categorical ----
   if (all(x_types == "categorical")) {
-
-    p <- ggplot2::ggplot(xdf, ggplot2::aes(
-      x = .data[[x_cat[[1]]]],
-      y = .data[[x_cat[[2]]]],
-      colour = .data[["m"]],
-      fill = ggplot2::after_scale(.data[["colour"]])
-    )) +
+    p <- ggplot2::ggplot(
+      xdf,
+      ggplot2::aes(
+        x = .data[[x_cat[[1]]]],
+        y = .data[[x_cat[[2]]]],
+        colour = .data[["m"]],
+        fill = ggplot2::after_scale(.data[["colour"]])
+      )
+    ) +
       ggplot2::geom_tile() +
       diverging_palette(limits = get_m_limits(xdf)) +
       ggplot2::labs(
@@ -80,7 +103,12 @@ plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
       )
 
     if (!is.null(object$target_levels)) {
-      p <- p + facet_grid(cols = vars(.data[["class"]]), rows = vars(.data[[x_cat[[3]]]]), labeller = label_both)
+      p <- p +
+        facet_grid(
+          cols = vars(.data[["class"]]),
+          rows = vars(.data[[x_cat[[3]]]]),
+          labeller = label_both
+        )
     } else {
       p <- p + ggplot2::facet_wrap(ggplot2::vars(.data[[x_cat[[3]]]]))
     }

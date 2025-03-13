@@ -30,8 +30,14 @@
 #'
 subset_components <- function(components, term) {
   checkmate::assert_string(term)
-  components$m <- components$m[, find_term_matches(main_term = term, names(components$m)), with = FALSE]
-  components$x <- components$x[, find_term_matches(main_term = term, names(components$x)), with = FALSE]
+  components$m <- components$m[,
+    find_term_matches(main_term = term, names(components$m)),
+    with = FALSE
+  ]
+  components$x <- components$x[,
+    find_term_matches(main_term = term, names(components$x)),
+    with = FALSE
+  ]
   components
 }
 

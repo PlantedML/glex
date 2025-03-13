@@ -36,7 +36,6 @@ test_that("multiclass rpf", {
   rp <- rpf(yk ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
-
   p <- plot_threeway_effects(gl, c("x4", "x2", "x3"))
   expect_s3_class(p, "ggplot")
 
