@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include "../inst/include/glex.h"
+#include "comparison_policies.h"
 
 using namespace Rcpp;
 
