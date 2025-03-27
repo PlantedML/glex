@@ -83,8 +83,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // explainTreeFastPDBitmask
-Rcpp::NumericMatrix explainTreeFastPDBitmask(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
-RcppExport SEXP _glex_explainTreeFastPDBitmask(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
+Rcpp::NumericMatrix explainTreeFastPDBitmask(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality, unsigned int max_background_sample_size);
+RcppExport SEXP _glex_explainTreeFastPDBitmask(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP, SEXP max_background_sample_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -93,7 +93,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List& >::type to_explain_list(to_explain_listSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type max_interaction(max_interactionSEXP);
     Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
-    rcpp_result_gen = Rcpp::wrap(explainTreeFastPDBitmask(x, tree, to_explain_list, max_interaction, is_weak_inequality));
+    Rcpp::traits::input_parameter< unsigned int >::type max_background_sample_size(max_background_sample_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(explainTreeFastPDBitmask(x, tree, to_explain_list, max_interaction, is_weak_inequality, max_background_sample_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -207,7 +208,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 5},
     {"_glex_marginalizeAllSplittedSubsetsinTree", (DL_FUNC) &_glex_marginalizeAllSplittedSubsetsinTree, 3},
     {"_glex_explainTreeFastPD", (DL_FUNC) &_glex_explainTreeFastPD, 5},
-    {"_glex_explainTreeFastPDBitmask", (DL_FUNC) &_glex_explainTreeFastPDBitmask, 5},
+    {"_glex_explainTreeFastPDBitmask", (DL_FUNC) &_glex_explainTreeFastPDBitmask, 6},
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},
     {"_glex_recurseRcppEmpProbfunction", (DL_FUNC) &_glex_recurseRcppEmpProbfunction, 11},
