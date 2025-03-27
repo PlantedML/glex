@@ -316,7 +316,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   m_all
 }
 
-tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction, max_background_sample_size) {
+tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_interaction) {
   # Calculate matrix
   tree_info <- trees[get("Tree") == tree, ]
   tree_info[, "Feature" := get("Feature_num") - 1L]
@@ -326,7 +326,7 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction, max_back
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
-  m_all <- explainTreeFastPDBitmask(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality, max_background_sample_size)
+  m_all <- explainTreeFastPDBitmask(x, background_sample, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
   m_all
 }
 
@@ -351,7 +351,12 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction, max
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
     }
   } else if (is.function(probFunction) || is.null(probFunction)) {
-    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S, max_interaction, max_background_sample_size))
+    background_sample <- if (max_background_sample_size < nrow(x)) {
+      x[sample(nrow(x), max_background_sample_size), ]
+    } else {
+      x
+    }
+    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, background_sample, all_S, max_interaction))
   } else {
     stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
   }
@@ -397,7 +402,6 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   idx <- 0:max(trees$Tree)
 
   tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction, max_interaction, max_background_sample_size)
-
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
   } else {

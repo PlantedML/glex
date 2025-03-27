@@ -83,18 +83,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // explainTreeFastPDBitmask
-Rcpp::NumericMatrix explainTreeFastPDBitmask(Rcpp::NumericMatrix& x, NumericMatrix& tree, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality, unsigned int max_background_sample_size);
-RcppExport SEXP _glex_explainTreeFastPDBitmask(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP, SEXP max_background_sample_sizeSEXP) {
+Rcpp::NumericMatrix explainTreeFastPDBitmask(Rcpp::NumericMatrix& x, Rcpp::NumericMatrix& x_background, NumericMatrix& tree, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
+RcppExport SEXP _glex_explainTreeFastPDBitmask(SEXP xSEXP, SEXP x_backgroundSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x_background(x_backgroundSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
     Rcpp::traits::input_parameter< Rcpp::List& >::type to_explain_list(to_explain_listSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type max_interaction(max_interactionSEXP);
     Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type max_background_sample_size(max_background_sample_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(explainTreeFastPDBitmask(x, tree, to_explain_list, max_interaction, is_weak_inequality, max_background_sample_size));
+    rcpp_result_gen = Rcpp::wrap(explainTreeFastPDBitmask(x, x_background, tree, to_explain_list, max_interaction, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
