@@ -326,7 +326,7 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
-  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  m_all <- explainTreeFastPDBitmask(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
   m_all
 }
 
