@@ -21,8 +21,8 @@ explainTreeFastPD <- function(x, tree, to_explain_list, max_interaction, is_weak
     .Call(`_glex_explainTreeFastPD`, x, tree, to_explain_list, max_interaction, is_weak_inequality)
 }
 
-explainTreeFastPDBitmask <- function(x, tree, to_explain_list, max_interaction, is_weak_inequality, max_background_sample_size) {
-    .Call(`_glex_explainTreeFastPDBitmask`, x, tree, to_explain_list, max_interaction, is_weak_inequality, max_background_sample_size)
+explainTreeFastPDBitmask <- function(x, x_background, tree, to_explain_list, max_interaction, is_weak_inequality) {
+    .Call(`_glex_explainTreeFastPDBitmask`, x, x_background, tree, to_explain_list, max_interaction, is_weak_inequality)
 }
 
 find_term_matches <- function(main_term, terms) {

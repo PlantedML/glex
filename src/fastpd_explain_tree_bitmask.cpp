@@ -391,30 +391,14 @@ void contributeFastPDBitmask(
 // [[Rcpp::export]]
 Rcpp::NumericMatrix explainTreeFastPDBitmask(
     Rcpp::NumericMatrix &x,
+    Rcpp::NumericMatrix &x_background,
     NumericMatrix &tree,
     Rcpp::List &to_explain_list,
     unsigned int max_interaction,
-    bool is_weak_inequality,
-    unsigned int max_background_sample_size)
+    bool is_weak_inequality)
 {
-  max_background_sample_size = std::min<unsigned int>(max_background_sample_size, x.nrow());
-
-  // Sample row indices (sample returns 1-based indices, so subtract 1)
-  IntegerVector indices = Rcpp::sample(x.nrow(), max_background_sample_size, false) - 1;
-
-  // Create a new matrix with the sampled rows
-  NumericMatrix x_background(max_background_sample_size, x.ncol());
-  for (int i = 0; i < max_background_sample_size; i++)
-  {
-    for (int j = 0; j < x.ncol(); j++)
-    {
-      x_background(i, j) = x(indices[i], j);
-    }
-  }
-
   // Augment step using bitmask implementation
   LeafDataBitMask leaf_data = augmentTreeBitmask(tree, x_background);
-
   // Convert all_encountered to bitmask subsets
   FeatureMask all_encountered = leaf_data.allEncounteredMask;
   std::vector<FeatureMask> U = get_all_subsets_of_mask(all_encountered, max_interaction);
