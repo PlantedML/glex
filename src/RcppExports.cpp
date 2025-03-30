@@ -11,6 +11,20 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// contribute_fastpd2
+void contribute_fastpd2(Rcpp::NumericMatrix& mat, Rcpp::NumericMatrix& m_all, Rcpp::IntegerVector& S, std::vector<Rcpp::IntegerVector>& T_subsets, unsigned int colnum);
+RcppExport SEXP _glex_contribute_fastpd2(SEXP matSEXP, SEXP m_allSEXP, SEXP SSEXP, SEXP T_subsetsSEXP, SEXP colnumSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type m_all(m_allSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type S(SSEXP);
+    Rcpp::traits::input_parameter< std::vector<Rcpp::IntegerVector>& >::type T_subsets(T_subsetsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type colnum(colnumSEXP);
+    contribute_fastpd2(mat, m_all, S, T_subsets, colnum);
+    return R_NilValue;
+END_RCPP
+}
 // augmentAndTakeExpectation
 double augmentAndTakeExpectation(NumericVector& x, NumericMatrix& dataset, NumericMatrix& tree, NumericVector& to_explain, bool is_weak_inequality);
 RcppExport SEXP _glex_augmentAndTakeExpectation(SEXP xSEXP, SEXP datasetSEXP, SEXP treeSEXP, SEXP to_explainSEXP, SEXP is_weak_inequalitySEXP) {
@@ -215,6 +229,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_glex_contribute_fastpd2", (DL_FUNC) &_glex_contribute_fastpd2, 5},
     {"_glex_augmentAndTakeExpectation", (DL_FUNC) &_glex_augmentAndTakeExpectation, 5},
     {"_glex_augmentTree", (DL_FUNC) &_glex_augmentTree, 3},
     {"_glex_augmentExpectation", (DL_FUNC) &_glex_augmentExpectation, 5},

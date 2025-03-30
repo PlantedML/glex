@@ -4,6 +4,52 @@
 using namespace Rcpp;
 std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set);
 
+// [[Rcpp::export]]
+void contribute_fastpd2(
+    Rcpp::NumericMatrix &mat,
+    Rcpp::NumericMatrix &m_all,
+    Rcpp::IntegerVector &S,
+    std::vector<Rcpp::IntegerVector> &T_subsets,
+    unsigned int colnum)
+{
+  // Convert Rcpp::IntegerVector S to std::set<unsigned int>
+  std::set<unsigned int> S_set;
+  for (int i = 0; i < S.size(); ++i)
+  {
+    S_set.insert(S[i]);
+  }
+
+  // Convert vector<IntegerVector> T_subsets to vector<set<unsigned int>>
+  std::vector<std::set<unsigned int>> T_subsets_set;
+  for (unsigned int i = 0; i < T_subsets.size(); ++i)
+  {
+    std::set<unsigned int> subset;
+    for (int j = 0; j < T_subsets[i].size(); ++j)
+    {
+      subset.insert(T_subsets[i][j]);
+    }
+    T_subsets_set.push_back(subset);
+  }
+
+  // Call the internal implementation
+  std::vector<std::set<unsigned int>> Vs = get_all_subsets_(S_set);
+  for (unsigned int i = 0; i < Vs.size(); ++i)
+  {
+    std::set<unsigned int> V = Vs[i];
+    auto it = std::find(T_subsets_set.begin(), T_subsets_set.end(), V);
+    unsigned int idx = std::distance(T_subsets_set.begin(), it);
+
+    if ((S_set.size() - V.size()) % 2 == 0)
+    {
+      m_all(_, colnum) = m_all(_, colnum) + mat(_, idx);
+    }
+    else
+    {
+      m_all(_, colnum) = m_all(_, colnum) - mat(_, idx);
+    }
+  }
+}
+
 void contributeFastPD2(
     NumericMatrix &mat,
     NumericMatrix &m_all,
