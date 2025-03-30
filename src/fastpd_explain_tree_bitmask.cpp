@@ -1,46 +1,150 @@
 #include <Rcpp.h>
 #include "../inst/include/glex.h"
 #include "comparison_policies.h"
+#include <vector>
+#include <algorithm>
+#include <functional>
 
 using namespace Rcpp;
 
-// Bitmask data structures and utilities
-typedef std::unordered_map<uint64_t, std::vector<unsigned int>> PathDataBitmask;
+// Define ExtendedMask as a vector of uint64_t chunks for unlimited features
+using ExtendedMask = std::vector<uint64_t>;
+
+// Custom hash function for ExtendedMask
+struct ExtendedMaskHash
+{
+  std::size_t operator()(const ExtendedMask &mask) const
+  {
+    std::size_t seed = 0;
+    for (const auto &chunk : mask)
+    {
+      // Combine hash values (boost::hash_combine approach)
+      seed ^= std::hash<uint64_t>{}(chunk) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+  }
+};
+
+// Custom equality function for ExtendedMask
+struct ExtendedMaskEqual
+{
+  bool operator()(const ExtendedMask &lhs, const ExtendedMask &rhs) const
+  {
+    return lhs == rhs;
+  }
+};
+
+// Extended bitmask data structures
+using FeatureMask = ExtendedMask;
+typedef std::unordered_map<FeatureMask, std::vector<unsigned int>, ExtendedMaskHash, ExtendedMaskEqual> PathDataBitmask;
 
 struct AugmentedDataBitMask
 {
-  uint64_t encountered; // 64-bit mask for encountered features
+  FeatureMask encountered; // vector of 64-bit masks for encountered features
   PathDataBitmask pathData;
 };
-
-using FeatureMask = uint64_t; // up to 64 features
 
 struct LeafDataBitMask
 {
   std::vector<FeatureMask> encounteredMask; // for each node
-  std::vector<std::unordered_map<FeatureMask, double>> leafProbs;
-  FeatureMask allEncounteredMask = 0ULL; // union of all encountered features
+  std::vector<std::unordered_map<FeatureMask, double, ExtendedMaskHash, ExtendedMaskEqual>> leafProbs;
+  FeatureMask allEncounteredMask; // union of all encountered features
 };
 
-// Bitmask utility functions
-inline bool hasFeature(FeatureMask mask, unsigned int feature)
+// Constants for the implementation
+constexpr unsigned int BITS_PER_CHUNK = 64;
+
+// Create an empty mask with at least enough chunks for n_features
+inline FeatureMask createEmptyMask(unsigned int n_features)
 {
-  return (mask & (1ULL << feature)) != 0ULL;
+  unsigned int n_chunks = (n_features + BITS_PER_CHUNK - 1) / BITS_PER_CHUNK;
+  return FeatureMask(n_chunks, 0ULL);
+}
+
+// Extended bitmask utility functions
+inline bool hasFeature(const FeatureMask &mask, unsigned int feature)
+{
+  unsigned int chunk_idx = feature / BITS_PER_CHUNK;
+  unsigned int bit_pos = feature % BITS_PER_CHUNK;
+
+  return chunk_idx < mask.size() && (mask[chunk_idx] & (1ULL << bit_pos)) != 0ULL;
 }
 
 inline FeatureMask setFeature(FeatureMask mask, unsigned int feature)
 {
-  return mask | (1ULL << feature);
+  unsigned int chunk_idx = feature / BITS_PER_CHUNK;
+  unsigned int bit_pos = feature % BITS_PER_CHUNK;
+
+  // Resize if needed
+  if (chunk_idx >= mask.size())
+  {
+    mask.resize(chunk_idx + 1, 0ULL);
+  }
+
+  mask[chunk_idx] |= (1ULL << bit_pos);
+  return mask;
 }
 
 inline FeatureMask clearFeature(FeatureMask mask, unsigned int feature)
 {
-  return mask & ~(1ULL << feature);
+  unsigned int chunk_idx = feature / BITS_PER_CHUNK;
+  unsigned int bit_pos = feature % BITS_PER_CHUNK;
+
+  if (chunk_idx < mask.size())
+  {
+    mask[chunk_idx] &= ~(1ULL << bit_pos);
+  }
+  return mask;
 }
 
-inline FeatureMask bitmaskDifference(FeatureMask big, FeatureMask small)
+inline FeatureMask bitmaskDifference(const FeatureMask &big, const FeatureMask &small)
 {
-  return big & ~small;
+  FeatureMask result = big;
+  size_t common_size = std::min(big.size(), small.size());
+
+  // Apply AND NOT for common chunks
+  for (size_t i = 0; i < common_size; i++)
+  {
+    result[i] &= ~small[i];
+  }
+
+  return result;
+}
+
+// Bitwise AND between two masks
+inline FeatureMask bitmaskAnd(const FeatureMask &a, const FeatureMask &b)
+{
+  size_t common_size = std::min(a.size(), b.size());
+  FeatureMask result(common_size, 0ULL);
+
+  for (size_t i = 0; i < common_size; i++)
+  {
+    result[i] = a[i] & b[i];
+  }
+
+  return result;
+}
+
+// Check if a mask is empty (all zeros)
+inline bool isEmpty(const FeatureMask &mask)
+{
+  for (const auto &chunk : mask)
+  {
+    if (chunk != 0)
+      return false;
+  }
+  return true;
+}
+
+// Count set bits in a mask
+inline unsigned int countSetBits(const FeatureMask &mask)
+{
+  unsigned int count = 0;
+  for (const auto &chunk : mask)
+  {
+    count += __builtin_popcountll(chunk);
+  }
+  return count;
 }
 
 void augmentTreeRecurseStepBitmask(
@@ -64,7 +168,7 @@ void augmentTreeRecurseStepBitmask(
     const double denom = static_cast<double>(dataset.nrow());
     for (auto &kv : passed_down.pathData)
     {
-      uint64_t subsetMask = kv.first;
+      const FeatureMask &subsetMask = kv.first;
       const std::vector<unsigned int> &row_inds = kv.second;
       double fraction = row_inds.empty() ? 0.0 : (row_inds.size() / denom);
 
@@ -80,7 +184,7 @@ void augmentTreeRecurseStepBitmask(
   const unsigned int no_idx = current_node[Index::NO];
 
   // Mark this feature as encountered in the global sense
-  leaf_data.allEncounteredMask |= (1ULL << current_feature);
+  leaf_data.allEncounteredMask = setFeature(leaf_data.allEncounteredMask, current_feature);
 
   // Prepare child objects (copy encountered, but pathData will be newly built)
   AugmentedDataBitMask passed_down_yes;
@@ -98,7 +202,7 @@ void augmentTreeRecurseStepBitmask(
   //    (this is how we treat partial-dependence "excluded" features).
   for (auto &kv : passed_down.pathData)
   {
-    const uint64_t subsetMask = kv.first;
+    const FeatureMask &subsetMask = kv.first;
     const std::vector<unsigned int> &row_inds = kv.second;
 
     // Check membership once
@@ -143,17 +247,17 @@ void augmentTreeRecurseStepBitmask(
   if (is_new_feature)
   {
     // Mark it as encountered in these subtrees
-    passed_down_yes.encountered |= (1ULL << current_feature);
-    passed_down_no.encountered |= (1ULL << current_feature);
+    passed_down_yes.encountered = setFeature(passed_down_yes.encountered, current_feature);
+    passed_down_no.encountered = setFeature(passed_down_no.encountered, current_feature);
 
     // Duplicate pathData with the new bit set
     // for each subset in the *original* pathData
     for (auto &kv : passed_down.pathData)
     {
-      uint64_t old_subset = kv.first;
+      const FeatureMask &old_subset = kv.first;
       const std::vector<unsigned int> &row_inds = kv.second;
 
-      uint64_t new_subset = old_subset | (1ULL << current_feature);
+      FeatureMask new_subset = setFeature(old_subset, current_feature);
 
       passed_down_yes.pathData[new_subset] = row_inds;
       passed_down_no.pathData[new_subset] = row_inds;
@@ -170,16 +274,19 @@ LeafDataBitMask augmentTreeBitmask(
     Rcpp::NumericMatrix &x)
 {
   int n_nodes = tree.nrow();
+  unsigned int n_features = x.ncol(); // Get feature count for proper mask sizing
 
   // Prepare LeafDataBitMask
   LeafDataBitMask leaf_data;
-  leaf_data.encounteredMask.resize(n_nodes, 0ULL);
+  leaf_data.encounteredMask.resize(n_nodes, createEmptyMask(n_features));
   leaf_data.leafProbs.resize(n_nodes);
+  leaf_data.allEncounteredMask = createEmptyMask(n_features);
 
   // Build the root "passed_down" data
   AugmentedDataBitMask root;
-  root.encountered = 0ULL; // no features encountered at root
-  // The entire dataset is active under the "subsetMask=0" (empty subset)
+  root.encountered = createEmptyMask(n_features); // no features encountered at root
+
+  // The entire dataset is active under the empty subset
   {
     std::vector<unsigned int> all_rows;
     all_rows.reserve(x.nrow());
@@ -187,8 +294,8 @@ LeafDataBitMask augmentTreeBitmask(
     {
       all_rows.push_back(i);
     }
-    // pathData with key=0 (empty subset), val=all rows
-    root.pathData[0ULL] = std::move(all_rows);
+    // pathData with key=empty mask, val=all rows
+    root.pathData[createEmptyMask(n_features)] = std::move(all_rows);
   }
 
   // Recurse from node=0 (root)
@@ -226,7 +333,7 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
 
     for (unsigned int j = 0; j < n_subsets; ++j)
     {
-      FeatureMask intersection = leaf_data.encounteredMask[node] & U[j];
+      FeatureMask intersection = bitmaskAnd(leaf_data.encounteredMask[node], U[j]);
 
       // Probability from the leafProbs map
       double p = 0.0;
@@ -300,65 +407,95 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   return mat;
 }
 
-// Helper function to convert set to bitmask
+// Helper function to convert set to extended bitmask
 FeatureMask setToBitmask(const std::set<unsigned int> &set)
 {
-  FeatureMask mask = 0ULL;
+  // Find the max feature to determine the required mask size
+  unsigned int max_feature = 0;
+  if (!set.empty())
+  {
+    max_feature = *set.rbegin(); // Largest element in the set
+  }
+
+  FeatureMask mask = createEmptyMask(max_feature + 1);
   for (unsigned int feature : set)
   {
-    mask |= (1ULL << feature);
+    mask = setFeature(mask, feature);
   }
   return mask;
 }
 
-// Helper function to convert bitmask to set
-std::set<unsigned int> bitmaskToSet(FeatureMask mask)
+// Helper function to convert extended bitmask to set
+std::set<unsigned int> bitmaskToSet(const FeatureMask &mask)
 {
   std::set<unsigned int> set;
-  for (unsigned int i = 0; i < 64; i++)
+
+  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++)
   {
-    if (mask & (1ULL << i))
+    uint64_t chunk = mask[chunk_idx];
+    if (chunk == 0)
+      continue; // Skip empty chunks for efficiency
+
+    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++)
     {
-      set.insert(i);
+      if (chunk & (1ULL << bit_pos))
+      {
+        unsigned int feature = chunk_idx * BITS_PER_CHUNK + bit_pos;
+        set.insert(feature);
+      }
     }
   }
+
   return set;
 }
 
-std::vector<uint64_t> get_all_subsets_of_mask(uint64_t mask, unsigned int max_size = UINT_MAX)
+// Get all subsets of a given mask
+std::vector<FeatureMask> get_all_subsets_of_mask(const FeatureMask &mask, unsigned int max_size = UINT_MAX)
 {
-  // 1) Gather indices of set bits.
+  // 1) Gather indices of set bits
   std::vector<unsigned int> bits;
-  bits.reserve(64);
-  for (unsigned int i = 0; i < 64; i++)
+
+  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++)
   {
-    if (mask & (1ULL << i))
+    uint64_t chunk = mask[chunk_idx];
+    if (chunk == 0)
+      continue; // Skip empty chunks
+
+    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++)
     {
-      bits.push_back(i);
+      if (chunk & (1ULL << bit_pos))
+      {
+        bits.push_back(chunk_idx * BITS_PER_CHUNK + bit_pos);
+      }
     }
   }
+
   const size_t k = bits.size();
   const size_t n_subsets = (1ULL << k);
 
   // 2) Build all subsets
-  std::vector<uint64_t> subsets;
+  std::vector<FeatureMask> subsets;
   subsets.reserve(n_subsets);
+
   for (size_t subset_idx = 0; subset_idx < n_subsets; ++subset_idx)
   {
     // Count bits in subset_idx to check size
     if (__builtin_popcountll(subset_idx) > max_size)
       continue; // Skip subsets larger than max_size
 
-    uint64_t subset_mask = 0ULL;
+    FeatureMask subset_mask = createEmptyMask(BITS_PER_CHUNK * mask.size());
+
     for (size_t b = 0; b < k; ++b)
     {
       if (subset_idx & (1ULL << b))
       {
-        subset_mask |= (1ULL << bits[b]);
+        subset_mask = setFeature(subset_mask, bits[b]);
       }
     }
+
     subsets.push_back(subset_mask);
   }
+
   return subsets;
 }
 
@@ -370,14 +507,16 @@ void contributeFastPDBitmask(
     unsigned int colnum,
     unsigned int t_size)
 {
-  uint64_t S_bitmask = setToBitmask(S);
-  std::vector<uint64_t> Vs = get_all_subsets_of_mask(S_bitmask);
+  FeatureMask S_bitmask = setToBitmask(S);
+  std::vector<FeatureMask> Vs = get_all_subsets_of_mask(S_bitmask);
+
   for (unsigned int i = 0; i < Vs.size(); ++i)
   {
-    FeatureMask V = Vs[i];
+    const FeatureMask &V = Vs[i];
     auto it = std::find(U.begin(), U.end(), V);
     unsigned int idx = std::distance(U.begin(), it);
-    if ((S.size() - __builtin_popcountll(V)) % 2 == 0)
+
+    if ((S.size() - countSetBits(V)) % 2 == 0)
     {
       m_all(_, colnum) = m_all(_, colnum) + mat(_, idx);
     }
@@ -386,6 +525,31 @@ void contributeFastPDBitmask(
       m_all(_, colnum) = m_all(_, colnum) - mat(_, idx);
     }
   }
+}
+
+// Check if a mask is a subset of another mask
+inline bool isSubset(const FeatureMask &subset, const FeatureMask &superset)
+{
+  // For each chunk in subset
+  for (size_t i = 0; i < subset.size() && i < superset.size(); i++)
+  {
+    // If any bit in subset is not in superset, it's not a subset
+    if ((subset[i] & ~superset[i]) != 0)
+    {
+      return false;
+    }
+  }
+
+  // Check if subset has any bits set beyond superset's size
+  for (size_t i = superset.size(); i < subset.size(); i++)
+  {
+    if (subset[i] != 0)
+    {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // [[Rcpp::export]]
@@ -397,9 +561,13 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
     unsigned int max_interaction,
     bool is_weak_inequality)
 {
+  // Get feature count for proper mask sizing
+  unsigned int n_features = x.ncol();
+
   // Augment step using bitmask implementation
   LeafDataBitMask leaf_data = augmentTreeBitmask(tree, x_background);
-  // Convert all_encountered to bitmask subsets
+
+  // Convert all_encountered to extended bitmask subsets
   FeatureMask all_encountered = leaf_data.allEncounteredMask;
   std::vector<FeatureMask> U = get_all_subsets_of_mask(all_encountered, max_interaction);
 
@@ -433,7 +601,7 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
     bool is_subset = false;
     for (const auto &U_mask : U)
     {
-      if ((U_mask & S_mask) == S_mask)
+      if (isSubset(S_mask, U_mask))
       {
         is_subset = true;
         break;
@@ -447,7 +615,9 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
 
   // Compute expectation of all necessary subsets using bitmask implementation
   NumericMatrix mat = is_weak_inequality ? recurseMarginalizeSBitmask<glex::WeakComparison>(x, tree, U, 0, leaf_data) : recurseMarginalizeSBitmask<glex::StrictComparison>(x, tree, U, 0, leaf_data);
-  uint t_size = __builtin_popcountll(all_encountered);
+
+  uint t_size = countSetBits(all_encountered);
+
   for (int S_idx : needToComputePDfunctionsFor)
   {
     std::set<unsigned int> S = to_explain[S_idx];

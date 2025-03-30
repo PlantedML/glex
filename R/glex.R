@@ -199,12 +199,13 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
 }
 
 # Function to get all subsets of set
-subsets <- function(x) {
-  if (length(x) == 1) {
-    list(integer(0), x)
-  } else {
-    do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
-  }
+subsets <- function(x, max_interaction = 3) {
+  # if (length(x) == 1) {
+  #   list(integer(0), x)
+  # } else {
+  #   do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
+  # }
+  get_all_subsets_cpp(x, max_interaction)
 }
 
 tree_fun_path_dependent <- function(tree, trees, x, all_S) {
@@ -326,7 +327,10 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
+  start_time <- Sys.time()
   m_all <- explainTreeFastPDBitmask(x, background_sample, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  end_time <- Sys.time()
+  print(paste("Time taken!:", end_time - start_time))
   m_all
 }
 
@@ -380,7 +384,9 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
     all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))])
+      unique_features <- trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))]
+      s <- subsets(unique_features, max_interaction)
+      s
     })))
   } else {
     # All subsets with supplied features
@@ -388,14 +394,10 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
       stop("All selected features have to be column names of x.")
     }
     features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
-    all_S <- subsets(sort(unique(features_num)))
+    all_S <- subsets(sort(unique(features_num)), max_interaction)
   }
-
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
-  all_S <- all_S[d <= max_interaction]
-
-  # For each tree, calculate matrix and contribution
 
   # Run in parallel if a parallel backend is registered
   j <- NULL
