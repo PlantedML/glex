@@ -201,6 +201,18 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// get_all_subsets_cpp
+Rcpp::List get_all_subsets_cpp(Rcpp::IntegerVector x, unsigned int maxSize);
+RcppExport SEXP _glex_get_all_subsets_cpp(SEXP xSEXP, SEXP maxSizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type maxSize(maxSizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_all_subsets_cpp(x, maxSize));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_glex_augmentAndTakeExpectation", (DL_FUNC) &_glex_augmentAndTakeExpectation, 5},
@@ -215,6 +227,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glex_recurse", (DL_FUNC) &_glex_recurse, 12},
     {"_glex_recurseAlgorithm2", (DL_FUNC) &_glex_recurseAlgorithm2, 9},
     {"_glex_contribute", (DL_FUNC) &_glex_contribute, 6},
+    {"_glex_get_all_subsets_cpp", (DL_FUNC) &_glex_get_all_subsets_cpp, 2},
     {NULL, NULL, 0}
 };
 
