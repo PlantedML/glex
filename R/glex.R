@@ -106,8 +106,6 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
     max_interaction <- xgb_max_depth
   }
 
-  checkmate::assert_int(max_interaction, lower = 1, upper = xgb_max_depth)
-
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
   trees$Type <- "<"
@@ -208,7 +206,7 @@ subsets <- function(x, max_interaction = 3) {
   get_all_subsets_cpp(x, max_interaction)
 }
 
-tree_fun_path_dependent <- function(tree, trees, x, all_S) {
+tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction = 999) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -218,7 +216,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
   tree_info <- trees[Tree == tree, ]
 
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
-  U <- subsets(T)
+  U <- subsets(T, max_interaction)
   mat <- recurseAlgorithm2(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                   tree_info$Quality, tree_info$Cover, U, 0)
   colnames(mat) <- vapply(U, function(u) {
@@ -227,7 +225,6 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
 
   # Init m matrix
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-  # browser()
   colnames(m_all) <- vapply(all_S, function(s) {
     paste(sort(colnames(x)[s]), collapse = ":")
   }, FUN.VALUE = character(1))
@@ -240,7 +237,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
     } else {
       colnum <- which(colnames(m_all) == colname)
     }
-    contribute(mat, m_all, S, T, U, colnum-1)
+    contribute_fastpd2(mat, m_all, S, U, colnum-1)
   }
   # Return m matrix
   m_all
@@ -345,7 +342,7 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
 tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction, max_background_sample_size) {
   if (is.character(probFunction)) {
     if (probFunction == "path-dependent") {
-      return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
+      return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S, max_interaction))
     } else if (probFunction == "empirical") {
       if (trees$Type[1] != "<=") {
         warning("Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead.")
