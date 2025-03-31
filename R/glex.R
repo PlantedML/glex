@@ -401,10 +401,13 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   idx <- 0:max(trees$Tree)
 
   tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction, max_interaction, max_background_sample_size)
+  m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
   } else {
-    m_all <- foreach(j = idx, .combine = "+") %do% tree_fun(j)
+    for (j in idx) {
+      m_all <- m_all + tree_fun(j)
+    }
   }
 
   d <- get_degree(colnames(m_all))
