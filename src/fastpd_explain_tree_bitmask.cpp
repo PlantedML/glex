@@ -507,8 +507,29 @@ void contributeFastPDBitmask(
     unsigned int colnum,
     unsigned int t_size)
 {
-  FeatureMask S_bitmask = setToBitmask(S);
+  // Get the maximum size needed for masks based on U's masks
+  size_t max_chunks = 0;
+  for (const auto &mask : U)
+  {
+    max_chunks = std::max(max_chunks, mask.size());
+  }
+
+  // Create S_bitmask with the same size as U's masks
+  FeatureMask S_bitmask = createEmptyMask(max_chunks * BITS_PER_CHUNK);
+  for (unsigned int feature : S)
+  {
+    S_bitmask = setFeature(S_bitmask, feature);
+  }
+
+  // Get subsets and ensure they have the same size as U's masks
   std::vector<FeatureMask> Vs = get_all_subsets_of_mask(S_bitmask);
+  for (auto &V : Vs)
+  {
+    if (V.size() < max_chunks)
+    {
+      V.resize(max_chunks, 0ULL); // Pad with zeros if needed
+    }
+  }
 
   for (unsigned int i = 0; i < Vs.size(); ++i)
   {
