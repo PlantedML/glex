@@ -11,6 +11,7 @@
 #' @param object Model to be explained, either of class `xgb.Booster` or `rpf`.
 #' @param x Data to be explained.
 #' @param max_interaction (`integer(1): NULL`)\cr
+#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `probFunction = "empirical"`.
 #'  Maximum interaction size to consider.
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
