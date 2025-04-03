@@ -11,6 +11,7 @@
 #' @param object Model to be explained, either of class `xgb.Booster` or `rpf`.
 #' @param x Data to be explained.
 #' @param max_interaction (`integer(1): NULL`)\cr
+#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `probFunction = "empirical"`.
 #'  Maximum interaction size to consider.
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
@@ -93,7 +94,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -106,14 +107,12 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
     max_interaction <- xgb_max_depth
   }
 
-  checkmate::assert_int(max_interaction, lower = 1, upper = xgb_max_depth)
-
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
   trees$Type <- "<"
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, probFunction)
+  res <- calc_components(trees, x, max_interaction, features, probFunction, max_background_sample_size)
   res$intercept <- res$intercept + 0.5
 
   # Return components
@@ -146,7 +145,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
 
   # To avoid data.table check issues
   terminal <- NULL
@@ -187,7 +186,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   trees$Type <- "<="
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, probFunction)
+  res <- calc_components(trees, x, max_interaction, features, probFunction, max_background_sample_size)
 
   # Divide everything by the number of trees
   res$shap <- res$shap / object$num.trees
@@ -199,15 +198,16 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
 }
 
 # Function to get all subsets of set
-subsets <- function(x) {
-  if (length(x) == 1) {
-    list(integer(0), x)
-  } else {
-    do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
-  }
+subsets <- function(x, max_interaction = 3) {
+  # if (length(x) == 1) {
+  #   list(integer(0), x)
+  # } else {
+  #   do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
+  # }
+  get_all_subsets_cpp(x, max_interaction)
 }
 
-tree_fun_path_dependent <- function(tree, trees, x, all_S) {
+tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction = 999) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -217,7 +217,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
   tree_info <- trees[Tree == tree, ]
 
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
-  U <- subsets(T)
+  U <- subsets(T, max_interaction)
   mat <- recurseAlgorithm2(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                   tree_info$Quality, tree_info$Cover, U, 0)
   colnames(mat) <- vapply(U, function(u) {
@@ -226,7 +226,6 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
 
   # Init m matrix
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-  # browser()
   colnames(m_all) <- vapply(all_S, function(s) {
     paste(sort(colnames(x)[s]), collapse = ":")
   }, FUN.VALUE = character(1))
@@ -239,7 +238,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S) {
     } else {
       colnum <- which(colnames(m_all) == colname)
     }
-    contribute(mat, m_all, S, T, U, colnum-1)
+    contribute_fastpd2(mat, m_all, S, U, colnum-1)
   }
   # Return m matrix
   m_all
@@ -316,7 +315,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   m_all
 }
 
-tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
+tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_interaction) {
   # Calculate matrix
   tree_info <- trees[get("Tree") == tree, ]
   tree_info[, "Feature" := get("Feature_num") - 1L]
@@ -326,7 +325,10 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
-  m_all <- explainTreeFastPD(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  start_time <- Sys.time()
+  m_all <- explainTreeFastPDBitmask(x, background_sample, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  end_time <- Sys.time()
+  print(paste("Time taken!:", end_time - start_time))
   m_all
 }
 
@@ -338,10 +340,10 @@ tree_fun_emp_fastPD <- function(tree, trees, x, all_S, max_interaction) {
 #' @param probFunction probFunction that was supplied to \code{glex}
 #' @keywords internal
 #' @noRd
-tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction) {
+tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction, max_background_sample_size) {
   if (is.character(probFunction)) {
     if (probFunction == "path-dependent") {
-      return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S))
+      return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S, max_interaction))
     } else if (probFunction == "empirical") {
       if (trees$Type[1] != "<=") {
         warning("Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead.")
@@ -351,7 +353,12 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction) {
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
     }
   } else if (is.function(probFunction) || is.null(probFunction)) {
-    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, all_S, max_interaction))
+    background_sample <- if (max_background_sample_size < nrow(x)) {
+      x[sample(nrow(x), max_background_sample_size), ]
+    } else {
+      x
+    }
+    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, background_sample, all_S, max_interaction))
   } else {
     stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
   }
@@ -360,7 +367,7 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction) {
 #' Internal function to calculate the components
 #' @keywords internal
 #' @noRd
-calc_components <- function(trees, x, max_interaction, features, probFunction = NULL) {
+calc_components <- function(trees, x, max_interaction, features, probFunction = NULL, max_background_sample_size = nrow(x)) {
 
   # data.table NSE global variable workaround
   Feature <- NULL
@@ -375,7 +382,9 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
     all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-      subsets(trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))])
+      unique_features <- trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))]
+      s <- subsets(unique_features, max_interaction)
+      s
     })))
   } else {
     # All subsets with supplied features
@@ -383,25 +392,23 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
       stop("All selected features have to be column names of x.")
     }
     features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
-    all_S <- subsets(sort(unique(features_num)))
+    all_S <- subsets(sort(unique(features_num)), max_interaction)
   }
-
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
-  all_S <- all_S[d <= max_interaction]
-
-  # For each tree, calculate matrix and contribution
 
   # Run in parallel if a parallel backend is registered
   j <- NULL
   idx <- 0:max(trees$Tree)
 
-  tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction, max_interaction)
-
+  tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction, max_interaction, max_background_sample_size)
+  m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
   } else {
-    m_all <- foreach(j = idx, .combine = "+") %do% tree_fun(j)
+    for (j in idx) {
+      m_all <- m_all + tree_fun(j)
+    }
   }
 
   d <- get_degree(colnames(m_all))

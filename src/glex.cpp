@@ -249,12 +249,12 @@ Rcpp::NumericMatrix recurseAlgorithm2(Rcpp::NumericMatrix &x, Rcpp::IntegerVecto
     for (unsigned int j = 0; j < U.size(); ++j)
     {
       // Is splitting feature out in this subset?
-      bool isout = false;
+      bool isout = true;
       for (unsigned int k = 0; k < U[j].size(); ++k)
       {
         if (U[j][k] == feature[node])
         {
-          isout = true;
+          isout = false;
         }
       }
 
@@ -271,7 +271,7 @@ Rcpp::NumericMatrix recurseAlgorithm2(Rcpp::NumericMatrix &x, Rcpp::IntegerVecto
         // For subsets where feature is in, split to left/right
         for (unsigned int i = 0; i < n; ++i)
         {
-          if (x(i, feature[node] - 1) <= split[node])
+          if (x(i, feature[node] - 1) < split[node])
           {
             mat(i, j) += mat_yes(i, j);
           }
@@ -312,7 +312,6 @@ void contribute(Rcpp::NumericMatrix &mat, Rcpp::NumericMatrix &m_all, Rcpp::Inte
     if (contrib)
     {
       Rcpp::IntegerVector sTU = Rcpp::setdiff(T, U);
-
       if (((S.size() - sTU.size()) % 2) == 0)
       {
         // positive sign
