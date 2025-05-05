@@ -325,10 +325,7 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
-  start_time <- Sys.time()
   m_all <- explainTreeFastPDBitmask(x, background_sample, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
-  end_time <- Sys.time()
-  print(paste("Time taken!:", end_time - start_time))
   m_all
 }
 
