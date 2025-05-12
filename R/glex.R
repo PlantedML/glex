@@ -94,18 +94,12 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = Inf, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
 
-  # If max_interaction is not specified, we set it to the max_depth param of the xgb model.
-  # If max_depth is not defined in xgb, we assume its default of 6.
-  xgb_max_depth <- ifelse(is.null(object$params$max_depth), 6L, object$params$max_depth)
-
-  if (is.null(max_interaction)) {
-    max_interaction <- xgb_max_depth
-  }
+  max_interaction <- min(max_interaction, 9999)
 
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
@@ -145,7 +139,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
+glex.ranger <- function(object, x, max_interaction = Inf, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
 
   # To avoid data.table check issues
   terminal <- NULL
@@ -163,15 +157,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
     stop("ranger needs to be called with node.stats=TRUE for glex.")
   }
 
-  # If max_interaction is not specified, we set it to the max.depth param of the ranger model.
-  # If max.depth is not defined in ranger, we assume 6 as in xgboost.
-  rf_max_depth <- ifelse((is.null(object$max.depth) || object$max.depth == 0), 6L, object$max.depth)
-
-  if (is.null(max_interaction)) {
-    max_interaction <- rf_max_depth
-  }
-
-  checkmate::assert_int(max_interaction, lower = 1, upper = Inf)
+  max_interaction <- min(max_interaction, 9999)
 
   # Convert model into xgboost format
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
@@ -197,17 +183,8 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, prob
   res
 }
 
-# Function to get all subsets of set
-subsets <- function(x, max_interaction = 3) {
-  # if (length(x) == 1) {
-  #   list(integer(0), x)
-  # } else {
-  #   do.call(c, lapply(0:length(x), combn, x = x, simplify = FALSE))
-  # }
-  get_all_subsets_cpp(x, max_interaction)
-}
 
-tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction = 999) {
+tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -217,7 +194,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction = 999
   tree_info <- trees[Tree == tree, ]
 
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
-  U <- subsets(T, max_interaction)
+  U <- get_all_subsets_cpp(T, max_interaction)
   mat <- recurseAlgorithm2(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
                   tree_info$Quality, tree_info$Cover, U, 0)
   colnames(mat) <- vapply(U, function(u) {
@@ -244,7 +221,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction = 999
   m_all
 }
 
-tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
+tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL, max_interaction) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -280,7 +257,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL) {
   }
 
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
-  U <- subsets(T)
+  U <- get_all_subsets_cpp(T, max_interaction)
   mat <- if (is.null(probFunction)) {
     recurseRcppEmpProbfunction(x,
     tree_info$Feature_num, tree_info$Split,
@@ -345,7 +322,7 @@ tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction, max
       if (trees$Type[1] != "<=") {
         warning("Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead.")
       }
-      return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL))
+      return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL, max_interaction))
     } else {
       stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
     }
@@ -380,7 +357,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
     # All subsets S (that appear in any of the trees)
     all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
       unique_features <- trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))]
-      s <- subsets(unique_features, max_interaction)
+      s <- get_all_subsets_cpp(unique_features, max_interaction)
       s
     })))
   } else {
@@ -389,7 +366,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
       stop("All selected features have to be column names of x.")
     }
     features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
-    all_S <- subsets(sort(unique(features_num)), max_interaction)
+    all_S <- get_all_subsets_cpp(sort(unique(features_num)), max_interaction)
   }
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
