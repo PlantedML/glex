@@ -147,6 +147,7 @@ inline unsigned int countSetBits(const FeatureMask &mask)
   return count;
 }
 
+template <typename ComparisonPolicy>
 void augmentTreeRecurseStepBitmask(
     const AugmentedDataBitMask &passed_down,
     LeafDataBitMask &leaf_data,
@@ -225,7 +226,7 @@ void augmentTreeRecurseStepBitmask(
       for (unsigned int row_id : row_inds)
       {
         double val = dataset(row_id, current_feature);
-        if (val < split)
+        if (ComparisonPolicy::compare(val, split))
         {
           yes_vec.push_back(row_id);
         }
@@ -265,13 +266,14 @@ void augmentTreeRecurseStepBitmask(
   }
 
   // Recurse
-  augmentTreeRecurseStepBitmask(passed_down_yes, leaf_data, tree, dataset, yes_idx);
-  augmentTreeRecurseStepBitmask(passed_down_no, leaf_data, tree, dataset, no_idx);
+  augmentTreeRecurseStepBitmask<ComparisonPolicy>(passed_down_yes, leaf_data, tree, dataset, yes_idx);
+  augmentTreeRecurseStepBitmask<ComparisonPolicy>(passed_down_no, leaf_data, tree, dataset, no_idx);
 }
 
 LeafDataBitMask augmentTreeBitmask(
     Rcpp::NumericMatrix &tree,
-    Rcpp::NumericMatrix &x)
+    Rcpp::NumericMatrix &x,
+    bool is_weak_inequality)
 {
   int n_nodes = tree.nrow();
   unsigned int n_features = x.ncol(); // Get feature count for proper mask sizing
@@ -299,7 +301,14 @@ LeafDataBitMask augmentTreeBitmask(
   }
 
   // Recurse from node=0 (root)
-  augmentTreeRecurseStepBitmask(root, leaf_data, tree, x, /*node=*/0);
+  if (is_weak_inequality)
+  {
+    augmentTreeRecurseStepBitmask<glex::WeakComparison>(root, leaf_data, tree, x, /*node=*/0);
+  }
+  else
+  {
+    augmentTreeRecurseStepBitmask<glex::StrictComparison>(root, leaf_data, tree, x, /*node=*/0);
+  }
 
   return leaf_data;
 }
@@ -586,7 +595,7 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
   unsigned int n_features = x.ncol();
 
   // Augment step using bitmask implementation
-  LeafDataBitMask leaf_data = augmentTreeBitmask(tree, x_background);
+  LeafDataBitMask leaf_data = augmentTreeBitmask(tree, x_background, is_weak_inequality);
 
   // Convert all_encountered to extended bitmask subsets
   FeatureMask all_encountered = leaf_data.allEncounteredMask;
