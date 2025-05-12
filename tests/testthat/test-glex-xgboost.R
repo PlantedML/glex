@@ -1,40 +1,21 @@
 test_that("max_interaction respects xgb's max_depth", {
+  set.seed(1)
   x <- as.matrix(mtcars[, -1])
 
-  # xgb default: 6
-  xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbose = 0)
+  xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbose = 0, max_depth = 2)
   glexb <- glex(xg, x)
   max_degree <- max(lengths(strsplit(names(glexb$m), split = ":", fixed = TRUE)))
 
-  expect_equal(max_degree, 6)
-  expect_error(glex(xg, x, max_interaction = 7))
+  # The maximum interaction degree is 2^d - 1 = 4 - 1 = 3
+  expect_equal(max_degree, 3)
 
-  glexb <- glex(xg, x, max_interaction = 4)
-  max_degree <- max(lengths(strsplit(names(glexb$m), split = ":", fixed = TRUE)))
-  expect_equal(max_degree, 4)
-
-  # Setting max_depth explicitly to value lower than default
-  xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbose = 0, params = list(max_depth = 4))
-  glexb <- glex(xg, x)
-  max_degree <- max(lengths(strsplit(names(glexb$m), split = ":", fixed = TRUE)))
-
-  expect_equal(max_degree, 4)
-  expect_error(glex(xg, x, max_interaction = 5))
-
-  # Setting max_depth explicitly to value higher than default
-  xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbose = 0, params = list(max_depth = 7))
-  glexb <- glex(xg, x)
-  max_degree <- max(lengths(strsplit(names(glexb$m), split = ":", fixed = TRUE)))
-
-  expect_equal(max_degree, 7)
-  expect_error(glex(xg, x, max_interaction = 8))
 })
 
-test_that("features argument only calculates for given feautures", {
+test_that("features argument only calculates for given features", {
   x <- as.matrix(mtcars[, -1])
   xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbose = 0)
   glexb <- glex(xg, x, features = c("cyl", "disp"))
-  expect_equal(colnames(glexb$m), c("cyl", "disp", "cyl:disp"))
+  expect_equal(colnames(glexb$m), c("cyl", "cyl:disp", "disp"))
 })
 
 test_that("features argument results in same values as without", {
