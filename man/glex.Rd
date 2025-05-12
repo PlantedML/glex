@@ -11,17 +11,27 @@ glex(
   object,
   x,
   max_interaction = NULL,
+  max_background_sample_size = NULL,
   features = NULL,
   probFunction = NULL,
   ...
 )
 
-\method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
+\method{glex}{rpf}(
+  object,
+  x,
+  max_interaction = NULL,
+  max_background_sample_size = NULL,
+  features = NULL,
+  probFunction = NULL,
+  ...
+)
 
 \method{glex}{xgb.Booster}(
   object,
   x,
   max_interaction = NULL,
+  max_background_sample_size = NULL,
   features = NULL,
   probFunction = NULL,
   ...
@@ -31,6 +41,7 @@ glex(
   object,
   x,
   max_interaction = NULL,
+  max_background_sample_size = NULL,
   features = NULL,
   probFunction = NULL,
   ...
@@ -46,6 +57,8 @@ Maximum interaction size to consider.
 Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
+
+\item{max_background_sample_size}{The maximum number of background samples used for the FastPD algorithm, only used when \code{probFunction = "empirical"}. Defaults to \code{nrow(x)}.}
 
 \item{features}{Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.}
 

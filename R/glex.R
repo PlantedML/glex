@@ -11,11 +11,11 @@
 #' @param object Model to be explained, either of class `xgb.Booster` or `rpf`.
 #' @param x Data to be explained.
 #' @param max_interaction (`integer(1): NULL`)\cr
-#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `probFunction = "empirical"`.
 #'  Maximum interaction size to consider.
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
+#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `probFunction = "empirical"`. Defaults to `nrow(x)`.
 #' @param features Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.
 #' @param probFunction Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL} or "emprical", i.e. the empirical marginal probabilities will be used
 #' @param ... Further arguments passed to methods.
@@ -29,7 +29,7 @@
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
 #' @export
-glex <- function(object, x, max_interaction = NULL, features = NULL, probFunction = NULL, ...) {
+glex <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
   UseMethod("glex")
 }
 
@@ -54,7 +54,7 @@ glex.default <- function(object, ...) {
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #' str(glex_rpf, list.len = 5)
 #' }
-glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
+glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0("randomPlantedForest needs to be installed: ",
                 "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
@@ -94,13 +94,20 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = Inf, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
 
-  max_interaction <- min(max_interaction, 9999)
+  if (is.null(max_background_sample_size)) {
+    max_background_sample_size <- nrow(x)
+  }
+  if (is.null(max_interaction)) {
+    max_interaction <- 9999
+  }
 
+  checkmate::assert_int(max_interaction, lower = 1, upper = Inf)
+  checkmate::assert_int(max_background_sample_size, lower = 1, upper = Inf)
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
   trees$Type <- "<"
@@ -139,7 +146,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = Inf, features = NULL, 
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = Inf, features = NULL, probFunction = NULL, max_background_sample_size = nrow(x), ...) {
+glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
 
   # To avoid data.table check issues
   terminal <- NULL
@@ -156,8 +163,15 @@ glex.ranger <- function(object, x, max_interaction = Inf, features = NULL, probF
   if (is.null(object$forest$num.samples.nodes)) {
     stop("ranger needs to be called with node.stats=TRUE for glex.")
   }
+  if (is.null(max_background_sample_size)) {
+    max_background_sample_size <- nrow(x)
+  }
+  if (is.null(max_interaction)) {
+    max_interaction <- 9999
+  }
 
-  max_interaction <- min(max_interaction, 9999)
+  checkmate::assert_int(max_interaction, lower = 1, upper = Inf)
+  checkmate::assert_int(max_background_sample_size, lower = 1, upper = Inf)
 
   # Convert model into xgboost format
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
@@ -349,7 +363,16 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   Tree <- NULL
 
   # Convert features to numerics (leaf = 0)
-  trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
+  unique_features_in_tree <- unique(trees$Feature)
+  unique_features_in_tree <- unique_features_in_tree[unique_features_in_tree != "Leaf"]
+  all_is_integer <- all(!is.na(as.integer(unique_features_in_tree)))
+
+  if (all_is_integer) {
+    trees[Feature == "Leaf", Feature_num := 0L]
+    trees[Feature != "Leaf", Feature_num := as.integer(Feature) + 1L]
+  } else {
+    trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
+  }
 
   # Calculate coverage from theoretical distribution, if given
 
