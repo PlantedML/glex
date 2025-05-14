@@ -1,151 +1,11 @@
 #include <Rcpp.h>
-#include "../inst/include/glex.h"
+#include "glex.h"
 #include "comparison_policies.h"
 #include <vector>
 #include <algorithm>
 #include <functional>
 
 using namespace Rcpp;
-
-// Define ExtendedMask as a vector of uint64_t chunks for unlimited features
-using ExtendedMask = std::vector<uint64_t>;
-
-// Custom hash function for ExtendedMask
-struct ExtendedMaskHash
-{
-  std::size_t operator()(const ExtendedMask &mask) const
-  {
-    std::size_t seed = 0;
-    for (const auto &chunk : mask)
-    {
-      // Combine hash values (boost::hash_combine approach)
-      seed ^= std::hash<uint64_t>{}(chunk) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-    return seed;
-  }
-};
-
-// Custom equality function for ExtendedMask
-struct ExtendedMaskEqual
-{
-  bool operator()(const ExtendedMask &lhs, const ExtendedMask &rhs) const
-  {
-    return lhs == rhs;
-  }
-};
-
-// Extended bitmask data structures
-using FeatureMask = ExtendedMask;
-typedef std::unordered_map<FeatureMask, std::vector<unsigned int>, ExtendedMaskHash, ExtendedMaskEqual> PathDataBitmask;
-
-struct AugmentedDataBitMask
-{
-  FeatureMask encountered; // vector of 64-bit masks for encountered features
-  PathDataBitmask pathData;
-};
-
-struct LeafDataBitMask
-{
-  std::vector<FeatureMask> encounteredMask; // for each node
-  std::vector<std::unordered_map<FeatureMask, double, ExtendedMaskHash, ExtendedMaskEqual>> leafProbs;
-  FeatureMask allEncounteredMask; // union of all encountered features
-};
-
-// Constants for the implementation
-constexpr unsigned int BITS_PER_CHUNK = 64;
-
-// Create an empty mask with at least enough chunks for n_features
-inline FeatureMask createEmptyMask(unsigned int n_features)
-{
-  unsigned int n_chunks = (n_features + BITS_PER_CHUNK - 1) / BITS_PER_CHUNK;
-  return FeatureMask(n_chunks, 0ULL);
-}
-
-// Extended bitmask utility functions
-inline bool hasFeature(const FeatureMask &mask, unsigned int feature)
-{
-  unsigned int chunk_idx = feature / BITS_PER_CHUNK;
-  unsigned int bit_pos = feature % BITS_PER_CHUNK;
-
-  return chunk_idx < mask.size() && (mask[chunk_idx] & (1ULL << bit_pos)) != 0ULL;
-}
-
-inline FeatureMask setFeature(FeatureMask mask, unsigned int feature)
-{
-  unsigned int chunk_idx = feature / BITS_PER_CHUNK;
-  unsigned int bit_pos = feature % BITS_PER_CHUNK;
-
-  // Resize if needed
-  if (chunk_idx >= mask.size())
-  {
-    mask.resize(chunk_idx + 1, 0ULL);
-  }
-
-  mask[chunk_idx] |= (1ULL << bit_pos);
-  return mask;
-}
-
-inline FeatureMask clearFeature(FeatureMask mask, unsigned int feature)
-{
-  unsigned int chunk_idx = feature / BITS_PER_CHUNK;
-  unsigned int bit_pos = feature % BITS_PER_CHUNK;
-
-  if (chunk_idx < mask.size())
-  {
-    mask[chunk_idx] &= ~(1ULL << bit_pos);
-  }
-  return mask;
-}
-
-inline FeatureMask bitmaskDifference(const FeatureMask &big, const FeatureMask &small)
-{
-  FeatureMask result = big;
-  size_t common_size = std::min(big.size(), small.size());
-
-  // Apply AND NOT for common chunks
-  for (size_t i = 0; i < common_size; i++)
-  {
-    result[i] &= ~small[i];
-  }
-
-  return result;
-}
-
-// Bitwise AND between two masks
-inline FeatureMask bitmaskAnd(const FeatureMask &a, const FeatureMask &b)
-{
-  size_t common_size = std::min(a.size(), b.size());
-  FeatureMask result(common_size, 0ULL);
-
-  for (size_t i = 0; i < common_size; i++)
-  {
-    result[i] = a[i] & b[i];
-  }
-
-  return result;
-}
-
-// Check if a mask is empty (all zeros)
-inline bool isEmpty(const FeatureMask &mask)
-{
-  for (const auto &chunk : mask)
-  {
-    if (chunk != 0)
-      return false;
-  }
-  return true;
-}
-
-// Count set bits in a mask
-inline unsigned int countSetBits(const FeatureMask &mask)
-{
-  unsigned int count = 0;
-  for (const auto &chunk : mask)
-  {
-    count += __builtin_popcountll(chunk);
-  }
-  return count;
-}
 
 template <typename ComparisonPolicy>
 void augmentTreeRecurseStepBitmask(
@@ -372,14 +232,6 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   NumericMatrix mat_yes = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, U, yes, leaf_data);
   NumericMatrix mat_no = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, U, no, leaf_data);
 
-  // For each subset in U, check if it "contains" current_feature
-  // If it does, we sum children; if not, we split rows by threshold.
-  std::vector<bool> subsetHasFeature(n_subsets);
-  for (unsigned int j = 0; j < n_subsets; ++j)
-  {
-    subsetHasFeature[j] = hasFeature(U[j], current_feature);
-  }
-
   // Fill output
   for (unsigned int j = 0; j < n_subsets; ++j)
   {
@@ -387,7 +239,7 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
     const double *col_no = &mat_no(0, j);
     double *col_out = &mat(0, j);
 
-    if (!subsetHasFeature[j])
+    if (!hasFeature(U[j], current_feature))
     {
       // Feature is "excluded" from the subset => combine yes & no
       for (unsigned int i = 0; i < n; ++i)
@@ -414,98 +266,6 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   }
 
   return mat;
-}
-
-// Helper function to convert set to extended bitmask
-FeatureMask setToBitmask(const std::set<unsigned int> &set)
-{
-  // Find the max feature to determine the required mask size
-  unsigned int max_feature = 0;
-  if (!set.empty())
-  {
-    max_feature = *set.rbegin(); // Largest element in the set
-  }
-
-  FeatureMask mask = createEmptyMask(max_feature + 1);
-  for (unsigned int feature : set)
-  {
-    mask = setFeature(mask, feature);
-  }
-  return mask;
-}
-
-// Helper function to convert extended bitmask to set
-std::set<unsigned int> bitmaskToSet(const FeatureMask &mask)
-{
-  std::set<unsigned int> set;
-
-  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++)
-  {
-    uint64_t chunk = mask[chunk_idx];
-    if (chunk == 0)
-      continue; // Skip empty chunks for efficiency
-
-    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++)
-    {
-      if (chunk & (1ULL << bit_pos))
-      {
-        unsigned int feature = chunk_idx * BITS_PER_CHUNK + bit_pos;
-        set.insert(feature);
-      }
-    }
-  }
-
-  return set;
-}
-
-// Get all subsets of a given mask
-std::vector<FeatureMask> get_all_subsets_of_mask(const FeatureMask &mask, unsigned int max_size = UINT_MAX)
-{
-  // 1) Gather indices of set bits
-  std::vector<unsigned int> bits;
-
-  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++)
-  {
-    uint64_t chunk = mask[chunk_idx];
-    if (chunk == 0)
-      continue; // Skip empty chunks
-
-    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++)
-    {
-      if (chunk & (1ULL << bit_pos))
-      {
-        bits.push_back(chunk_idx * BITS_PER_CHUNK + bit_pos);
-      }
-    }
-  }
-
-  const size_t k = bits.size();
-  const size_t n_subsets = (1ULL << k);
-
-  // 2) Build all subsets
-  std::vector<FeatureMask> subsets;
-  subsets.reserve(n_subsets);
-
-  for (size_t subset_idx = 0; subset_idx < n_subsets; ++subset_idx)
-  {
-    // Count bits in subset_idx to check size
-    if (__builtin_popcountll(subset_idx) > max_size)
-      continue; // Skip subsets larger than max_size
-
-    FeatureMask subset_mask = createEmptyMask(BITS_PER_CHUNK * mask.size());
-
-    for (size_t b = 0; b < k; ++b)
-    {
-      if (subset_idx & (1ULL << b))
-      {
-        subset_mask = setFeature(subset_mask, bits[b]);
-      }
-    }
-
-    subsets.push_back(subset_mask);
-  }
-
-  return subsets;
 }
 
 void contributeFastPDBitmask(
@@ -557,31 +317,6 @@ void contributeFastPDBitmask(
   }
 }
 
-// Check if a mask is a subset of another mask
-inline bool isSubset(const FeatureMask &subset, const FeatureMask &superset)
-{
-  // For each chunk in subset
-  for (size_t i = 0; i < subset.size() && i < superset.size(); i++)
-  {
-    // If any bit in subset is not in superset, it's not a subset
-    if ((subset[i] & ~superset[i]) != 0)
-    {
-      return false;
-    }
-  }
-
-  // Check if subset has any bits set beyond superset's size
-  for (size_t i = superset.size(); i < subset.size(); i++)
-  {
-    if (subset[i] != 0)
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 // [[Rcpp::export]]
 Rcpp::NumericMatrix explainTreeFastPDBitmask(
     Rcpp::NumericMatrix &x,
@@ -616,7 +351,8 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
         as<IntegerVector>(to_explain_list[S_idx]).end());
     to_explain.push_back(S);
 
-    if (int k = S.size(); k != 0)
+    int k = S.size(); // Declare k here
+    if (k != 0)
     {
       auto it = S.begin();
       std::ostringstream oss;

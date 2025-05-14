@@ -17,19 +17,11 @@ recurseRcppEmpProbfunction <- function(x, feature, split, yes, no, quality, lb, 
     .Call(`_glex_recurseRcppEmpProbfunction`, x, feature, split, yes, no, quality, lb, ub, cover, U, node)
 }
 
-recurse <- function(x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction) {
-    .Call(`_glex_recurse`, x, feature, split, yes, no, quality, lb, ub, cover, U, node, probFunction)
-}
-
-recurseAlgorithm2 <- function(x, feature, split, yes, no, quality, cover, U, node) {
-    .Call(`_glex_recurseAlgorithm2`, x, feature, split, yes, no, quality, cover, U, node)
-}
-
-contribute <- function(mat, m_all, S, T, T_subsets, colnum) {
-    invisible(.Call(`_glex_contribute`, mat, m_all, S, T, T_subsets, colnum))
-}
-
 get_all_subsets_cpp <- function(x, maxSize) {
     .Call(`_glex_get_all_subsets_cpp`, x, maxSize)
+}
+
+explainTreePathDependent <- function(x, tree, to_explain_list, max_interaction, is_weak_inequality) {
+    .Call(`_glex_explainTreePathDependent`, x, tree, to_explain_list, max_interaction, is_weak_inequality)
 }
 

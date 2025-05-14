@@ -199,39 +199,20 @@ glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample
 
 
 tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
-  # To avoid data.table check issues
-  Tree <- NULL
-  Feature <- NULL
-  Feature_num <- NULL
+  # Prepare tree_info for C++ function
+  tree_info <- trees[get("Tree") == tree, ]
+  tree_info[, "Feature" := get("Feature_num") - 1L] # Adjust to 0-based for C++ bitmasks
+  to_select <- c("Feature", "Split", "Yes", "No", "Quality", "Cover")
+  tree_mat <- tree_info[, ..to_select]
+  tree_mat[is.na(tree_mat)] <- -1L # Use -1 for leaf nodes
+  tree_mat <- as.matrix(tree_mat)
 
-  # Calculate matrix
-  tree_info <- trees[Tree == tree, ]
+  is_weak_inequality <- tree_info$Type[1] == "<="
 
-  T <- setdiff(tree_info[, sort(unique(Feature_num))], 0)
-  U <- get_all_subsets_cpp(T, max_interaction)
-  mat <- recurseAlgorithm2(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-                  tree_info$Quality, tree_info$Cover, U, 0)
-  colnames(mat) <- vapply(U, function(u) {
-    paste(sort(colnames(x)[u]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  # Call the optimized C++ function
+  m_all <- explainTreePathDependent(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
 
-  # Init m matrix
-  m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-  colnames(m_all) <- vapply(all_S, function(s) {
-    paste(sort(colnames(x)[s]), collapse = ":")
-  }, FUN.VALUE = character(1))
-
-  # Calculate contribution, use only subsets with not more than max_interaction involved features
-  for (S in intersect(U, all_S)) {
-    colname <- paste(sort(colnames(x)[S]), collapse = ":")
-    if (nchar(colname) == 0) {
-      colnum <- 1
-    } else {
-      colnum <- which(colnames(m_all) == colname)
-    }
-    contribute_fastpd2(mat, m_all, S, U, colnum-1)
-  }
-  # Return m matrix
+  # The C++ function returns the final m_all matrix with column names
   m_all
 }
 
