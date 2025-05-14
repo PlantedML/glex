@@ -327,7 +327,6 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
     bool is_weak_inequality)
 {
   // Get feature count for proper mask sizing
-  unsigned int n_features = x.ncol();
 
   // Augment step using bitmask implementation
   LeafDataBitMask leaf_data = augmentTreeBitmask(tree, x_background, is_weak_inequality);
@@ -344,7 +343,7 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
   CharacterVector x_col_names = colnames(x);
 
   std::set<unsigned int> needToComputePDfunctionsFor; // The set of coords we need to compute PD functions of
-  for (int S_idx = 0; S_idx < to_explain_size; S_idx++)
+  for (unsigned int S_idx = 0; S_idx < to_explain_size; S_idx++)
   {
     std::set<unsigned int> S = std::set<unsigned int>(
         as<IntegerVector>(to_explain_list[S_idx]).begin(),
@@ -382,9 +381,9 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
   // Compute expectation of all necessary subsets using bitmask implementation
   NumericMatrix mat = is_weak_inequality ? recurseMarginalizeSBitmask<glex::WeakComparison>(x, tree, U, 0, leaf_data) : recurseMarginalizeSBitmask<glex::StrictComparison>(x, tree, U, 0, leaf_data);
 
-  uint t_size = countSetBits(all_encountered);
+  unsigned int t_size = countSetBits(all_encountered);
 
-  for (int S_idx : needToComputePDfunctionsFor)
+  for (unsigned int S_idx : needToComputePDfunctionsFor)
   {
     std::set<unsigned int> S = to_explain[S_idx];
     contributeFastPDBitmask(mat, m_all, S, U, S_idx, t_size);
