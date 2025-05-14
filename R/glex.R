@@ -343,7 +343,7 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
   # Convert features to numerics (leaf = 0)
   unique_features_in_tree <- unique(trees$Feature)
   unique_features_in_tree <- unique_features_in_tree[unique_features_in_tree != "Leaf"]
-  all_is_integer <- all(!is.na(as.integer(unique_features_in_tree)))
+  all_is_integer <- suppressWarnings(all(!is.na(as.integer(unique_features_in_tree))))
 
   if (all_is_integer) {
     trees[Feature == "Leaf", Feature_num := 0L]
