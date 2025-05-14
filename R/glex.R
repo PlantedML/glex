@@ -74,6 +74,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_si
 #' @import Rcpp
 #' @import data.table
 #' @import foreach
+#' @import progress
 #' @importFrom stats predict
 #' @importFrom utils combn
 #'
@@ -378,10 +379,20 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
 
   tree_fun <- tree_fun_wrapper(trees, x, all_S, weighting_method, max_interaction, max_background_sample_size)
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
+  pb <- progress::progress_bar$new(
+    format = "  Explaining trees... [:bar] :percent   Tree :current/:total   ETA :eta",
+    total = length(idx),
+    clear = FALSE,
+    width = 60,
+  )
   if (foreach::getDoParRegistered()) {
-    m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)
+    m_all <- foreach(j = idx, .combine = "+") %dopar% {
+      pb$tick()
+      tree_fun(j)
+    }
   } else {
     for (j in idx) {
+      pb$tick()
       m_all <- m_all + tree_fun(j)
     }
   }

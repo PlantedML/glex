@@ -27,6 +27,7 @@ Imports:
     data.table,
     foreach,
     ggplot2,
+    progress,
     Rcpp (>= 1.0.8),
     scico,
     stats,
