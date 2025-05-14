@@ -126,3 +126,40 @@ Rcpp::NumericMatrix recurseRcppEmpProbfunction(Rcpp::NumericMatrix &x, Rcpp::Int
   // Return combined matrix
   return (mat);
 }
+
+// [[Rcpp::export]]
+void contribute(Rcpp::NumericMatrix &mat, Rcpp::NumericMatrix &m_all, Rcpp::IntegerVector &S, Rcpp::IntegerVector &T, std::vector<Rcpp::IntegerVector> &T_subsets, unsigned int colnum)
+{
+
+  Rcpp::IntegerVector sTS = Rcpp::setdiff(T, S);
+  std::sort(sTS.begin(), sTS.end());
+
+  for (unsigned int i = 0; i < T_subsets.size(); ++i)
+  {
+    Rcpp::IntegerVector U = T_subsets[i];
+    bool contrib = true;
+    if (!(sTS.size() == 0))
+    {
+      Rcpp::IntegerVector ssTSU = Rcpp::setdiff(sTS, U);
+      if (!(ssTSU.size() == 0))
+      {
+        contrib = false;
+      }
+    }
+
+    if (contrib)
+    {
+      Rcpp::IntegerVector sTU = Rcpp::setdiff(T, U);
+      if (((S.size() - sTU.size()) % 2) == 0)
+      {
+        // positive sign
+        m_all(Rcpp::_, colnum) = m_all(Rcpp::_, colnum) + mat(Rcpp::_, i);
+      }
+      else
+      {
+        // negative sign
+        m_all(Rcpp::_, colnum) = m_all(Rcpp::_, colnum) - mat(Rcpp::_, i);
+      }
+    }
+  }
+}

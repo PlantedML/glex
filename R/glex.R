@@ -15,9 +15,9 @@
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
-#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `probFunction = "empirical"`. Defaults to `nrow(x)`.
+#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `weighting_method = "fastpd"`. Defaults to `nrow(x)`.
 #' @param features Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.
-#' @param probFunction Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL} or "emprical", i.e. the empirical marginal probabilities will be used
+#' @param weighting_method Use either "path-dependent", "fastpd" (default), or "empirical".
 #' @param ... Further arguments passed to methods.
 #'
 #' @return Decomposition of the regression or classification function.
@@ -29,7 +29,7 @@
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
 #' @export
-glex <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
+glex <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
   UseMethod("glex")
 }
 
@@ -54,7 +54,7 @@ glex.default <- function(object, ...) {
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #' str(glex_rpf, list.len = 5)
 #' }
-glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
+glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0("randomPlantedForest needs to be installed: ",
                 "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
@@ -94,7 +94,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_si
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -113,7 +113,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_s
   trees$Type <- "<"
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, probFunction, max_background_sample_size)
+  res <- calc_components(trees, x, max_interaction, features, weighting_method, max_background_sample_size)
   res$intercept <- res$intercept + 0.5
 
   # Return components
@@ -146,7 +146,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_s
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, probFunction = NULL, ...) {
+glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
 
   # To avoid data.table check issues
   terminal <- NULL
@@ -186,7 +186,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample
   trees$Type <- "<="
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, probFunction, max_background_sample_size)
+  res <- calc_components(trees, x, max_interaction, features, weighting_method, max_background_sample_size)
 
   # Divide everything by the number of trees
   res$shap <- res$shap / object$num.trees
@@ -216,7 +216,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   m_all
 }
 
-tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL, max_interaction) {
+tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
   # To avoid data.table check issues
   Tree <- NULL
   Feature <- NULL
@@ -253,15 +253,10 @@ tree_fun_emp <- function(tree, trees, x, all_S, probFunction = NULL, max_interac
 
   T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
   U <- get_all_subsets_cpp(T, max_interaction)
-  mat <- if (is.null(probFunction)) {
-    recurseRcppEmpProbfunction(x,
+  mat <- recurseRcppEmpProbfunction(x,
     tree_info$Feature_num, tree_info$Split,
     tree_info$Yes, tree_info$No,
     tree_info$Quality, lb, ub, integer(0), U, 0)
-  } else {
-    recurse(x, tree_info$Feature_num, tree_info$Split, tree_info$Yes, tree_info$No,
-          tree_info$Quality, lb, ub, integer(0), U, 0, probFunction)
-  }
 
   colnames(mat) <- vapply(U, function(u) {
     paste(sort(colnames(x)[u]), collapse = ":")
@@ -306,37 +301,39 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
 #' @param trees data.table
 #' @param x observerations, matrix like data-structure
 #' @param all_S all combinations of interactions up to certain order
-#' @param probFunction probFunction that was supplied to \code{glex}
+#' @param weighting_method the weighting method that was supplied to \code{glex}
 #' @keywords internal
 #' @noRd
-tree_fun_wrapper <- function(trees, x, all_S, probFunction, max_interaction, max_background_sample_size) {
-  if (is.character(probFunction)) {
-    if (probFunction == "path-dependent") {
-      return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S, max_interaction))
-    } else if (probFunction == "empirical") {
-      if (trees$Type[1] != "<=") {
-        warning("Using `probFunction = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`probFunction = NULL`) instead.")
-      }
-      return(function(tree) tree_fun_emp(tree, trees, x, all_S, NULL, max_interaction))
-    } else {
-      stop("The probability function can either be 'path-dependent' or 'empirical' when specified as a string")
+tree_fun_wrapper <- function(trees, x, all_S, weighting_method, max_interaction, max_background_sample_size) {
+  if (is.null(weighting_method)) {
+    weighting_method <- "fastpd"
+  }
+  
+  checkmate::assert_string(weighting_method)
+  if (weighting_method == "path-dependent") {
+    return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S, max_interaction))
+  } 
+  else if (weighting_method == "empirical") {
+    if (trees$Type[1] != "<=") {
+      warning("Using `weighting_method = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`weighting_method = 'fastpd'`) instead.")
     }
-  } else if (is.function(probFunction) || is.null(probFunction)) {
-    background_sample <- if (max_background_sample_size < nrow(x)) {
-      x[sample(nrow(x), max_background_sample_size), ]
-    } else {
-      x
+    return(function(tree) tree_fun_emp(tree, trees, x, all_S, max_interaction))
+  } else if (weighting_method == "fastpd") {
+    if (max_background_sample_size > nrow(x)) {
+      warning("max_background_sample_size is larger than the number of observations in x. Using all observations.")
     }
+    background_sample <- x[sample(nrow(x), min(max_background_sample_size, nrow(x))), ]
+
     return(function(tree) tree_fun_emp_fastPD(tree, trees, x, background_sample, all_S, max_interaction))
   } else {
-    stop("The probability function can either be a string ('path-dependent', 'empirical'), NULL, or a function(coords, lb, ub) type function")
+    stop("The weighting method can either be 'path-dependent', 'empirical', or 'fastpd'")
   }
 }
 
 #' Internal function to calculate the components
 #' @keywords internal
 #' @noRd
-calc_components <- function(trees, x, max_interaction, features, probFunction = NULL, max_background_sample_size = nrow(x)) {
+calc_components <- function(trees, x, max_interaction, features, weighting_method = NULL, max_background_sample_size = nrow(x)) {
 
   # data.table NSE global variable workaround
   Feature <- NULL
@@ -379,7 +376,7 @@ calc_components <- function(trees, x, max_interaction, features, probFunction = 
   j <- NULL
   idx <- 0:max(trees$Tree)
 
-  tree_fun <- tree_fun_wrapper(trees, x, all_S, probFunction, max_interaction, max_background_sample_size)
+  tree_fun <- tree_fun_wrapper(trees, x, all_S, weighting_method, max_interaction, max_background_sample_size)
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
   if (foreach::getDoParRegistered()) {
     m_all <- foreach(j = idx, .combine = "+") %dopar% tree_fun(j)

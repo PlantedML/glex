@@ -13,7 +13,7 @@ glex(
   max_interaction = NULL,
   max_background_sample_size = NULL,
   features = NULL,
-  probFunction = NULL,
+  weighting_method = "fastpd",
   ...
 )
 
@@ -23,7 +23,7 @@ glex(
   max_interaction = NULL,
   max_background_sample_size = NULL,
   features = NULL,
-  probFunction = NULL,
+  weighting_method = "fastpd",
   ...
 )
 
@@ -33,7 +33,7 @@ glex(
   max_interaction = NULL,
   max_background_sample_size = NULL,
   features = NULL,
-  probFunction = NULL,
+  weighting_method = "fastpd",
   ...
 )
 
@@ -43,7 +43,7 @@ glex(
   max_interaction = NULL,
   max_background_sample_size = NULL,
   features = NULL,
-  probFunction = NULL,
+  weighting_method = "fastpd",
   ...
 )
 }
@@ -58,11 +58,11 @@ Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
-\item{max_background_sample_size}{The maximum number of background samples used for the FastPD algorithm, only used when \code{probFunction = "empirical"}. Defaults to \code{nrow(x)}.}
+\item{max_background_sample_size}{The maximum number of background samples used for the FastPD algorithm, only used when \code{weighting_method = "fastpd"}. Defaults to \code{nrow(x)}.}
 
 \item{features}{Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.}
 
-\item{probFunction}{Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL} or "emprical", i.e. the empirical marginal probabilities will be used}
+\item{weighting_method}{Use either "path-dependent", "fastpd" (default), or "empirical".}
 
 \item{...}{Further arguments passed to methods.}
 }

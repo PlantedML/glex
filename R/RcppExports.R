@@ -17,6 +17,10 @@ recurseRcppEmpProbfunction <- function(x, feature, split, yes, no, quality, lb, 
     .Call(`_glex_recurseRcppEmpProbfunction`, x, feature, split, yes, no, quality, lb, ub, cover, U, node)
 }
 
+contribute <- function(mat, m_all, S, T, T_subsets, colnum) {
+    invisible(.Call(`_glex_contribute`, mat, m_all, S, T, T_subsets, colnum))
+}
+
 get_all_subsets_cpp <- function(x, maxSize) {
     .Call(`_glex_get_all_subsets_cpp`, x, maxSize)
 }

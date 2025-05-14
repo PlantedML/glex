@@ -73,6 +73,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// contribute
+void contribute(Rcpp::NumericMatrix& mat, Rcpp::NumericMatrix& m_all, Rcpp::IntegerVector& S, Rcpp::IntegerVector& T, std::vector<Rcpp::IntegerVector>& T_subsets, unsigned int colnum);
+RcppExport SEXP _glex_contribute(SEXP matSEXP, SEXP m_allSEXP, SEXP SSEXP, SEXP TSEXP, SEXP T_subsetsSEXP, SEXP colnumSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type m_all(m_allSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type S(SSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type T(TSEXP);
+    Rcpp::traits::input_parameter< std::vector<Rcpp::IntegerVector>& >::type T_subsets(T_subsetsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type colnum(colnumSEXP);
+    contribute(mat, m_all, S, T, T_subsets, colnum);
+    return R_NilValue;
+END_RCPP
+}
 // get_all_subsets_cpp
 Rcpp::List get_all_subsets_cpp(Rcpp::IntegerVector x, unsigned int maxSize);
 RcppExport SEXP _glex_get_all_subsets_cpp(SEXP xSEXP, SEXP maxSizeSEXP) {
@@ -106,6 +121,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},
     {"_glex_recurseRcppEmpProbfunction", (DL_FUNC) &_glex_recurseRcppEmpProbfunction, 11},
+    {"_glex_contribute", (DL_FUNC) &_glex_contribute, 6},
     {"_glex_get_all_subsets_cpp", (DL_FUNC) &_glex_get_all_subsets_cpp, 2},
     {"_glex_explainTreePathDependent", (DL_FUNC) &_glex_explainTreePathDependent, 5},
     {NULL, NULL, 0}
