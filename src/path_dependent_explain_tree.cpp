@@ -157,7 +157,7 @@ NumericMatrix explainTreePathDependent(
     needToComputePDfunctionsFor.insert(S_idx);
   }
 
-  uint t_size = countSetBits(all_encountered);
+  unsigned int t_size = countSetBits(all_encountered);
 
   for (int S_idx : needToComputePDfunctionsFor)
   {

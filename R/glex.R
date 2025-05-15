@@ -15,9 +15,7 @@
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
-#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `weighting_method = "fastpd"`. Defaults to `nrow(x)`.
 #' @param features Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.
-#' @param weighting_method Use either "path-dependent", "fastpd" (default), or "empirical".
 #' @param ... Further arguments passed to methods.
 #'
 #' @return Decomposition of the regression or classification function.
@@ -29,7 +27,7 @@
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
 #' @export
-glex <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
+glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
 }
 
@@ -54,7 +52,7 @@ glex.default <- function(object, ...) {
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #' str(glex_rpf, list.len = 5)
 #' }
-glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
+glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0("randomPlantedForest needs to be installed: ",
                 "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
@@ -78,6 +76,8 @@ glex.rpf <- function(object, x, max_interaction = NULL, max_background_sample_si
 #' @importFrom stats predict
 #' @importFrom utils combn
 #'
+#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `weighting_method = "fastpd"`. Defaults to `nrow(x)`.
+#' @param weighting_method Use either "path-dependent", "fastpd" (default), or "empirical". See References for details.
 #' @examples
 #' # xgboost -----
 #' if (requireNamespace("xgboost", quietly = TRUE)) {
@@ -127,9 +127,18 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_s
 #' @import Rcpp
 #' @import data.table
 #' @import foreach
+#' @import progress
 #' @importFrom stats predict
 #' @importFrom utils combn
 #'
+#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `weighting_method = "fastpd"`. Defaults to `nrow(x)`.
+#' @param weighting_method Use either "path-dependent", "fastpd" (default), or "empirical". See References for details.
+#' @details
+#' The different weighting methods are described in detail in Liu et al. (2024). The default method is "fastpd" as it consistently estimates the correct partial dependence function.
+#' @references
+#' Liu, J., Steensgaard, T., Wright, M. N., Pfister, N., & Hiabu, M. (2024).
+#' \emph{Fast Estimation of Partial Dependence Functions using Trees}.
+#' arXiv preprint \href{https://arxiv.org/abs/2410.13448}{arXiv:2410.13448}.
 #' @examples
 #' # ranger -----
 #' if (requireNamespace("ranger", quietly = TRUE)) {
@@ -168,7 +177,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample
     max_background_sample_size <- nrow(x)
   }
   if (is.null(max_interaction)) {
-    max_interaction <- 9999
+    max_interaction <- ncol(x)
   }
 
   checkmate::assert_int(max_interaction, lower = 1, upper = Inf)
@@ -252,8 +261,8 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
     }
   }
 
-  T <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
-  U <- get_all_subsets_cpp(T, max_interaction)
+  subsets_in_tree <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
+  U <- get_all_subsets_cpp(subsets_in_tree, max_interaction)
   mat <- recurseRcppEmpProbfunction(x,
     tree_info$Feature_num, tree_info$Split,
     tree_info$Yes, tree_info$No,
@@ -276,7 +285,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
     } else {
       colnum <- which(colnames(m_all) == colname)
     }
-    contribute(mat, m_all, S, T, U, colnum-1)
+    contribute(mat, m_all, S, subsets_in_tree, U, colnum-1)
   }
 
   # Return m matrix
