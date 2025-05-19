@@ -15,8 +15,8 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
   object,
   x,
   max_interaction = NULL,
-  max_background_sample_size = NULL,
   features = NULL,
+  max_background_sample_size = NULL,
   weighting_method = "fastpd",
   ...
 )
@@ -25,8 +25,8 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
   object,
   x,
   max_interaction = NULL,
-  max_background_sample_size = NULL,
   features = NULL,
+  max_background_sample_size = NULL,
   weighting_method = "fastpd",
   ...
 )
@@ -48,7 +48,7 @@ If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
 \item{max_background_sample_size}{The maximum number of background samples used for the FastPD algorithm, only used when \code{weighting_method = "fastpd"}. Defaults to \code{nrow(x)}.}
 
-\item{weighting_method}{Use either "path-dependent", "fastpd" (default), or "empirical".}
+\item{weighting_method}{Use either "path-dependent", "fastpd" (default), or "empirical". See References for details.}
 }
 \value{
 Decomposition of the regression or classification function.

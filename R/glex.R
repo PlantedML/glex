@@ -95,7 +95,7 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
+glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -130,9 +130,6 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_s
 #' @import progress
 #' @importFrom stats predict
 #' @importFrom utils combn
-#'
-#' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `weighting_method = "fastpd"`. Defaults to `nrow(x)`.
-#' @param weighting_method Use either "path-dependent", "fastpd" (default), or "empirical". See References for details.
 #' @details
 #' The different weighting methods are described in detail in Liu et al. (2024). The default method is "fastpd" as it consistently estimates the correct partial dependence function.
 #' @references
@@ -156,7 +153,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, max_background_s
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, max_background_sample_size = NULL, features = NULL, weighting_method = "fastpd", ...) {
+glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
 
   # To avoid data.table check issues
   terminal <- NULL
@@ -318,11 +315,11 @@ tree_fun_wrapper <- function(trees, x, all_S, weighting_method, max_interaction,
   if (is.null(weighting_method)) {
     weighting_method <- "fastpd"
   }
-  
+
   checkmate::assert_string(weighting_method)
   if (weighting_method == "path-dependent") {
     return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S, max_interaction))
-  } 
+  }
   else if (weighting_method == "empirical") {
     if (trees$Type[1] != "<=") {
       warning("Using `weighting_method = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`weighting_method = 'fastpd'`) instead.")
