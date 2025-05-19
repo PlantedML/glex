@@ -210,7 +210,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   tree_info <- trees[get("Tree") == tree, ]
   tree_info[, "Feature" := get("Feature_num") - 1L] # Adjust to 0-based for C++ bitmasks
   to_select <- c("Feature", "Split", "Yes", "No", "Quality", "Cover")
-  tree_mat <- tree_info[, ..to_select]
+  tree_mat <- tree_info[, to_select, with = FALSE] # Use with=FALSE to avoid data.table check issues
   tree_mat[is.na(tree_mat)] <- -1L # Use -1 for leaf nodes
   tree_mat <- as.matrix(tree_mat)
 
@@ -294,7 +294,7 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
   tree_info <- trees[get("Tree") == tree, ]
   tree_info[, "Feature" := get("Feature_num") - 1L]
   to_select <- c("Feature", "Split", "Yes", "No", "Quality")
-  tree_mat <- tree_info[, ..to_select]
+  tree_mat <- tree_info[, to_select, with = FALSE]
   tree_mat[is.na(tree_mat)] <- -1L
   tree_mat <- as.matrix(tree_mat)
 
