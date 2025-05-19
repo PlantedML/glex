@@ -72,3 +72,16 @@ std::vector<std::set<unsigned int>> get_all_subsets(
   recurse_subset(arr, currentSubset, subsets, maxSize, 0);
   return subsets;
 }
+
+// [[Rcpp::export]]
+Rcpp::List get_all_subsets_cpp(Rcpp::IntegerVector x, unsigned int maxSize)
+{
+  std::set<unsigned int> arr(x.begin(), x.end());
+  std::vector<std::set<unsigned int>> subsets = get_all_subsets(arr, maxSize);
+  Rcpp::List result(subsets.size());
+  for (unsigned int i = 0; i < subsets.size(); ++i)
+  {
+    result[i] = Rcpp::IntegerVector(subsets[i].begin(), subsets[i].end());
+  }
+  return result;
+}

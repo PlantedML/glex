@@ -7,14 +7,7 @@
 \alias{glex.ranger}
 \title{Global explanations for tree-based models.}
 \usage{
-glex(
-  object,
-  x,
-  max_interaction = NULL,
-  features = NULL,
-  probFunction = NULL,
-  ...
-)
+glex(object, x, max_interaction = NULL, features = NULL, ...)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
 
@@ -23,7 +16,8 @@ glex(
   x,
   max_interaction = NULL,
   features = NULL,
-  probFunction = NULL,
+  max_background_sample_size = NULL,
+  weighting_method = "fastpd",
   ...
 )
 
@@ -32,7 +26,8 @@ glex(
   x,
   max_interaction = NULL,
   features = NULL,
-  probFunction = NULL,
+  max_background_sample_size = NULL,
+  weighting_method = "fastpd",
   ...
 )
 }
@@ -49,9 +44,11 @@ If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
 \item{features}{Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.}
 
-\item{probFunction}{Either "path-dependent" to use old path-dependent weighting of leaves or a user specified probability function of the signature function(coords, lb, ub). Defaults to \code{NULL} or "emprical", i.e. the empirical marginal probabilities will be used}
-
 \item{...}{Further arguments passed to methods.}
+
+\item{max_background_sample_size}{The maximum number of background samples used for the FastPD algorithm, only used when \code{weighting_method = "fastpd"}. Defaults to \code{nrow(x)}.}
+
+\item{weighting_method}{Use either "path-dependent", "fastpd" (default), or "empirical". See References for details.}
 }
 \value{
 Decomposition of the regression or classification function.
@@ -74,6 +71,8 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost.
 \details{
 For parallel execution using \code{xgboost} models, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
+
+The different weighting methods are described in detail in Liu et al. (2024). The default method is "fastpd" as it consistently estimates the correct partial dependence function.
 }
 \examples{
 
@@ -118,4 +117,9 @@ doParallel::registerDoParallel()
 glex(rf, x[27:32, ])
 }
 }
+}
+\references{
+Liu, J., Steensgaard, T., Wright, M. N., Pfister, N., & Hiabu, M. (2024).
+\emph{Fast Estimation of Partial Dependence Functions using Trees}.
+arXiv preprint \href{https://arxiv.org/abs/2410.13448}{arXiv:2410.13448}.
 }
