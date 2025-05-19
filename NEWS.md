@@ -1,3 +1,9 @@
+# glex 0.5.0
+
+* Optimize FastPD to be able to handle more features using bitmask represenation (#29)
+* Remove old `probFuntion` parameter to `glex()` in favor of `weighting_method`. 
+* Add new progress bar when explaining many trees using `glex()` 
+
 # glex 0.4.2
 
 * Optimize FastPD by only computing components up to `max_interaction` (#24)
