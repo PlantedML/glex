@@ -1,3 +1,9 @@
+# glex 0.5.1
+
+* Fix path-dependent algorithm by computing the proper covers manually
+* Allow `glex()` to accept data frames as input
+
+
 # glex 0.5.0
 
 * Optimize FastPD to be able to handle more features using bitmask represenation (#29)
