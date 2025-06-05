@@ -88,7 +88,8 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #'               params = list(max_depth = 4, eta = .1),
 #'               nrounds = 10, verbose = 0)
 #' glex(xg, x[27:32, ])
-#'
+#' glex(xg, mtcars[27:32, ])
+#' 
 #' \dontrun{
 #' # Parallel execution
 #' doParallel::registerDoParallel()
@@ -97,8 +98,8 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' }
 glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
   if (!is.matrix(x)) {
-    if (any(sapply(x, is.factor))) {
-      stop("Input 'x' contains factor columns. Please convert them to numeric before calling glex, the conversion should match what was used to fit the model.")
+    if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
+      stop("Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex.")
     }
     x <- as.matrix(x)
   }
@@ -152,7 +153,8 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #'              num.trees = 5, max.depth = 3,
 #'              node.stats = TRUE)
 #' glex(rf, x[27:32, ])
-#'
+#' glex(rf, mtcars[27:32, ])
+#' 
 #' \dontrun{
 #' # Parallel execution
 #' doParallel::registerDoParallel()
@@ -161,8 +163,8 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' }
 glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
   if (!is.matrix(x)) {
-    if (any(sapply(x, is.factor))) {
-      stop("Input 'x' contains factor columns. Please convert them to numeric before calling glex, the conversion should match what was used to fit the model.")
+    if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
+      stop("Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex.")
     }
     x <- as.matrix(x)
   }
