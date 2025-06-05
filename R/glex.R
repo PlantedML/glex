@@ -96,6 +96,12 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' }
 #' }
 glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
+  if (!is.matrix(x)) {
+    if (any(sapply(x, is.factor))) {
+      stop("Input 'x' contains factor columns. Please convert them to numeric before calling glex, the conversion should match what was used to fit the model.")
+    }
+    x <- as.matrix(x)
+  }
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -154,7 +160,12 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' }
 #' }
 glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
-
+  if (!is.matrix(x)) {
+    if (any(sapply(x, is.factor))) {
+      stop("Input 'x' contains factor columns. Please convert them to numeric before calling glex, the conversion should match what was used to fit the model.")
+    }
+    x <- as.matrix(x)
+  }
   # To avoid data.table check issues
   terminal <- NULL
   splitvarName <- NULL
