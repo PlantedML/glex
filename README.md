@@ -14,10 +14,10 @@ status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/p
 
 # Overview
 
-`glex` implements **global, functional decompositions** of tree-based
+`glex` calculates a **functional decompositions** of tree-based
 regression and classification models that decomposes them into **main
-effects** and **interaction effects** of arbitrary order. In particular,
-it can
+effects** and **interaction effects** of arbitrary order. Those
+**functional components** can thereafter be used to
 
 - compute **exact interventional SHAP values** (and more generally,
   *q-interaction interventional SHAP*, where *q* is the maximal
@@ -31,11 +31,6 @@ Under the hood, `glex` relies on fast algorithms to compute all required
 partial dependence functions exactly.
 
 For a detailed description of the methodology, see:
-
-“Unifying local and global model explanations by functional
-decomposition of low dimensional structures”
-([arxiv](https://arxiv.org/abs/2208.06151),
-[PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
 
 > **Hiabu, Meyer & Wright (2023).**  
 > *Unifying local and global model explanations by functional
