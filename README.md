@@ -26,15 +26,12 @@ it can
   partial dependence plots),
 - produce **variable‐importance scores** for each main term and
   interaction term (of any order), and
-- supports **de-biasing** by removing components that include protected
-  features.
 
 Under the hood, `glex` relies on fast algorithms to compute all required
 partial dependence functions exactly.
 
 For a detailed description of the methodology, see:
 
-See the accompanying paper for more details and exact definitions:
 “Unifying local and global model explanations by functional
 decomposition of low dimensional structures”
 ([arxiv](https://arxiv.org/abs/2208.06151),
@@ -46,7 +43,7 @@ decomposition of low dimensional structures”
 > [arXiv](https://arxiv.org/abs/2208.06151) • [AISTATS 2023
 > Proceedings](https://proceedings.mlr.press/v206/hiabu23a.html)
 
-> **Liu, Steensgaard, Wright, Pfister, Hiabu (2023).**  
+> **Liu, Steensgaard, Wright, Pfister, Hiabu (2025).**  
 > *Fast Estimation of Partial Dependence Functions using Trees.*  
 > [arXiv](https://arxiv.org/abs/2410.13448)
 
