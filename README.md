@@ -14,7 +14,7 @@ status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/p
 
 # Overview
 
-`glex` calculates a **functional decompositions** of tree-based
+`glex` calculates **functional decompositions** of tree-based
 regression and classification models that decomposes them into **main
 effects** and **interaction effects** of arbitrary order. Those
 **functional components** can thereafter be used to
