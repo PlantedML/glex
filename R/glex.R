@@ -88,7 +88,8 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #'               params = list(max_depth = 4, eta = .1),
 #'               nrounds = 10, verbose = 0)
 #' glex(xg, x[27:32, ])
-#'
+#' glex(xg, mtcars[27:32, ])
+#' 
 #' \dontrun{
 #' # Parallel execution
 #' doParallel::registerDoParallel()
@@ -96,6 +97,12 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' }
 #' }
 glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
+  if (!is.matrix(x)) {
+    if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
+      stop("Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex.")
+    }
+    x <- as.matrix(x)
+  }
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -146,7 +153,8 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #'              num.trees = 5, max.depth = 3,
 #'              node.stats = TRUE)
 #' glex(rf, x[27:32, ])
-#'
+#' glex(rf, mtcars[27:32, ])
+#' 
 #' \dontrun{
 #' # Parallel execution
 #' doParallel::registerDoParallel()
@@ -154,7 +162,12 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 #' }
 #' }
 glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
-
+  if (!is.matrix(x)) {
+    if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
+      stop("Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex.")
+    }
+    x <- as.matrix(x)
+  }
   # To avoid data.table check issues
   terminal <- NULL
   splitvarName <- NULL
@@ -209,7 +222,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   # Prepare tree_info for C++ function
   tree_info <- trees[get("Tree") == tree, ]
   tree_info[, "Feature" := get("Feature_num") - 1L] # Adjust to 0-based for C++ bitmasks
-  to_select <- c("Feature", "Split", "Yes", "No", "Quality", "Cover")
+  to_select <- c("Feature", "Split", "Yes", "No", "Quality")
   tree_mat <- tree_info[, to_select, with = FALSE] # Use with=FALSE to avoid data.table check issues
   tree_mat[is.na(tree_mat)] <- -1L # Use -1 for leaf nodes
   tree_mat <- as.matrix(tree_mat)
