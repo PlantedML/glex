@@ -43,7 +43,7 @@ decomposition of low dimensional structures”
 > [arXiv](https://arxiv.org/abs/2208.06151) • [AISTATS 2023
 > Proceedings](https://proceedings.mlr.press/v206/hiabu23a.html)
 
-> **Liu, Steensgaard, Wright, Pfister, Hiabu (2025).**  
+> **Liu, Steensgaard, Wright, Pfister & Hiabu (2025).**  
 > *Fast Estimation of Partial Dependence Functions using Trees.*  
 > [arXiv](https://arxiv.org/abs/2410.13448)
 
