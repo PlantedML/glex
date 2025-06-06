@@ -58,9 +58,26 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Global explanations for tree-based models by decomposing regression or<br>
-classification functions into the sum of main components and interaction components of arbitrary order. Calculates exact interventional SHAP values and q-interaction interventional SHAP (q being the highest order of interaction present in the model) for tree-based models such as XGBoost.</p>
+</div>
+<div class="section level1">
+<h1 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h1>
+<p><code>glex</code> implements <strong>global, functional decompositions</strong> of tree-based regression and classification models that decomposes them into <strong>main effects</strong> and <strong>interaction effects</strong> of arbitrary order. In particular, it can</p>
+<ul>
+<li>compute <strong>exact interventional SHAP values</strong> (and more generally, <em>q-interaction interventional SHAP</em>, where <em>q</em> is the maximal interaction order present in the model),</li>
+<li>extract <strong>partial-dependence-functions</strong> (e.g., one dimensional partial dependence plots),</li>
+<li>produce <strong>variable‐importance scores</strong> for each main term and interaction term (of any order), and</li>
+<li>supports <strong>de-biasing</strong> by removing components that include protected features.</li>
+</ul>
+<p>Under the hood, <code>glex</code> relies on fast algorithms to compute all required partial dependence functions exactly.</p>
+<p>For a detailed description of the methodology, see:</p>
 <p>See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures” (<a href="https://arxiv.org/abs/2208.06151" class="external-link">arxiv</a>, <a href="https://proceedings.mlr.press/v206/hiabu23a.html" class="external-link">PMLR</a>).</p>
+<blockquote>
+<p><strong>Hiabu, Meyer &amp; Wright (2023).</strong><br><em>Unifying local and global model explanations by functional decomposition of low dimensional structures.</em><br><a href="https://arxiv.org/abs/2208.06151" class="external-link">arXiv</a> • <a href="https://proceedings.mlr.press/v206/hiabu23a.html" class="external-link">AISTATS 2023 Proceedings</a></p>
+</blockquote>
+<blockquote>
+<p><strong>Liu, Steensgaard, Wright, Pfister, Hiabu (2023).</strong><br><em>Fast Estimation of Partial Dependence Functions using Trees.</em><br><a href="https://arxiv.org/abs/2410.13448" class="external-link">arXiv</a></p>
+</blockquote>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -72,6 +89,16 @@ classification functions into the sum of main components and interaction compone
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"glex"</span>, repos <span class="op">=</span> <span class="st">"https://plantedml.r-universe.dev"</span><span class="op">)</span></span></code></pre></div>
 </div>
+</div>
+<div class="section level1">
+<h1 id="supported-models">Supported Models<a class="anchor" aria-label="anchor" href="#supported-models"></a>
+</h1>
+<p>Currently, <code>glex</code> supports:</p>
+<ul>
+<li><p><strong>XGBoost</strong> (via the <code>xgboost</code> package).</p></li>
+<li><p><strong>Random Planted Forest</strong> (via the <code>randomPlantedForest</code> package).</p></li>
+</ul>
+<p>More tree‐based frameworks may be added in future releases. If you have a suggestion, please open an issue on our GitHub repository.</p>
 <div class="section level2">
 <h2 id="whats-included">What’s Included<a class="anchor" aria-label="anchor" href="#whats-included"></a>
 </h2>
@@ -224,6 +251,7 @@ classification functions into the sum of main components and interaction compone
 </div>
 </div>
 </div>
+
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
