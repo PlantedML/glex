@@ -19,13 +19,14 @@ regression and classification models that decomposes them into **main
 effects** and **interaction effects** of arbitrary order. Those
 **functional components** can thereafter be used to
 
+- visualize the **functional components**,
+- produce **variable‐importance scores** for each main term and
+  interaction term (of any order), 
 - compute **exact interventional SHAP values** (and more generally,
   *q-interaction interventional SHAP*, where *q* is the maximal
-  interaction order present in the model),
+  interaction order present in the model), and
 - extract **partial-dependence-functions** (e.g., one dimensional
   partial dependence plots),
-- produce **variable‐importance scores** for each main term and
-  interaction term (of any order), and
 
 Under the hood, `glex` relies on fast algorithms to compute all required
 partial dependence functions exactly.
