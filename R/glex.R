@@ -422,7 +422,10 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
   interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
 
   # SHAP values are the sum of the m's * 1/d
-  shap <- vapply(colnames(x), function(col) {
+  if (is.null(features)) {
+    features <- colnames(x)
+  }
+  shap <- vapply(features, function(col) {
     idx <- find_term_matches(col, colnames(interactions))
 
     if (length(idx) == 0) {
