@@ -119,6 +119,9 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
   trees$Type <- "<"
+  if ("Gain" %in% colnames(trees)) {
+    data.table::setnames(trees, "Gain", "Quality")
+  }
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, weighting_method, max_background_sample_size)
