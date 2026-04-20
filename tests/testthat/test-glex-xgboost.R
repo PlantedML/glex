@@ -51,58 +51,58 @@ res_test_path <- glex(xg, x_test, max_interaction = 4, weighting_method = "path-
 
 
 test_that("FastPD xgboost prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$shap),
-    pred_train,
+  expect_equal(unname(res_train$intercept + rowSums(res_train$shap)),
+    unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("FastPD xgboost prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$shap),
-    pred_test,
+  expect_equal(unname(res_test$intercept + rowSums(res_test$shap)),
+    unname(pred_test),
     tolerance = 1e-5
   )
 })
 
 test_that("FastPD xgboost prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$m),
-    pred_train,
+  expect_equal(unname(res_train$intercept + rowSums(res_train$m)),
+    unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("FastPD xgboost prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$m),
-    pred_test,
+  expect_equal(unname(res_test$intercept + rowSums(res_test$m)),
+    unname(pred_test),
     tolerance = 1e-5
   )
 })
 
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(res_train_path$intercept + rowSums(res_train_path$shap),
-    pred_train,
+  expect_equal(unname(res_train_path$intercept + rowSums(res_train_path$shap)),
+    unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(res_test_path$intercept + rowSums(res_test_path$shap),
-    pred_test,
+  expect_equal(unname(res_test_path$intercept + rowSums(res_test_path$shap)),
+    unname(pred_test),
     tolerance = 1e-5
   )
 })
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(res_train_path$intercept + rowSums(res_train_path$m),
-    pred_train,
+  expect_equal(unname(res_train_path$intercept + rowSums(res_train_path$m)),
+    unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(res_test_path$intercept + rowSums(res_test_path$m),
-    pred_test,
+  expect_equal(unname(res_test_path$intercept + rowSums(res_test_path$m)),
+    unname(pred_test),
     tolerance = 1e-5
   )
 })

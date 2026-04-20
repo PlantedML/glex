@@ -36,50 +36,50 @@ resbin_train <- glex(xgbin, x_train)
 resbin_test <- glex(xgbin, x_test)
 
 test_that("regr: Prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$shap),
-               pred_train,
+  expect_equal(unname(res_train$intercept + rowSums(res_train$shap)),
+               unname(pred_train),
                tolerance = 1e-5)
 })
 
 test_that("binary: Prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(resbin_train$intercept + rowSums(resbin_train$shap),
-               predbin_train,
+  expect_equal(unname(resbin_train$intercept + rowSums(resbin_train$shap)),
+               unname(predbin_train),
                tolerance = 1e-5)
 })
 
 test_that("regr: Prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$shap),
-               pred_test,
+  expect_equal(unname(res_test$intercept + rowSums(res_test$shap)),
+               unname(pred_test),
                tolerance = 1e-5)
 })
 
 test_that("binary: Prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(resbin_test$intercept + rowSums(resbin_test$shap),
-               predbin_test,
+  expect_equal(unname(resbin_test$intercept + rowSums(resbin_test$shap)),
+               unname(predbin_test),
                tolerance = 1e-5)
 })
 
 test_that("regr: Prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$m),
-               pred_train,
+  expect_equal(unname(res_train$intercept + rowSums(res_train$m)),
+               unname(pred_train),
                tolerance = 1e-5)
 })
 
 test_that("classif: Prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(resbin_train$intercept + rowSums(resbin_train$m),
-               predbin_train,
+  expect_equal(unname(resbin_train$intercept + rowSums(resbin_train$m)),
+               unname(predbin_train),
                tolerance = 1e-5)
 })
 
 test_that("regr: Prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$m),
-               pred_test,
+  expect_equal(unname(res_test$intercept + rowSums(res_test$m)),
+               unname(pred_test),
                tolerance = 1e-5)
 })
 
 test_that("binary: Prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(resbin_test$intercept + rowSums(resbin_test$m),
-               predbin_test,
+  expect_equal(unname(resbin_test$intercept + rowSums(resbin_test$m)),
+               unname(predbin_test),
                tolerance = 1e-5)
 })
 
