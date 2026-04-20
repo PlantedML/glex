@@ -12,7 +12,7 @@ glex_vi(object, ...)
 \item{...}{(Unused)}
 }
 \value{
-A \code{\link{data.table}} with columns:
+A \code{\link[data.table:data.table]{data.table::data.table()}} with columns:
 \itemize{
 \item \code{degree} (\code{integer}): Degree of interaction of the \code{term}, with \code{1} being main effects,
 \code{2} being 2-degree interactions etc.

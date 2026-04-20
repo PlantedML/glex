@@ -3,7 +3,7 @@
 #' @param object Object of class `glex`.
 #' @param ... (Unused)
 #'
-#' @return A [`data.table`] with columns:
+#' @return A [data.table::data.table()] with columns:
 #' * `degree` (`integer`): Degree of interaction of the `term`, with `1` being main effects,
 #'    `2` being 2-degree interactions etc.
 #' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
