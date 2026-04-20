@@ -106,3 +106,43 @@ test_that("Path-dependent xgboost prediction is approx. same as sum of decomposi
     tolerance = 1e-5
   )
 })
+
+test_that("xgboost models with different base_score values are reconstructed correctly", {
+  x_train <- as.matrix(mtcars[1:26, -1])
+  x_test <- as.matrix(mtcars[27:32, -1])
+  y_train <- mtcars$mpg[1:26]
+
+  base_scores <- c(0.5, 5, 20)
+  dtrain <- xgboost::xgb.DMatrix(data = x_train, label = y_train)
+
+  for (bs in base_scores) {
+    xg_bs <- xgboost::xgb.train(
+      params = list(
+        objective = "reg:squarederror",
+        max_depth = 4,
+        eta = 0.1,
+        base_score = bs
+      ),
+      data = dtrain,
+      nrounds = 10,
+      verbose = 0
+    )
+
+    pred_bs <- predict(xg_bs, x_test)
+    res_bs <- glex(xg_bs, x_test, max_interaction = 4, weighting_method = "fastpd")
+
+    expect_equal(
+      get_xgb_base_score(xg_bs),
+      bs,
+      tolerance = 1e-10,
+      info = paste0("base_score extraction failed for base_score=", bs)
+    )
+
+    expect_equal(
+      unname(res_bs$intercept + rowSums(res_bs$shap)),
+      unname(pred_bs),
+      tolerance = 1e-5,
+      info = paste0("reconstruction failed for base_score=", bs)
+    )
+  }
+})
