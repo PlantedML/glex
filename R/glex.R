@@ -31,7 +31,8 @@ glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
 }
 
-#' @noRd
+#' @rdname glex
+#' @export
 glex.default <- function(object, ...) {
   stop(
     "`glex()` is not defined for a '", class(object)[1], "'.",
