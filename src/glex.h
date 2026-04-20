@@ -27,7 +27,7 @@ enum Index
   SPLIT = 1,
   YES = 2,
   NO = 3,
-  QUALITY = 4,
+  GAIN = 4,
   COVER = 5
 };
 
