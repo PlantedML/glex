@@ -68,17 +68,19 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 # Supported Models
 
-Currently, `glex` supports:
+`glex` currently provides methods for the model classes below.
 
-- **XGBoost** (via the `xgboost` package).  
+| Model package | Model class | Regression | Binary classification | Multiclass classification | Notes |
+|---|---|---|---|---|---|
+| `xgboost` | `xgb.Booster` | Yes | Yes | Not yet fully supported | `x` must be a numeric matrix. For binary objectives, decompositions are on the raw margin (log-odds) scale. |
+| `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Native support for multiclass terms in plotting and variable importance workflows. |
+| `ranger` | `ranger` | Yes | Not formally tested | Not formally tested | Requires `node.stats = TRUE` in model fitting for `glex()`. |
 
-- **Random Planted Forest** (via the `randomPlantedForest` package).  
-
-More tree‐based frameworks may be added in future releases. If you have a suggestion, please open an issue on our GitHub repository.
+More tree-based frameworks may be added in future releases. If you have a suggestion, please open an issue on our GitHub repository.
 
 ## What's Included
 
-Currently `glex` works with [`xgboost`][xgb] and [`randomPlantedForest`][rpf] models, so we'll start by fitting a model with one of each:
+The examples below use [`xgboost`][xgb] and [`randomPlantedForest`][rpf] models:
 
 ```r
 # Install xgboost from CRAN
@@ -144,6 +146,84 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 ```
+
+### XGBoost Binary Classification
+
+`glex()` also supports binary classification models fit with XGBoost.
+
+```{r xgb-binary}
+y_bin <- as.numeric(mtcars$mpg > median(mtcars$mpg))
+
+xg_bin <- xgb.train(
+  params = list(objective = "binary:logistic", max_depth = 3, eta = .1),
+  data = xgb.DMatrix(data = x[1:26, ], label = y_bin[1:26]),
+  nrounds = 30,
+  verbose = 0
+)
+
+glex_xgb_bin <- glex(xg_bin, x[27:32, ])
+
+# Additive decomposition returned by glex (margin / log-odds scale)
+margin_glex <- glex_xgb_bin$intercept + rowSums(glex_xgb_bin$shap)
+
+# XGBoost predictions on test data
+pred_prob <- predict(xg_bin, x[27:32, ])
+pred_margin <- predict(xg_bin, x[27:32, ], outputmargin = TRUE)
+
+# Convert margin to probabilities
+prob_from_glex <- plogis(margin_glex)
+
+cbind(pred_prob, prob_from_glex, pred_margin, margin_glex)
+
+max(abs(pred_margin - margin_glex))
+max(abs(pred_prob - prob_from_glex))
+```
+
+Mathematical interpretation and correspondence to XGBoost:
+
+For an XGBoost binary model, the prediction is built on a **raw margin** (log-odds) scale:
+
+$$
+F(x) = b + \sum_{t=1}^{T} f_t(x), \qquad p(x) = \sigma(F(x)) = \frac{1}{1 + e^{-F(x)}}.
+$$
+
+With `objective = "binary:logistic"`, XGBoost optimizes logistic loss in terms of this same margin:
+
+$$
+\ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
+$$
+
+`glex()` decomposes the margin additively into interaction components indexed by feature subsets $S$:
+
+$$
+F(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S),
+$$
+
+where `intercept` is $m_{\emptyset}$ and `m` stores $m_S$. Hence:
+
+$$
+\texttt{intercept + rowSums(m)} \equiv \texttt{predict(..., outputmargin = TRUE)}.
+$$
+
+For SHAP values, `glex` distributes each interaction term equally across features in that term:
+
+$$
+\phi_j(x) = \sum_{S \ni j} \frac{m_S(x_S)}{|S|},
+\qquad
+F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
+$$
+
+Therefore, for binary logistic models:
+
+$$
+\texttt{plogis(intercept + rowSums(shap))} \equiv \texttt{predict(...)}.
+$$
+
+Practical implications:
+
+- A positive component (in `m` or `shap`) increases log-odds and therefore increases probability.
+- A negative component decreases log-odds and probability.
+- Adding $+1$ to the margin multiplies odds by $e \approx 2.72$.
 
 
 ### Variable Importances
