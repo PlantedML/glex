@@ -149,15 +149,48 @@ get_xgb_base_score <- function(object) {
     suppressWarnings(as.numeric(x))
   }
 
+  parse_objective <- function(config) {
+    if (is.list(config)) {
+      objective_name <- tryCatch(config$learner$objective$name, error = function(e) NULL)
+      if (!is.null(objective_name) && length(objective_name) > 0) {
+        return(as.character(objective_name[[1]]))
+      }
+    }
+
+    if (is.character(config) && length(config) == 1) {
+      m <- regexpr('"name"\\s*:\\s*"([^"]+)"', config, perl = TRUE)
+      if (m != -1) {
+        match_str <- regmatches(config, m)
+        objective_name <- sub('.*"name"\\s*:\\s*"([^"]+)".*', '\\1', match_str, perl = TRUE)
+        return(objective_name)
+      }
+    }
+
+    NA_character_
+  }
+
+  base_score_to_margin <- function(base_score, objective) {
+    # For logistic objectives, xgboost interprets base_score as a probability
+    # and internally transforms it to margin via logit.
+    if (objective %in% c("binary:logistic", "reg:logistic")) {
+      eps <- .Machine$double.eps
+      base_score <- min(max(base_score, eps), 1 - eps)
+      return(stats::qlogis(base_score))
+    }
+
+    base_score
+  }
+
   # Newer xgboost versions store base_score in config; older versions may expose xgb.attr().
   config <- tryCatch(xgboost::xgb.config(object), error = function(e) NULL)
+  objective <- parse_objective(config)
 
   if (is.list(config)) {
     base_score <- tryCatch(config$learner$learner_model_param$base_score, error = function(e) NULL)
     if (!is.null(base_score)) {
       base_score_num <- parse_base_score(base_score)
       if (!is.na(base_score_num)) {
-        return(base_score_num)
+        return(base_score_to_margin(base_score_num, objective))
       }
     }
   }
@@ -170,14 +203,14 @@ get_xgb_base_score <- function(object) {
       base_score <- sub('.*"base_score"\\s*:\\s*"?([^",}]+)"?.*', '\\1', match_str, perl = TRUE)
       base_score_num <- parse_base_score(base_score)
       if (!is.na(base_score_num)) {
-        return(base_score_num)
+        return(base_score_to_margin(base_score_num, objective))
       }
     }
   }
 
   base_score_attr <- parse_base_score(xgboost::xgb.attr(object, "base_score"))
   if (length(base_score_attr) == 1 && !is.na(base_score_attr)) {
-    return(base_score_attr)
+    return(base_score_to_margin(base_score_attr, objective))
   }
 
   warning("Could not determine xgboost base_score. Falling back to legacy default 0.5.")
