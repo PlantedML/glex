@@ -132,7 +132,7 @@ str(components$m, list.len = 8)
 
 Please note that fitting the model, purification, and the extraction of
 the components may take some time, depending on available resources and
-the size of the data. For example, the above steps took around 340
+the size of the data. For example, the above steps took around 290
 seconds to complete on GitHub Actions.
 
 ## Main Effects
