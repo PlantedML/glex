@@ -31,7 +31,8 @@ glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
 }
 
-#' @noRd
+#' @rdname glex
+#' @export
 glex.default <- function(object, ...) {
   stop(
     "`glex()` is not defined for a '", class(object)[1], "'.",
@@ -122,10 +123,66 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
   # Calculate components
   res <- calc_components(trees, x, max_interaction, features, weighting_method, max_background_sample_size)
-  res$intercept <- res$intercept + 0.5
+  res$intercept <- res$intercept + get_xgb_base_score(object)
 
   # Return components
   res
+}
+
+
+#' @keywords internal
+#' @noRd
+get_xgb_base_score <- function(object) {
+  parse_base_score <- function(x) {
+    if (is.null(x) || length(x) == 0) {
+      return(NA_real_)
+    }
+
+    x <- as.character(x[[1]])
+    # Newer xgboost may serialize as "[2.0090626E1]".
+    x <- gsub("^\\[|\\]$", "", x)
+    x <- trimws(x)
+
+    # Handle potential vector-like encodings by taking the first element.
+    x <- strsplit(x, ",", fixed = TRUE)[[1]][1]
+    x <- trimws(x)
+
+    suppressWarnings(as.numeric(x))
+  }
+
+  # Newer xgboost versions store base_score in config; older versions may expose xgb.attr().
+  config <- tryCatch(xgboost::xgb.config(object), error = function(e) NULL)
+
+  if (is.list(config)) {
+    base_score <- tryCatch(config$learner$learner_model_param$base_score, error = function(e) NULL)
+    if (!is.null(base_score)) {
+      base_score_num <- parse_base_score(base_score)
+      if (!is.na(base_score_num)) {
+        return(base_score_num)
+      }
+    }
+  }
+
+  if (is.character(config) && length(config) == 1) {
+    # Fallback parser for JSON-string configs to avoid introducing a jsonlite dependency.
+    m <- regexpr('"base_score"\\s*:\\s*"?([^",}]+)"?', config, perl = TRUE)
+    if (m != -1) {
+      match_str <- regmatches(config, m)
+      base_score <- sub('.*"base_score"\\s*:\\s*"?([^",}]+)"?.*', '\\1', match_str, perl = TRUE)
+      base_score_num <- parse_base_score(base_score)
+      if (!is.na(base_score_num)) {
+        return(base_score_num)
+      }
+    }
+  }
+
+  base_score_attr <- parse_base_score(xgboost::xgb.attr(object, "base_score"))
+  if (length(base_score_attr) == 1 && !is.na(base_score_attr)) {
+    return(base_score_attr)
+  }
+
+  warning("Could not determine xgboost base_score. Falling back to legacy default 0.5.")
+  0.5
 }
 
 #' @rdname glex
@@ -202,7 +259,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
   trees[, splitvarID := NULL]
   trees[, terminal := NULL]
   trees[, prediction := NULL]
-  colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Quality", "Tree")
+  colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Gain", "Tree")
   trees$Type <- "<="
 
   # Calculate components
@@ -221,8 +278,10 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
 tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   # Prepare tree_info for C++ function
   tree_info <- trees[get("Tree") == tree, ]
+  max_node <- max(tree_info$Node)
+  tree_info <- tree_info[data.table::data.table(Node = 0:max_node), on = "Node"]
   tree_info[, "Feature" := get("Feature_num") - 1L] # Adjust to 0-based for C++ bitmasks
-  to_select <- c("Feature", "Split", "Yes", "No", "Quality")
+  to_select <- c("Feature", "Split", "Yes", "No", "Gain")
   tree_mat <- tree_info[, to_select, with = FALSE] # Use with=FALSE to avoid data.table check issues
   tree_mat[is.na(tree_mat)] <- -1L # Use -1 for leaf nodes
   tree_mat <- as.matrix(tree_mat)
@@ -248,8 +307,9 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
 
   # Calculate matrix
   tree_info <- trees[Tree == tree, ]
-
   max_node <- trees[Tree == tree, max(Node)]
+  tree_info <- tree_info[data.table::data.table(Node = 0:max_node), on = "Node"]
+
   num_nodes <- max_node + 1
   lb <- matrix(-Inf, nrow = num_nodes, ncol = ncol(x))
   ub <- matrix(Inf, nrow = num_nodes, ncol = ncol(x))
@@ -276,7 +336,7 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
   mat <- recurseRcppEmpProbfunction(x,
     tree_info$Feature_num, tree_info$Split,
     tree_info$Yes, tree_info$No,
-    tree_info$Quality, lb, ub, integer(0), U, 0)
+    tree_info$Gain, lb, ub, integer(0), U, 0)
 
   colnames(mat) <- vapply(U, function(u) {
     paste(sort(colnames(x)[u]), collapse = ":")
@@ -305,8 +365,10 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
 tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_interaction) {
   # Calculate matrix
   tree_info <- trees[get("Tree") == tree, ]
+  max_node <- max(tree_info$Node)
+  tree_info <- tree_info[data.table::data.table(Node = 0:max_node), on = "Node"]
   tree_info[, "Feature" := get("Feature_num") - 1L]
-  to_select <- c("Feature", "Split", "Yes", "No", "Quality")
+  to_select <- c("Feature", "Split", "Yes", "No", "Gain")
   tree_mat <- tree_info[, to_select, with = FALSE]
   tree_mat[is.na(tree_mat)] <- -1L
   tree_mat <- as.matrix(tree_mat)

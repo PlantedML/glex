@@ -2,12 +2,15 @@
 % Please edit documentation in R/glex.R
 \name{glex}
 \alias{glex}
+\alias{glex.default}
 \alias{glex.rpf}
 \alias{glex.xgb.Booster}
 \alias{glex.ranger}
 \title{Global explanations for tree-based models.}
 \usage{
 glex(object, x, max_interaction = NULL, features = NULL, ...)
+
+\method{glex}{default}(object, ...)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
 
@@ -94,6 +97,7 @@ xg <- xgboost(data = x[1:26, ], label = y[1:26],
               params = list(max_depth = 4, eta = .1),
               nrounds = 10, verbose = 0)
 glex(xg, x[27:32, ])
+glex(xg, mtcars[27:32, ])
 
 \dontrun{
 # Parallel execution
@@ -110,6 +114,7 @@ rf <- ranger(x = x[1:26, ], y = y[1:26],
              num.trees = 5, max.depth = 3,
              node.stats = TRUE)
 glex(rf, x[27:32, ])
+glex(rf, mtcars[27:32, ])
 
 \dontrun{
 # Parallel execution

@@ -15,7 +15,7 @@ bike
 }
 \description{
 A reduced version of the \code{Bikeshare} data as included with \code{ISLR2}.
-The dataset has been converted to a \code{\link{data.table}}, with the following changes:
+The dataset has been converted to a \code{\link[data.table:data.table]{data.table::data.table()}}, with the following changes:
 }
 \details{
 \itemize{

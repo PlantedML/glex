@@ -196,9 +196,9 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   // If leaf node
   if (current_feature == -1)
   {
-    // We'll fill each column with (quality * p) for all rows,
+    // We'll fill each column with (gain * p) for all rows,
     // where p = leafProbs[node][(encounteredMask[node] \ U[j])]
-    const double quality = current_node[Index::QUALITY];
+    const double gain = current_node[Index::GAIN];
 
     for (unsigned int j = 0; j < n_subsets; ++j)
     {
@@ -211,7 +211,7 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
       {
         p = it->second;
       }
-      double val = quality * p;
+      double val = gain * p;
 
       // Fill column j with val
       double *col_out = &mat(0, j);

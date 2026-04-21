@@ -109,7 +109,7 @@ NumericMatrix recursePathDependent(
 
   if (current_feature == -1)
   {
-    double pred = current_node[Index::QUALITY];
+    double pred = current_node[Index::GAIN];
     std::fill(mat.begin(), mat.end(), pred);
   }
   else
