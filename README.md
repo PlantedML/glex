@@ -74,7 +74,7 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 |----|----|----|----|----|----|
 | `xgboost` | `xgb.Booster` | Yes | Yes | Not yet fully supported | `x` must be a numeric matrix. For binary objectives, decompositions are on the raw margin (log-odds) scale. |
 | `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Native support for multiclass terms in plotting and variable importance workflows. |
-| `ranger` | `ranger` | Yes | Not formally tested | Not formally tested | Requires `node.stats = TRUE` in model fitting for `glex()`. |
+| `ranger` | `ranger` | Yes | Yes (probability forests) | Not yet supported | Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.

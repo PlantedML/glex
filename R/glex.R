@@ -261,7 +261,6 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
   terminal <- NULL
   splitvarName <- NULL
   splitStat <- NULL
-  prediction <- NULL
   splitvarID <- NULL
   tree <- NULL
 
@@ -286,11 +285,28 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
     as.data.table(ranger::treeInfo(object, tree = i))[, tree := i-1]
   }))
+  prediction_cols <- grep("^pred\\.", colnames(trees), value = TRUE)
+  prediction_col <- if ("prediction" %in% colnames(trees)) {
+    "prediction"
+  } else if (length(prediction_cols) == 2L) {
+    # For binary probability forests, use the second class probability.
+    prediction_cols[2L]
+  } else if (length(prediction_cols) > 0L) {
+    stop("ranger classification with more than 2 classes is not supported by glex.ranger yet.")
+  } else {
+    stop("Could not identify ranger prediction column from treeInfo output.")
+  }
+
   trees[terminal == TRUE, splitvarName := "Leaf"]
-  trees[terminal == TRUE, splitStat := prediction]
+  trees[terminal == TRUE, splitStat := get(prediction_col)]
   trees[, splitvarID := NULL]
   trees[, terminal := NULL]
-  trees[, prediction := NULL]
+  drop_cols <- unique(c("prediction", prediction_cols))
+  drop_cols <- intersect(drop_cols, colnames(trees))
+  if (length(drop_cols) > 0L) {
+    trees[, (drop_cols) := NULL]
+  }
+  setcolorder(trees, c("nodeID", "leftChild", "rightChild", "splitvarName", "splitval", "numSamples", "splitStat", "tree"))
   colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Gain", "Tree")
   trees$Type <- "<="
 
