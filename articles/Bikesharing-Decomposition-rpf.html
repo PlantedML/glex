@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,7 +103,7 @@ day (1) or not (0)</li>
 <code>factor</code> to a numeric column.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Bikeshare</span><span class="op">)</span></span>
-<span><span class="va">bike</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span><span class="va">Bikeshare</span><span class="op">)</span></span>
+<span><span class="va">bike</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span><span class="va">Bikeshare</span><span class="op">)</span></span>
 <span><span class="va">bike</span><span class="op">[</span>, <span class="va">hr</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">hr</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">bike</span><span class="op">[</span>, <span class="va">workingday</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">workingday</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"No Workingday"</span>, <span class="st">"Workingday"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">bike</span><span class="op">[</span>, <span class="va">season</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">season</span>, levels <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Winter"</span>, <span class="st">"Spring"</span>, <span class="st">"Summer"</span>, <span class="st">"Fall"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
@@ -195,7 +195,7 @@ visualization.</p>
 <span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt;</span></span></code></pre></div>
 <p>Please note that fitting the model, purification, and the extraction
 of the components may take some time, depending on available resources
-and the size of the data. For example, the above steps took around 290
+and the size of the data. For example, the above steps took around 340
 seconds to complete on GitHub Actions.</p>
 </div>
 <div class="section level2">
@@ -207,7 +207,7 @@ seconds to complete on GitHub Actions.</p>
 <span>  <span class="fu"><a href="../reference/plot_components.html">plot_main_effect</a></span><span class="op">(</span><span class="va">components</span>, <span class="st">"workingday"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p_main</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>widths <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.3</span>, <span class="fl">.3</span>, <span class="fl">.4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/main-effects-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/main-effects-1.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="way-interactions">2-Way Interactions<a class="anchor" aria-label="anchor" href="#way-interactions"></a>
@@ -225,7 +225,7 @@ seconds to complete on GitHub Actions.</p>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1,2"</span>, <span class="st">"3,1"</span>, <span class="st">"3,3"</span><span class="op">)</span><span class="op">)</span>, tag_prefix <span class="op">=</span> <span class="st">"m("</span>, tag_suffix <span class="op">=</span> <span class="st">")"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p_2way</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/twoway-effects-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/twoway-effects-1.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="way-interaction">3-Way Interaction<a class="anchor" aria-label="anchor" href="#way-interaction"></a>
@@ -234,7 +234,7 @@ seconds to complete on GitHub Actions.</p>
 <code class="sourceCode R"><span><span class="va">p_3way</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_components.html">plot_threeway_effects</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hr"</span>, <span class="st">"temp"</span>, <span class="st">"workingday"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p_3way</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/threeway-effects-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/threeway-effects-1.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="everything-together">Everything Together<a class="anchor" aria-label="anchor" href="#everything-together"></a>
@@ -242,7 +242,7 @@ seconds to complete on GitHub Actions.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_main</span> <span class="op">/</span> <span class="va">p_2way</span> <span class="op">/</span> <span class="va">p_3way</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>heights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.5</span>, <span class="fl">.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/all-effects-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/all-effects-1.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="additional-effects">Additional effects<a class="anchor" aria-label="anchor" href="#additional-effects"></a>
@@ -253,41 +253,41 @@ weathersit, season), and passing each to <code>plot_main_effect</code>,
 then collecting the plots with <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">vars</span>, <span class="va">plot_main_effect</span>, object <span class="op">=</span> <span class="va">components</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/all-main-effects-1.png" width="960" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/all-main-effects-1.png" class="r-plt" alt="" width="960" style="display: block; margin: auto;"></p>
 <p>From here we use <code>autoplot</code> for convenience. Internally it
 just passes its arguments on to the specialized <code>plot_*</code>
 functions, depending on the number of predictors supplied.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"season"</span>, <span class="st">"workingday"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"season"</span>, <span class="st">"hr"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-2.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-2.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"season"</span>, <span class="st">"weathersit"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-3.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-3.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weathersit"</span>, <span class="st">"temp"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-4.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-4.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hum"</span>, <span class="st">"temp"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-5.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-5.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <p>3rd degree interactions can be tricky, if they have any effect at
 all.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"season"</span>, <span class="st">"hr"</span>, <span class="st">"weathersit"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"workingday"</span>, <span class="st">"hr"</span>, <span class="st">"season"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-2.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-2.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Hard to interpret</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"workingday"</span>, <span class="st">"hr"</span>, <span class="st">"weathersit"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-3.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-3.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># zero effect</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">components</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weathersit"</span>, <span class="st">"season"</span>, <span class="st">"workingday"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-4.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-4.png" class="r-plt" alt="" width="864" style="display: block; margin: auto;"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -300,7 +300,7 @@ all.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
