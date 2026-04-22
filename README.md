@@ -70,14 +70,150 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 `glex` currently provides methods for the model classes below.
 
-| Model package | Model class | Regression | Binary classification | Multiclass classification | Notes |
-|----|----|----|----|----|----|
-| `xgboost` | `xgb.Booster` | Yes | Yes | Not yet fully supported | `x` must be a numeric matrix. For binary objectives, decompositions are on the raw margin (log-odds) scale. |
-| `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Native support for multiclass terms in plotting and variable importance workflows. |
-| `ranger` | `ranger` | Yes | Yes (probability forests) | Not yet supported | Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; multiclass is currently unsupported. |
+| Model package | Model class | Regression | Binary classification | Multiclass classification | Link function(s) | Notes |
+|----|----|----|----|----|----|----|
+| `xgboost` | `xgb.Booster` | Yes | Yes | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | `x` must be a numeric matrix. Decompositions are on the raw margin scale, with inverse-link transformation applied to recover response-scale predictions. |
+| `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Not applicable | Native support for multiclass terms in plotting and variable importance workflows. |
+| `ranger` | `ranger` | Yes | Yes (probability forests) | Not yet supported | Not applicable | Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
+
+### XGBoost with Link Functions
+
+For generalized objectives, XGBoost outputs an additive raw-score
+(margin) function:
+
+$$
+\eta(x) = b + \sum_{t=1}^{T} f_t(x), \qquad \mu(x)=g^{-1}(\eta(x)).
+$$
+
+Here, $b$ is the global bias term (`base_score` on the margin scale),
+and each $f_t$ is the prediction function of tree $t$ (its leaf weight
+for input $x$). In other words, the XGBoost model output is $\eta(x)$
+itself; response-scale prediction is obtained by applying the
+objective-specific inverse link $g^{-1}$ to that output.\
+`glex()` decomposes $\eta(x)$, not $\mu(x)$. The decomposition is
+
+$$
+\eta(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S) = m_{\emptyset} + \sum_{k=1}^{p} \phi_k(x),
+$$
+
+where $m_{\emptyset}$ is the intercept term, $m_S$ are the functional
+ANOVA components indexed by feature subsets $S$, and $\phi_k$ are SHAP
+values aggregated per feature $k$. This margin equals
+`predict(model, x, outputmargin = TRUE)`.\
+Predictions on response scale are obtained by applying the inverse link:
+
+$$
+\mu(x)=g^{-1}(\eta(x))=g^{-1}\left(m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S)\right).
+$$
+
+This yields the objective-specific identities:
+
+$$
+\text{identity link:}\quad \mu(x)=\eta(x)
+$$
+
+$$
+\text{logistic link (binary:logistic):}\quad \mu(x)=\sigma(\eta(x))=\frac{1}{1+e^{-\eta(x)}}
+$$
+
+$$
+\text{log link (count:poisson, reg:gamma, reg:tweedie):}\quad \mu(x)=\exp(\eta(x))
+$$
+
+For custom objectives, XGBoost does not provide a built-in response
+transform. In that case, run `glex()` as usual to decompose the raw
+margin, then apply your own inverse link **afterwards** to the
+reconstructed margin, e.g. to `gl$intercept + rowSums(gl$m)` (or
+equivalently `gl$intercept + rowSums(gl$shap)`), to obtain
+response-scale predictions.
+
+``` r
+x <- as.matrix(mtcars[, -1])
+y_bin <- as.numeric(mtcars$mpg > median(mtcars$mpg))
+
+xg_bin <- xgboost::xgb.train(
+  params = list(objective = "binary:logistic", max_depth = 3, eta = .1),
+  data = xgboost::xgb.DMatrix(data = x[1:26, ], label = y_bin[1:26]),
+  nrounds = 30,
+  verbose = 0
+)
+
+glex_xgb_bin <- glex::glex(xg_bin, x[27:32, ])
+
+# Additive decomposition returned by glex (margin / log-odds scale)
+margin_glex <- glex_xgb_bin$intercept + rowSums(glex_xgb_bin$shap)
+
+# XGBoost predictions on test data
+pred_prob <- predict(xg_bin, x[27:32, ])
+pred_margin <- predict(xg_bin, x[27:32, ], outputmargin = TRUE)
+
+# Apply the inverse link for binary:logistic
+prob_from_glex <- plogis(margin_glex)
+
+cbind(pred_prob, prob_from_glex, pred_margin, margin_glex)
+#>                 pred_prob prob_from_glex pred_margin margin_glex
+#> Porsche 914-2  0.90160328     0.90160331    2.215168    2.215167
+#> Lotus Europa   0.90160328     0.90160331    2.215168    2.215167
+#> Ford Pantera L 0.90160328     0.90160331    2.215168    2.215167
+#> Ferrari Dino   0.90160328     0.90160331    2.215168    2.215167
+#> Maserati Bora  0.07015713     0.07015714   -2.584278   -2.584278
+#> Volvo 142E     0.90160328     0.90160331    2.215168    2.215167
+
+max(abs(pred_margin - margin_glex))
+#> [1] 1.323593e-07
+max(abs(pred_prob - prob_from_glex))
+#> [1] 3.020367e-08
+```
+
+Binary logistic example (`objective = "binary:logistic"`):
+
+In this case $\eta(x)$ is log-odds and the inverse link is the logistic
+map:
+
+$$
+F(x) = b + \sum_{t=1}^{T} f_t(x), \qquad p(x) = \sigma(F(x)) = \frac{1}{1 + e^{-F(x)}}.
+$$
+
+XGBoost optimizes logistic loss directly in this margin:
+
+$$
+\ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
+$$
+
+`glex()` decomposes the margin additively into interaction components
+indexed by feature subsets $S$:
+
+$$
+F(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S),
+$$
+
+where `intercept` is $m_{\emptyset}$ and `m` stores $m_S$. Hence:
+
+$$
+\texttt{intercept + rowSums(m)} \equiv \texttt{predict(..., outputmargin = TRUE)}.
+$$
+
+For SHAP values, `glex` distributes each interaction term equally across
+features in that term:
+
+$$
+\phi_j(x) = \sum_{S \ni j} \frac{m_S(x_S)}{|S|},
+\qquad
+F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
+$$
+
+Hence:
+
+$$
+\texttt{plogis(intercept + rowSums(shap))} \equiv \texttt{predict(...)}.
+$$
+
+Interpretation on this scale is direct: positive components increase
+log-odds (and therefore probability), negative components decrease
+log-odds, and an increase of $+1$ in margin multiplies the odds by $e$.
 
 ## What’s Included
 
@@ -169,98 +305,6 @@ cbind(pred_rpf, sum_m_rpf)
 #> [5,] 14.80156  14.80156
 #> [6,] 23.96188  23.96188
 ```
-
-### XGBoost Binary Classification
-
-`glex()` also supports binary classification models fit with XGBoost.
-
-``` r
-y_bin <- as.numeric(mtcars$mpg > median(mtcars$mpg))
-
-xg_bin <- xgb.train(
-  params = list(objective = "binary:logistic", max_depth = 3, eta = .1),
-  data = xgb.DMatrix(data = x[1:26, ], label = y_bin[1:26]),
-  nrounds = 30,
-  verbose = 0
-)
-
-glex_xgb_bin <- glex(xg_bin, x[27:32, ])
-
-# Additive decomposition returned by glex (margin / log-odds scale)
-margin_glex <- glex_xgb_bin$intercept + rowSums(glex_xgb_bin$shap)
-
-# XGBoost predictions on test data
-pred_prob <- predict(xg_bin, x[27:32, ])
-pred_margin <- predict(xg_bin, x[27:32, ], outputmargin = TRUE)
-
-# Convert margin to probabilities
-prob_from_glex <- plogis(margin_glex)
-
-cbind(pred_prob, prob_from_glex, pred_margin, margin_glex)
-#>                 pred_prob prob_from_glex pred_margin margin_glex
-#> Porsche 914-2  0.90160328     0.90160331    2.215168    2.215167
-#> Lotus Europa   0.90160328     0.90160331    2.215168    2.215167
-#> Ford Pantera L 0.90160328     0.90160331    2.215168    2.215167
-#> Ferrari Dino   0.90160328     0.90160331    2.215168    2.215167
-#> Maserati Bora  0.07015713     0.07015714   -2.584278   -2.584278
-#> Volvo 142E     0.90160328     0.90160331    2.215168    2.215167
-
-max(abs(pred_margin - margin_glex))
-#> [1] 1.323593e-07
-max(abs(pred_prob - prob_from_glex))
-#> [1] 3.020367e-08
-```
-
-Mathematical interpretation and correspondence to XGBoost:
-
-For an XGBoost binary model, the prediction is built on a **raw margin**
-(log-odds) scale:
-
-$$
-F(x) = b + \sum_{t=1}^{T} f_t(x), \qquad p(x) = \sigma(F(x)) = \frac{1}{1 + e^{-F(x)}}.
-$$
-
-With `objective = "binary:logistic"`, XGBoost optimizes logistic loss in
-terms of this same margin:
-
-$$
-\ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
-$$
-
-`glex()` decomposes the margin additively into interaction components
-indexed by feature subsets $S$:
-
-$$
-F(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S),
-$$
-
-where `intercept` is $m_{\emptyset}$ and `m` stores $m_S$. Hence:
-
-$$
-\texttt{intercept + rowSums(m)} \equiv \texttt{predict(..., outputmargin = TRUE)}.
-$$
-
-For SHAP values, `glex` distributes each interaction term equally across
-features in that term:
-
-$$
-\phi_j(x) = \sum_{S \ni j} \frac{m_S(x_S)}{|S|},
-\qquad
-F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
-$$
-
-Therefore, for binary logistic models:
-
-$$
-\texttt{plogis(intercept + rowSums(shap))} \equiv \texttt{predict(...)}.
-$$
-
-Practical implications:
-
-- A positive component (in `m` or `shap`) increases log-odds and
-  therefore increases probability.
-- A negative component decreases log-odds and probability.
-- Adding $+1$ to the margin multiplies odds by $e \approx 2.72$.
 
 ### Variable Importances
 

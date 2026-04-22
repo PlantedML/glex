@@ -146,3 +146,40 @@ test_that("xgboost models with different base_score values are reconstructed cor
     )
   }
 })
+
+test_that("xgboost reg:gamma (log link) is reconstructed on margin and response scales", {
+  set.seed(42)
+  x <- matrix(rnorm(400), ncol = 4)
+  colnames(x) <- paste0("x", 1:4)
+  y <- exp(0.2 + x[, 1] - 0.5 * x[, 2] + rnorm(nrow(x), sd = 0.1))
+
+  x_train <- x[1:80, , drop = FALSE]
+  x_test <- x[81:100, , drop = FALSE]
+  y_train <- y[1:80]
+
+  dtrain <- xgboost::xgb.DMatrix(data = x_train, label = y_train)
+  xg_gamma <- xgboost::xgb.train(
+    params = list(
+      objective = "reg:gamma",
+      max_depth = 3,
+      eta = 0.1
+    ),
+    data = dtrain,
+    nrounds = 30,
+    verbose = 0
+  )
+
+  pred_margin <- predict(xg_gamma, x_test, outputmargin = TRUE)
+  pred_response <- predict(xg_gamma, x_test)
+  res <- glex(xg_gamma, x_test, weighting_method = "fastpd")
+
+  margin_from_shap <- unname(res$intercept + rowSums(res$shap))
+  margin_from_m <- unname(res$intercept + rowSums(res$m))
+  response_from_shap <- exp(margin_from_shap)
+  response_from_m <- exp(margin_from_m)
+
+  expect_equal(margin_from_shap, unname(pred_margin), tolerance = 1e-5)
+  expect_equal(margin_from_m, unname(pred_margin), tolerance = 1e-5)
+  expect_equal(response_from_shap, unname(pred_response), tolerance = 1e-5)
+  expect_equal(response_from_m, unname(pred_response), tolerance = 1e-5)
+})

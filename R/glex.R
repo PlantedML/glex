@@ -177,6 +177,13 @@ get_xgb_base_score <- function(object) {
       base_score <- min(max(base_score, eps), 1 - eps)
       return(stats::qlogis(base_score))
     }
+    # For log-link objectives, xgboost interprets base_score on response scale
+    # and internally transforms it to margin via log.
+    if (objective %in% c("count:poisson", "reg:gamma", "reg:tweedie")) {
+      eps <- .Machine$double.eps
+      base_score <- max(base_score, eps)
+      return(log(base_score))
+    }
 
     base_score
   }
