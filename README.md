@@ -14,33 +14,40 @@ status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/p
 
 # Overview
 
-`glex` calculates **functional decompositions** of tree-based
+`glex` implements **global, functional decompositions** of tree-based
 regression and classification models that decomposes them into **main
-effects** and **interaction effects** of arbitrary order. Those
-**functional components** can thereafter be used to
+effects** and **interaction effects** of arbitrary order. In particular,
+it can
 
-- visualize the **functional components**,
-- produce **variable‐importance scores** for each main term and
-  interaction term (of any order), 
 - compute **exact interventional SHAP values** (and more generally,
   *q-interaction interventional SHAP*, where *q* is the maximal
-  interaction order present in the model), and
+  interaction order present in the model),
 - extract **partial-dependence-functions** (e.g., one dimensional
   partial dependence plots),
+- produce **variable‐importance scores** for each main term and
+  interaction term (of any order), and
+- supports **de-biasing** by removing components that include protected
+  features.
 
 Under the hood, `glex` relies on fast algorithms to compute all required
 partial dependence functions exactly.
 
 For a detailed description of the methodology, see:
 
-> **Hiabu, Meyer & Wright (2023).**  
+See the accompanying paper for more details and exact definitions:
+“Unifying local and global model explanations by functional
+decomposition of low dimensional structures”
+([arxiv](https://arxiv.org/abs/2208.06151),
+[PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
+
+> **Hiabu, Meyer & Wright (2023).**\
 > *Unifying local and global model explanations by functional
-> decomposition of low dimensional structures.*  
+> decomposition of low dimensional structures.*\
 > [arXiv](https://arxiv.org/abs/2208.06151) • [AISTATS 2023
 > Proceedings](https://proceedings.mlr.press/v206/hiabu23a.html)
 
-> **Liu, Steensgaard, Wright, Pfister & Hiabu (2025).**  
-> *Fast Estimation of Partial Dependence Functions using Trees.*  
+> **Liu, Steensgaard, Wright, Pfister, Hiabu (2023).**\
+> *Fast Estimation of Partial Dependence Functions using Trees.*\
 > [arXiv](https://arxiv.org/abs/2410.13448)
 
 ## Installation
@@ -61,21 +68,159 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 # Supported Models
 
-Currently, `glex` supports:
+`glex` currently provides methods for the model classes below.
 
-- **XGBoost** (via the `xgboost` package).
+| Model package | Model class | Regression | Binary classification | Multiclass classification | Link function(s) | Notes |
+|----|----|----|----|----|----|----|
+| `xgboost` | `xgb.Booster` | Yes | Yes\* | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. |
+| `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Not applicable | Native support for multiclass terms in plotting and variable importance workflows. |
+| `ranger` | `ranger` | Yes | Yes\* (probability forests) | Not yet supported | Not applicable | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
-- **Random Planted Forest** (via the `randomPlantedForest` package).
-
-More tree‐based frameworks may be added in future releases. If you have
+More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
+
+### XGBoost with Link Functions
+
+For generalized objectives, XGBoost outputs an additive raw-score
+(margin) function:
+
+$$
+\eta(x) = b + \sum_{t=1}^{T} f_t(x), \qquad \mu(x)=g^{-1}(\eta(x)).
+$$
+
+Here, $b$ is the global bias term (`base_score` on the margin scale),
+and each $f_t$ is the prediction function of tree $t$ (its leaf weight
+for input $x$). In other words, the XGBoost model output is $\eta(x)$
+itself; response-scale prediction is obtained by applying the
+objective-specific inverse link $g^{-1}$ to that output.\
+`glex()` decomposes $\eta(x)$, not $\mu(x)$. The decomposition is
+
+$$
+\eta(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S) = m_{\emptyset} + \sum_{k=1}^{p} \phi_k(x),
+$$
+
+where $m_{\emptyset}$ is the intercept term, $m_S$ are the functional
+ANOVA components indexed by feature subsets $S$, and $\phi_k$ are SHAP
+values aggregated per feature $k$. This margin equals
+`predict(model, x, outputmargin = TRUE)`.\
+Predictions on response scale are obtained by applying the inverse link:
+
+$$
+\mu(x)=g^{-1}(\eta(x))=g^{-1}\left(m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S)\right).
+$$
+
+This yields the objective-specific identities:
+
+$$
+\text{identity link:}\quad \mu(x)=\eta(x)
+$$
+
+$$
+\text{logistic link (binary:logistic):}\quad \mu(x)=\sigma(\eta(x))=\frac{1}{1+e^{-\eta(x)}}
+$$
+
+$$
+\text{log link (count:poisson, reg:gamma, reg:tweedie):}\quad \mu(x)=\exp(\eta(x))
+$$
+
+For custom objectives, XGBoost does not provide a built-in response
+transform. In that case, run `glex()` as usual to decompose the raw
+margin, then apply your own inverse link **afterwards** to the
+reconstructed margin, e.g. to `gl$intercept + rowSums(gl$m)` (or
+equivalently `gl$intercept + rowSums(gl$shap)`), to obtain
+response-scale predictions.
+
+``` r
+x <- as.matrix(mtcars[, -1])
+y_bin <- as.numeric(mtcars$mpg > median(mtcars$mpg))
+
+xg_bin <- xgboost::xgb.train(
+  params = list(objective = "binary:logistic", max_depth = 3, eta = .1),
+  data = xgboost::xgb.DMatrix(data = x[1:26, ], label = y_bin[1:26]),
+  nrounds = 30,
+  verbose = 0
+)
+
+glex_xgb_bin <- glex::glex(xg_bin, x[27:32, ])
+
+# Additive decomposition returned by glex (margin / log-odds scale)
+margin_glex <- glex_xgb_bin$intercept + rowSums(glex_xgb_bin$shap)
+
+# XGBoost predictions on test data
+pred_prob <- predict(xg_bin, x[27:32, ])
+pred_margin <- predict(xg_bin, x[27:32, ], outputmargin = TRUE)
+
+# Apply the inverse link for binary:logistic
+prob_from_glex <- plogis(margin_glex)
+
+cbind(pred_prob, prob_from_glex, pred_margin, margin_glex)
+#>                 pred_prob prob_from_glex pred_margin margin_glex
+#> Porsche 914-2  0.90160328     0.90160331    2.215168    2.215167
+#> Lotus Europa   0.90160328     0.90160331    2.215168    2.215167
+#> Ford Pantera L 0.90160328     0.90160331    2.215168    2.215167
+#> Ferrari Dino   0.90160328     0.90160331    2.215168    2.215167
+#> Maserati Bora  0.07015713     0.07015714   -2.584278   -2.584278
+#> Volvo 142E     0.90160328     0.90160331    2.215168    2.215167
+
+max(abs(pred_margin - margin_glex))
+#> [1] 1.323593e-07
+max(abs(pred_prob - prob_from_glex))
+#> [1] 3.020367e-08
+```
+
+Binary logistic example (`objective = "binary:logistic"`):
+
+In this case $\eta(x)$ is log-odds and the inverse link is the logistic
+map:
+
+$$
+F(x) = b + \sum_{t=1}^{T} f_t(x), \qquad p(x) = \sigma(F(x)) = \frac{1}{1 + e^{-F(x)}}.
+$$
+
+XGBoost optimizes logistic loss directly in this margin:
+
+$$
+\ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
+$$
+
+`glex()` decomposes the margin additively into interaction components
+indexed by feature subsets $S$:
+
+$$
+F(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S),
+$$
+
+where `intercept` is $m_{\emptyset}$ and `m` stores $m_S$. Hence:
+
+$$
+\texttt{intercept + rowSums(m)} \equiv \texttt{predict(..., outputmargin = TRUE)}.
+$$
+
+For SHAP values, `glex` distributes each interaction term equally across
+features in that term:
+
+$$
+\phi_j(x) = \sum_{S \ni j} \frac{m_S(x_S)}{|S|},
+\qquad
+F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
+$$
+
+Hence:
+
+$$
+\texttt{plogis(intercept + rowSums(shap))} \equiv \texttt{predict(...)}.
+$$
+
+Interpretation on this scale is direct: positive components increase
+log-odds (and therefore probability), negative components decrease
+log-odds, and an increase of $+1$ in margin multiplies the odds by $e$.
 
 ## What’s Included
 
-Currently `glex` works with
+The examples below use
 [`xgboost`](https://cran.r-project.org/package=xgboost) and
 [`randomPlantedForest`](http://plantedml.com/randomPlantedForest/)
-models, so we’ll start by fitting a model with one of each:
+models:
 
 ``` r
 # Install xgboost from CRAN
@@ -142,13 +287,13 @@ pred_xgb <- predict(xg, x[27:32, ])
 
 # For XGBoost
 cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
-#>      pred_xgb sum_m_xgb sum_shap_xgb
-#> [1,] 21.39075  21.39076     21.39076
-#> [2,] 20.23664  20.23664     20.23664
-#> [3,] 14.73895  14.73895     14.73895
-#> [4,] 18.76170  18.76170     18.76170
-#> [5,] 13.05614  13.05614     13.05614
-#> [6,] 20.23664  20.23664     20.23664
+#>                pred_xgb sum_m_xgb sum_shap_xgb
+#> Porsche 914-2  23.84291  23.84291     23.84291
+#> Lotus Europa   25.30800  25.30801     25.30801
+#> Ford Pantera L 20.71024  20.71024     20.71024
+#> Ferrari Dino   20.99034  20.99034     20.99034
+#> Maserati Bora  14.89887  14.89887     14.89887
+#> Volvo 142E     21.55361  21.55361     21.55361
 
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
@@ -180,13 +325,13 @@ vi_rpf[1:5, c("degree", "term", "m")]
 #> 4:      1    cyl 0.7172987
 #> 5:      1   drat 0.5465836
 vi_xgb[1:5, c("degree", "term", "m")]
-#>    degree   term         m
-#>     <int> <char>     <num>
-#> 1:      1     hp 1.5980083
-#> 2:      1    cyl 0.5762864
-#> 3:      1     wt 0.5024355
-#> 4:      1   qsec 0.2867502
-#> 5:      2 cyl:hp 0.1098818
+#>    degree      term         m
+#>     <int>    <char>     <num>
+#> 1:      1        wt 1.4145524
+#> 2:      1      disp 1.0614659
+#> 3:      1        hp 0.6307429
+#> 4:      2     hp:wt 0.5823452
+#> 5:      3 cyl:hp:wt 0.3538588
 ```
 
 The output additionally contains the degree of interaction, which can be

@@ -18,7 +18,13 @@ ybin_train <- ybin[1:50]
 ybin_test <- ybin[51:100]
 
 # xgboost: regression
-xg <- xgboost(data = x_train, label = y_train, params = list(max_depth = 4, eta = .1), nrounds = 10, verbose = 0)
+dtrain <- xgboost::xgb.DMatrix(data = x_train, label = y_train)
+xg <- xgboost::xgb.train(
+  params = list(objective = "reg:squarederror", max_depth = 4, eta = .1),
+  data = dtrain,
+  nrounds = 10,
+  verbose = 0
+)
 pred_train <- predict(xg, x_train)
 pred_test <- predict(xg, x_test)
 
@@ -27,9 +33,16 @@ res_train <- glex(xg, x_train)
 res_test <- glex(xg, x_test)
 
 # xgboost: binary classif
-xgbin <- xgboost(data = x_train, label = ybin_train, params = list(max_depth = 4, eta = .1), nrounds = 10, verbose = 0)
+xgbin <- xgboost::xgb.train(
+  params = list(objective = "binary:logistic", max_depth = 4, eta = .1),
+  data = xgboost::xgb.DMatrix(data = x_train, label = ybin_train),
+  nrounds = 10,
+  verbose = 0
+)
 predbin_train <- predict(xgbin, x_train)
 predbin_test <- predict(xgbin, x_test)
+predbin_margin_train <- predict(xgbin, x_train, outputmargin = TRUE)
+predbin_margin_test <- predict(xgbin, x_test, outputmargin = TRUE)
 
 # Decompositions
 resbin_train <- glex(xgbin, x_train)
@@ -41,9 +54,9 @@ test_that("regr: Prediction is approx. same as sum of shap + intercept, training
                tolerance = 1e-5)
 })
 
-test_that("binary: Prediction is approx. same as sum of shap + intercept, training data", {
+test_that("binary: Margin is approx. same as sum of shap + intercept, training data", {
   expect_equal(unname(resbin_train$intercept + rowSums(resbin_train$shap)),
-               unname(predbin_train),
+               unname(predbin_margin_train),
                tolerance = 1e-5)
 })
 
@@ -53,9 +66,9 @@ test_that("regr: Prediction is approx. same as sum of shap + intercept, test dat
                tolerance = 1e-5)
 })
 
-test_that("binary: Prediction is approx. same as sum of shap + intercept, test data", {
+test_that("binary: Margin is approx. same as sum of shap + intercept, test data", {
   expect_equal(unname(resbin_test$intercept + rowSums(resbin_test$shap)),
-               unname(predbin_test),
+               unname(predbin_margin_test),
                tolerance = 1e-5)
 })
 
@@ -65,9 +78,9 @@ test_that("regr: Prediction is approx. same as sum of decomposition + intercept,
                tolerance = 1e-5)
 })
 
-test_that("classif: Prediction is approx. same as sum of decomposition + intercept, training data", {
+test_that("classif: Margin is approx. same as sum of decomposition + intercept, training data", {
   expect_equal(unname(resbin_train$intercept + rowSums(resbin_train$m)),
-               unname(predbin_train),
+               unname(predbin_margin_train),
                tolerance = 1e-5)
 })
 
@@ -77,10 +90,26 @@ test_that("regr: Prediction is approx. same as sum of decomposition + intercept,
                tolerance = 1e-5)
 })
 
-test_that("binary: Prediction is approx. same as sum of decomposition + intercept, test data", {
+test_that("binary: Margin is approx. same as sum of decomposition + intercept, test data", {
   expect_equal(unname(resbin_test$intercept + rowSums(resbin_test$m)),
-               unname(predbin_test),
+               unname(predbin_margin_test),
                tolerance = 1e-5)
+})
+
+test_that("binary: Probability is approx. same as plogis(sum of shap + intercept), training data", {
+  expect_equal(
+    unname(plogis(resbin_train$intercept + rowSums(resbin_train$shap))),
+    unname(predbin_train),
+    tolerance = 1e-5
+  )
+})
+
+test_that("binary: Probability is approx. same as plogis(sum of shap + intercept), test data", {
+  expect_equal(
+    unname(plogis(resbin_test$intercept + rowSums(resbin_test$shap))),
+    unname(predbin_test),
+    tolerance = 1e-5
+  )
 })
 
 test_that("Shap is computed correctly with overlapping colnames", {
@@ -96,7 +125,12 @@ test_that("Shap is computed correctly with overlapping colnames", {
 
   # xgboost
   set.seed(5)
-  xg1 <- xgboost(data = x, label = y, params = list(max_depth = 4, eta = .1), nrounds = 10, verbose = 0)
+  xg1 <- xgboost::xgb.train(
+    params = list(objective = "reg:squarederror", max_depth = 4, eta = .1),
+    data = xgboost::xgb.DMatrix(data = x, label = y),
+    nrounds = 10,
+    verbose = 0
+  )
 
   # Decompositions
   # x names are unique: x1, x2
@@ -107,7 +141,12 @@ test_that("Shap is computed correctly with overlapping colnames", {
 
   # re-train xgboost because changing colnames of x and running glex on that crashes R
   set.seed(5)
-  xg2 <- xgboost(data = x, label = y, params = list(max_depth = 4, eta = .1), nrounds = 10, verbose = 0)
+  xg2 <- xgboost::xgb.train(
+    params = list(objective = "reg:squarederror", max_depth = 4, eta = .1),
+    data = xgboost::xgb.DMatrix(data = x, label = y),
+    nrounds = 10,
+    verbose = 0
+  )
 
   overlapping_names <- glex(xg2, x)$shap
 
