@@ -62,20 +62,21 @@
 <div class="section level1">
 <h1 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h1>
-<p><code>glex</code> calculates <strong>functional decompositions</strong> of tree-based regression and classification models that decomposes them into <strong>main effects</strong> and <strong>interaction effects</strong> of arbitrary order. Those <strong>functional components</strong> can thereafter be used to</p>
+<p><code>glex</code> implements <strong>global, functional decompositions</strong> of tree-based regression and classification models that decomposes them into <strong>main effects</strong> and <strong>interaction effects</strong> of arbitrary order. In particular, it can</p>
 <ul>
-<li>visualize the <strong>functional components</strong>,</li>
-<li>produce <strong>variable‐importance scores</strong> for each main term and interaction term (of any order),</li>
-<li>compute <strong>exact interventional SHAP values</strong> (and more generally, <em>q-interaction interventional SHAP</em>, where <em>q</em> is the maximal interaction order present in the model), and</li>
+<li>compute <strong>exact interventional SHAP values</strong> (and more generally, <em>q-interaction interventional SHAP</em>, where <em>q</em> is the maximal interaction order present in the model),</li>
 <li>extract <strong>partial-dependence-functions</strong> (e.g., one dimensional partial dependence plots),</li>
+<li>produce <strong>variable‐importance scores</strong> for each main term and interaction term (of any order), and</li>
+<li>supports <strong>de-biasing</strong> by removing components that include protected features.</li>
 </ul>
 <p>Under the hood, <code>glex</code> relies on fast algorithms to compute all required partial dependence functions exactly.</p>
 <p>For a detailed description of the methodology, see:</p>
+<p>See the accompanying paper for more details and exact definitions: “Unifying local and global model explanations by functional decomposition of low dimensional structures” (<a href="https://arxiv.org/abs/2208.06151" class="external-link">arxiv</a>, <a href="https://proceedings.mlr.press/v206/hiabu23a.html" class="external-link">PMLR</a>).</p>
 <blockquote>
 <p><strong>Hiabu, Meyer &amp; Wright (2023).</strong><br><em>Unifying local and global model explanations by functional decomposition of low dimensional structures.</em><br><a href="https://arxiv.org/abs/2208.06151" class="external-link">arXiv</a> • <a href="https://proceedings.mlr.press/v206/hiabu23a.html" class="external-link">AISTATS 2023 Proceedings</a></p>
 </blockquote>
 <blockquote>
-<p><strong>Liu, Steensgaard, Wright, Pfister &amp; Hiabu (2025).</strong><br><em>Fast Estimation of Partial Dependence Functions using Trees.</em><br><a href="https://arxiv.org/abs/2410.13448" class="external-link">arXiv</a></p>
+<p><strong>Liu, Steensgaard, Wright, Pfister, Hiabu (2023).</strong><br><em>Fast Estimation of Partial Dependence Functions using Trees.</em><br><a href="https://arxiv.org/abs/2410.13448" class="external-link">arXiv</a></p>
 </blockquote>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -92,22 +93,159 @@
 <div class="section level1">
 <h1 id="supported-models">Supported Models<a class="anchor" aria-label="anchor" href="#supported-models"></a>
 </h1>
-<p>Currently, <code>glex</code> supports:</p>
-<ul>
-<li><p><strong>XGBoost</strong> (via the <code>xgboost</code> package).</p></li>
-<li><p><strong>Random Planted Forest</strong> (via the <code>randomPlantedForest</code> package).</p></li>
-</ul>
-<p>More tree‐based frameworks may be added in future releases. If you have a suggestion, please open an issue on our GitHub repository.</p>
+<p><code>glex</code> currently provides methods for the model classes below.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="14%">
+<col width="14%">
+<col width="14%">
+<col width="14%">
+<col width="14%">
+<col width="14%">
+<col width="14%">
+</colgroup>
+<thead><tr class="header">
+<th>Model package</th>
+<th>Model class</th>
+<th>Regression</th>
+<th>Binary classification</th>
+<th>Multiclass classification</th>
+<th>Link function(s)</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>xgboost</code></td>
+<td><code>xgb.Booster</code></td>
+<td>Yes</td>
+<td>Yes*</td>
+<td>Not yet fully supported</td>
+<td>Built-in objectives define the link (e.g., identity, logistic/logit, log-link).</td>
+<td>* <code><a href="reference/glex.html">glex()</a></code> decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.</td>
+</tr>
+<tr class="even">
+<td><code>randomPlantedForest</code></td>
+<td><code>rpf</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Not applicable</td>
+<td>Native support for multiclass terms in plotting and variable importance workflows.</td>
+</tr>
+<tr class="odd">
+<td><code>ranger</code></td>
+<td><code>ranger</code></td>
+<td>Yes</td>
+<td>Yes* (probability forests)</td>
+<td>Not yet supported</td>
+<td>Not applicable</td>
+<td>* Requires <code>node.stats = TRUE</code>. For classification, fit with <code>probability = TRUE</code>; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported.</td>
+</tr>
+</tbody>
+</table>
+<p>More tree-based frameworks may be added in future releases. If you have a suggestion, please open an issue on our GitHub repository.</p>
+<div class="section level3">
+<h3 id="xgboost-with-link-functions">XGBoost with Link Functions<a class="anchor" aria-label="anchor" href="#xgboost-with-link-functions"></a>
+</h3>
+<p>For generalized objectives, XGBoost outputs an additive raw-score (margin) function:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>b</mi><mo>+</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><msub><mi>f</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\eta(x) = b + \sum_{t=1}^{T} f_t(x), \qquad \mu(x)=g^{-1}(\eta(x)).
+</annotation></semantics></math></p>
+<p>Here, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math> is the global bias term (<code>base_score</code> on the margin scale), and each <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>t</mi></msub><annotation encoding="application/x-tex">f_t</annotation></semantics></math> is the prediction function of tree <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> (its leaf weight for input <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>). In other words, the XGBoost model output is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta(x)</annotation></semantics></math> itself; response-scale prediction is obtained by applying the objective-specific inverse link <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">g^{-1}</annotation></semantics></math> to that output.<br><code><a href="reference/glex.html">glex()</a></code> decomposes <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta(x)</annotation></semantics></math>, not <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mu(x)</annotation></semantics></math>. The decomposition is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>m</mi><mi>∅</mi></msub><mo>+</mo><munder><mo>∑</mo><mrow><mi>S</mi><mo>≠</mo><mi>∅</mi></mrow></munder><msub><mi>m</mi><mi>S</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>m</mi><mi>∅</mi></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msub><mi>ϕ</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\eta(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S) = m_{\emptyset} + \sum_{k=1}^{p} \phi_k(x),
+</annotation></semantics></math></p>
+<p>where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>∅</mi></msub><annotation encoding="application/x-tex">m_{\emptyset}</annotation></semantics></math> is the intercept term, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>S</mi></msub><annotation encoding="application/x-tex">m_S</annotation></semantics></math> are the functional ANOVA components indexed by feature subsets <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\phi_k</annotation></semantics></math> are SHAP values aggregated per feature <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>. This margin equals <code>predict(model, x, outputmargin = TRUE)</code>.<br>
+Predictions on response scale are obtained by applying the inverse link:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mi>∅</mi></msub><mo>+</mo><munder><mo>∑</mo><mrow><mi>S</mi><mo>≠</mo><mi>∅</mi></mrow></munder><msub><mi>m</mi><mi>S</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mu(x)=g^{-1}(\eta(x))=g^{-1}\left(m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S)\right).
+</annotation></semantics></math></p>
+<p>This yields the objective-specific identities:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">identity link:</mtext><mspace width="1.0em"></mspace><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\text{identity link:}\quad \mu(x)=\eta(x)
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logistic link (binary:logistic):</mtext><mspace width="1.0em"></mspace><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+\text{logistic link (binary:logistic):}\quad \mu(x)=\sigma(\eta(x))=\frac{1}{1+e^{-\eta(x)}}
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">log link (count:poisson, reg:gamma, reg:tweedie):</mtext><mspace width="1.0em"></mspace><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\text{log link (count:poisson, reg:gamma, reg:tweedie):}\quad \mu(x)=\exp(\eta(x))
+</annotation></semantics></math></p>
+<p>For custom objectives, XGBoost does not provide a built-in response transform. In that case, run <code><a href="reference/glex.html">glex()</a></code> as usual to decompose the raw margin, then apply your own inverse link <strong>afterwards</strong> to the reconstructed margin, e.g. to <code>gl$intercept + rowSums(gl$m)</code> (or equivalently <code>gl$intercept + rowSums(gl$shap)</code>), to obtain response-scale predictions.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">y_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">xg_bin</span> <span class="op">&lt;-</span> <span class="fu">xgboost</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html" class="external-link">xgb.train</a></span><span class="op">(</span></span>
+<span>  params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>objective <span class="op">=</span> <span class="st">"binary:logistic"</span>, max_depth <span class="op">=</span> <span class="fl">3</span>, eta <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span>,</span>
+<span>  data <span class="op">=</span> <span class="fu">xgboost</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.DMatrix.html" class="external-link">xgb.DMatrix</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, label <span class="op">=</span> <span class="va">y_bin</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  nrounds <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="fl">0</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">glex_xgb_bin</span> <span class="op">&lt;-</span> <span class="fu">glex</span><span class="fu">::</span><span class="fu"><a href="reference/glex.html">glex</a></span><span class="op">(</span><span class="va">xg_bin</span>, <span class="va">x</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Additive decomposition returned by glex (margin / log-odds scale)</span></span>
+<span><span class="va">margin_glex</span> <span class="op">&lt;-</span> <span class="va">glex_xgb_bin</span><span class="op">$</span><span class="va">intercept</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">glex_xgb_bin</span><span class="op">$</span><span class="va">shap</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># XGBoost predictions on test data</span></span>
+<span><span class="va">pred_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">xg_bin</span>, <span class="va">x</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">pred_margin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">xg_bin</span>, <span class="va">x</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span>, outputmargin <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Apply the inverse link for binary:logistic</span></span>
+<span><span class="va">prob_from_glex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">margin_glex</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_prob</span>, <span class="va">prob_from_glex</span>, <span class="va">pred_margin</span>, <span class="va">margin_glex</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                 pred_prob prob_from_glex pred_margin margin_glex</span></span>
+<span><span class="co">#&gt; Porsche 914-2  0.90160328     0.90160331    2.215168    2.215167</span></span>
+<span><span class="co">#&gt; Lotus Europa   0.90160328     0.90160331    2.215168    2.215167</span></span>
+<span><span class="co">#&gt; Ford Pantera L 0.90160328     0.90160331    2.215168    2.215167</span></span>
+<span><span class="co">#&gt; Ferrari Dino   0.90160328     0.90160331    2.215168    2.215167</span></span>
+<span><span class="co">#&gt; Maserati Bora  0.07015713     0.07015714   -2.584278   -2.584278</span></span>
+<span><span class="co">#&gt; Volvo 142E     0.90160328     0.90160331    2.215168    2.215167</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">pred_margin</span> <span class="op">-</span> <span class="va">margin_glex</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 1.323593e-07</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">pred_prob</span> <span class="op">-</span> <span class="va">prob_from_glex</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 3.020367e-08</span></span></code></pre></div>
+<p>Binary logistic example (<code>objective = "binary:logistic"</code>):</p>
+<p>In this case <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta(x)</annotation></semantics></math> is log-odds and the inverse link is the logistic map:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>b</mi><mo>+</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><msub><mi>f</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+F(x) = b + \sum_{t=1}^{T} f_t(x), \qquad p(x) = \sigma(F(x)) = \frac{1}{1 + e^{-F(x)}}.
+</annotation></semantics></math></p>
+<p>XGBoost optimizes logistic loss directly in this margin:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>F</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>−</mo><mrow><mo stretchy="true" form="prefix">[</mo><mi>y</mi><mo>log</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>F</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>F</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
+</annotation></semantics></math></p>
+<p><code><a href="reference/glex.html">glex()</a></code> decomposes the margin additively into interaction components indexed by feature subsets <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>m</mi><mi>∅</mi></msub><mo>+</mo><munder><mo>∑</mo><mrow><mi>S</mi><mo>≠</mo><mi>∅</mi></mrow></munder><msub><mi>m</mi><mi>S</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+F(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S),
+</annotation></semantics></math></p>
+<p>where <code>intercept</code> is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>∅</mi></msub><annotation encoding="application/x-tex">m_{\emptyset}</annotation></semantics></math> and <code>m</code> stores <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>S</mi></msub><annotation encoding="application/x-tex">m_S</annotation></semantics></math>. Hence:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="monospace">𝚒𝚗𝚝𝚎𝚛𝚌𝚎𝚙𝚝 + 𝚛𝚘𝚠𝚂𝚞𝚖𝚜(𝚖)</mtext><mo>≡</mo><mtext mathvariant="monospace">𝚙𝚛𝚎𝚍𝚒𝚌𝚝(..., 𝚘𝚞𝚝𝚙𝚞𝚝𝚖𝚊𝚛𝚐𝚒𝚗 = 𝚃𝚁𝚄𝙴)</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\texttt{intercept + rowSums(m)} \equiv \texttt{predict(..., outputmargin = TRUE)}.
+</annotation></semantics></math></p>
+<p>For SHAP values, <code>glex</code> distributes each interaction term equally across features in that term:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∑</mo><mrow><mi>S</mi><mo>∋</mo><mi>j</mi></mrow></munder><mfrac><mrow><msub><mi>m</mi><mi>S</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mo stretchy="true" form="prefix">|</mo><mi>S</mi><mo stretchy="true" form="postfix">|</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>m</mi><mi>∅</mi></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msub><mi>ϕ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\phi_j(x) = \sum_{S \ni j} \frac{m_S(x_S)}{|S|},
+\qquad
+F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
+</annotation></semantics></math></p>
+<p>Hence:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="monospace">𝚙𝚕𝚘𝚐𝚒𝚜(𝚒𝚗𝚝𝚎𝚛𝚌𝚎𝚙𝚝 + 𝚛𝚘𝚠𝚂𝚞𝚖𝚜(𝚜𝚑𝚊𝚙))</mtext><mo>≡</mo><mtext mathvariant="monospace">𝚙𝚛𝚎𝚍𝚒𝚌𝚝(...)</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\texttt{plogis(intercept + rowSums(shap))} \equiv \texttt{predict(...)}.
+</annotation></semantics></math></p>
+<p>Interpretation on this scale is direct: positive components increase log-odds (and therefore probability), negative components decrease log-odds, and an increase of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">+1</annotation></semantics></math> in margin multiplies the odds by <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>.</p>
+</div>
 <div class="section level2">
 <h2 id="whats-included">What’s Included<a class="anchor" aria-label="anchor" href="#whats-included"></a>
 </h2>
-<p>Currently <code>glex</code> works with <a href="https://cran.r-project.org/package=xgboost" class="external-link"><code>xgboost</code></a> and <a href="http://plantedml.com/randomPlantedForest/" class="external-link"><code>randomPlantedForest</code></a> models, so we’ll start by fitting a model with one of each:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>The examples below use <a href="https://cran.r-project.org/package=xgboost" class="external-link"><code>xgboost</code></a> and <a href="http://plantedml.com/randomPlantedForest/" class="external-link"><code>randomPlantedForest</code></a> models:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install xgboost from CRAN</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"xgboost"</span><span class="op">)</span></span>
 <span><span class="co"># ... and randomPlantedForest from r-universe</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"randomPlantedForest"</span>, repos <span class="op">=</span> <span class="st">"https://plantedml.r-universe.dev"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/glex" class="external-link">glex</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Model fitting</span></span>
@@ -121,7 +259,7 @@
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/get_theme.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="reference/theme_glex.html">theme_glex</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">21</span><span class="op">)</span></span></code></pre></div>
 <p>Note that <code>xgboost</code>, unlike <code>randomPlantedForest</code>, requires <code>matrix</code> input and does not support categorical predictors.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
@@ -130,11 +268,11 @@
 <span>              params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max_depth <span class="op">=</span> <span class="fl">3</span>, eta <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span>,</span>
 <span>              nrounds <span class="op">=</span> <span class="fl">30</span>, verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p>Using the model objects and a dataset to explain (such as a test set in this case), we can create <code>glex</code> objects for each of the model fits. These objects of class <code>glex</code> are a list containing the prediction components of main and interaction terms (<code>$m</code>), the dataset to be explained with the observed feature values (<code>$x</code>) used to visualize feature effects, and the average predicted value for the model (<code>$intercept</code>). The <code>xgboost</code> method additionally returns the SHAP values (<code>$shap</code>) for each feature in the model.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">glex_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex.html">glex</a></span><span class="op">(</span><span class="va">xg</span>, <span class="va">x</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p>Both <code>m</code> and <code>shap</code> satisfy the property that their sums (per observation) together with the <code>intercept</code> are equal to the model prediction for each observation:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculating sum of components and sum of SHAP values</span></span>
 <span><span class="va">sum_m_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">glex_rpf</span><span class="op">$</span><span class="va">m</span><span class="op">)</span> <span class="op">+</span> <span class="va">glex_rpf</span><span class="op">$</span><span class="va">intercept</span></span>
 <span><span class="va">sum_m_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">glex_xgb</span><span class="op">$</span><span class="va">m</span><span class="op">)</span> <span class="op">+</span> <span class="va">glex_xgb</span><span class="op">$</span><span class="va">intercept</span></span>
@@ -146,13 +284,13 @@
 <span></span>
 <span><span class="co"># For XGBoost</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_xgb</span>, <span class="va">sum_m_xgb</span>, <span class="va">sum_shap_xgb</span><span class="op">)</span></span>
-<span><span class="co">#&gt;      pred_xgb sum_m_xgb sum_shap_xgb</span></span>
-<span><span class="co">#&gt; [1,] 21.39075  21.39076     21.39076</span></span>
-<span><span class="co">#&gt; [2,] 20.23664  20.23664     20.23664</span></span>
-<span><span class="co">#&gt; [3,] 14.73895  14.73895     14.73895</span></span>
-<span><span class="co">#&gt; [4,] 18.76170  18.76170     18.76170</span></span>
-<span><span class="co">#&gt; [5,] 13.05614  13.05614     13.05614</span></span>
-<span><span class="co">#&gt; [6,] 20.23664  20.23664     20.23664</span></span>
+<span><span class="co">#&gt;                pred_xgb sum_m_xgb sum_shap_xgb</span></span>
+<span><span class="co">#&gt; Porsche 914-2  23.84291  23.84291     23.84291</span></span>
+<span><span class="co">#&gt; Lotus Europa   25.30800  25.30801     25.30801</span></span>
+<span><span class="co">#&gt; Ford Pantera L 20.71024  20.71024     20.71024</span></span>
+<span><span class="co">#&gt; Ferrari Dino   20.99034  20.99034     20.99034</span></span>
+<span><span class="co">#&gt; Maserati Bora  14.89887  14.89887     14.89887</span></span>
+<span><span class="co">#&gt; Volvo 142E     21.55361  21.55361     21.55361</span></span>
 <span></span>
 <span><span class="co"># For RPF</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_rpf</span>, <span class="va">sum_m_rpf</span><span class="op">)</span></span>
@@ -167,7 +305,7 @@
 <h3 id="variable-importances">Variable Importances<a class="anchor" aria-label="anchor" href="#variable-importances"></a>
 </h3>
 <p>Variable importance scores are calculated for each main and interaction term by calculating the average of the absolute prediction components (<code>m</code>) over the dataset supplied to <code><a href="reference/glex.html">glex()</a></code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vi_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_vi.html">glex_vi</a></span><span class="op">(</span><span class="va">glex_rpf</span><span class="op">)</span></span>
 <span><span class="va">vi_xgb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_vi.html">glex_vi</a></span><span class="op">(</span><span class="va">glex_xgb</span><span class="op">)</span></span>
 <span></span>
@@ -180,15 +318,15 @@
 <span><span class="co">#&gt; 4:      1    cyl 0.7172987</span></span>
 <span><span class="co">#&gt; 5:      1   drat 0.5465836</span></span>
 <span><span class="va">vi_xgb</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;    degree   term         m</span></span>
-<span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      1     hp 1.5980083</span></span>
-<span><span class="co">#&gt; 2:      1    cyl 0.5762864</span></span>
-<span><span class="co">#&gt; 3:      1     wt 0.5024355</span></span>
-<span><span class="co">#&gt; 4:      1   qsec 0.2867502</span></span>
-<span><span class="co">#&gt; 5:      2 cyl:hp 0.1098818</span></span></code></pre></div>
+<span><span class="co">#&gt;    degree      term         m</span></span>
+<span><span class="co">#&gt;     &lt;int&gt;    &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      1        wt 1.4145524</span></span>
+<span><span class="co">#&gt; 2:      1      disp 1.0614659</span></span>
+<span><span class="co">#&gt; 3:      1        hp 0.6307429</span></span>
+<span><span class="co">#&gt; 4:      2     hp:wt 0.5823452</span></span>
+<span><span class="co">#&gt; 5:      3 cyl:hp:wt 0.3538588</span></span></code></pre></div>
 <p>The output additionally contains the degree of interaction, which can be used for filtering and aggregating. Here we filter for terms with contributions above a <code>threshold</code> of <code>0.05</code> to get a more compact plot, with terms below the threshold aggregated into one labelled “Remaining terms”:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_vi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_rpf</span>, threshold <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span>, subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
 <span></span>
@@ -199,7 +337,7 @@
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance scores by term"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-glex_vi-plot-1.png" width="100%"></p>
 <p>We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be particularly relevant for a given model.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_vi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_rpf</span>, by_degree <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span>, subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
 <span></span>
@@ -214,14 +352,14 @@
 <h3 id="feature-effects">Feature Effects<a class="anchor" aria-label="anchor" href="#feature-effects"></a>
 </h3>
 <p>We can also plot prediction components against observed feature values, which admittedly produces more interesting output with larger, more interesting datasets.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="st">"hp"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_xgb</span>, <span class="st">"hp"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Main effect for 'hp'"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot_components-1.png" width="100%"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hp"</span>, <span class="st">"wt"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_xgb</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hp"</span>, <span class="st">"wt"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
@@ -231,7 +369,7 @@
 <p><img src="reference/figures/README-plot_components-2.png" width="100%"></p>
 <p>Currently there is support for plots of interactions up to the third degree, including continuous and categorical features. Unfortunately, three-way interactions of continuous features are not supported yet.</p>
 <p>Note that these main effect plots correspond to PDP plots, where the latter are merely the main effect plus the intercept term:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_pdp.html">plot_pdp</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="st">"hp"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-main_pdp-1.png" width="100%"></p>
 </div>
@@ -239,7 +377,7 @@
 <h3 id="decomposition-of-individual-predictions">Decomposition of Individual Predictions<a class="anchor" aria-label="anchor" href="#decomposition-of-individual-predictions"></a>
 </h3>
 <p>Finally, we can explore the prediction for a single observation by displaying its individual prediction components. The SHAP value is the sum of all of these components and serves as a reference value. For compactness, we only plot one feature and collapse all interaction terms above the second degree into one as their combined effect is very small.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_explain.html">glex_explain</a></span><span class="op">(</span><span class="va">glex_rpf</span>, id <span class="op">=</span> <span class="fl">2</span>, predictors <span class="op">=</span> <span class="st">"hp"</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>tag <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex_explain.html">glex_explain</a></span><span class="op">(</span><span class="va">glex_xgb</span>, id <span class="op">=</span> <span class="fl">2</span>, predictors <span class="op">=</span> <span class="st">"hp"</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>

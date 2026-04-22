@@ -16,7 +16,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/PlantedML/glex/blob/v0.5.2/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/PlantedML/glex/blob/master/DESCRIPTION)
 
 Wright MN, Meyer JT, Hiabu M, Burk L, Liu J (2026). *glex: Global
 Explanations for Tree-Based Models*. R package version 0.5.2,
