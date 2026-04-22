@@ -72,9 +72,9 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 | Model package | Model class | Regression | Binary classification | Multiclass classification | Link function(s) | Notes |
 |---|---|---|---|---|---|---|
-| `xgboost` | `xgb.Booster` | Yes | Yes | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | `x` must be a numeric matrix. Decompositions are on the raw margin scale, with inverse-link transformation applied to recover response-scale predictions. |
+| `xgboost` | `xgb.Booster` | Yes | Yes* | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | * `x` must be a numeric matrix. `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. |
 | `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Not applicable | Native support for multiclass terms in plotting and variable importance workflows. |
-| `ranger` | `ranger` | Yes | Yes (probability forests) | Not yet supported | Not applicable | Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; multiclass is currently unsupported. |
+| `ranger` | `ranger` | Yes | Yes* (probability forests) | Not yet supported | Not applicable | * Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have a suggestion, please open an issue on our GitHub repository.
 
