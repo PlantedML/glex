@@ -1,7 +1,7 @@
-# glex 0.5.2
+# glex 0.5.3
 
 * **Fix newer xgboost R package compatibility**:
-  - Updated tree schema column name from `Quality` to `Gain`, matching xgboost commit 73713de (`[R] rename Quality -> Gain (#9938)`, in upstream v2.1.0)
+  - Accept both `Quality` and `Gain` as the xgboost tree schema value column, covering older CRAN releases and the newer rename from `Quality` to `Gain` in xgboost commit 73713de (`[R] rename Quality -> Gain (#9938)`, in upstream v2.1.0)
   - Implemented dynamic `base_score` extraction to replace hardcoded 0.5 intercept (modern xgboost auto-estimates `base_score`)
   - Fixed floating-point precision mismatch in C++ split comparators by casting to float, matching xgboost predictor behavior
   - Added node reindexing to ensure contiguous row ordering in tree matrices

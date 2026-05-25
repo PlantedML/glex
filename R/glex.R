@@ -119,6 +119,7 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   checkmate::assert_int(max_background_sample_size, lower = 1, upper = Inf)
   # Convert model
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
+  trees <- normalize_xgb_tree_schema(trees)
   trees$Type <- "<"
 
   # Calculate components
@@ -127,6 +128,24 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
 
   # Return components
   res
+}
+
+
+#' @keywords internal
+#' @noRd
+normalize_xgb_tree_schema <- function(trees) {
+  if ("Gain" %in% names(trees)) {
+    return(trees)
+  }
+  if ("Quality" %in% names(trees)) {
+    data.table::setnames(trees, "Quality", "Gain")
+    return(trees)
+  }
+
+  stop(
+    "Unsupported xgboost tree schema: expected column 'Gain' or legacy column 'Quality' from xgboost::xgb.model.dt.tree().",
+    call. = FALSE
+  )
 }
 
 
