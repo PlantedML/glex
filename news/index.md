@@ -1,6 +1,6 @@
 # Changelog
 
-## glex (development version)
+## glex 0.6.0
 
 - Extended compatibility with `xgboost`, now requiring
   `xgboost (>= 3.0.0)` in `Suggests:`
