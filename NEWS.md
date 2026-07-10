@@ -1,3 +1,13 @@
+# glex 0.6.0.9000 (development version)
+
+* `$shap` is now `NA` (with a warning) when the decomposition is constrained via
+  `max_interaction` or `features`: a constrained decomposition does not sum to the
+  full model prediction, so SHAP values cannot be reconstructed from it without
+  violating the efficiency property. Previously, misleading values were returned.
+* Tests that fit `randomPlantedForest` models are skipped on Windows for now: an
+  out-of-bounds read in randomPlantedForest's `purify_3()` crashes R there
+  (fixed upstream in PlantedML/randomPlantedForest#61, not yet merged).
+
 # glex 0.6.0
 
 * Extended compatibility with `xgboost`, now requiring `xgboost (>= 3.0.0)` in `Suggests:`

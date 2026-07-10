@@ -20,7 +20,11 @@
 #'
 #' @return Decomposition of the regression or classification function.
 #' A `list` with elements:
-#' * `shap`: SHAP values (`xgboost` method only).
+#' * `shap`: SHAP values (`xgboost` and `ranger` methods only). These are reconstructed
+#'   from the functional decomposition, which is only possible if the decomposition is
+#'   complete: if it is constrained via `max_interaction` or `features`, the components
+#'   no longer sum to the full model prediction and the SHAP efficiency property cannot
+#'   hold, so `shap` is set to `NA` (with a warning).
 #' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
 #'   The variable names correspond to the original variable names,
@@ -553,6 +557,43 @@ tree_fun_emp_fastPD <- function(
 }
 
 
+#' Upper bound on the interaction order present in the decomposition.
+#' Interactions can only arise between features sharing a root-to-leaf path, so
+#' per tree the order is bounded by both its depth and its number of distinct
+#' features; the model bound is the maximum over trees. This can overestimate
+#' (a path may split repeatedly on one feature), never underestimate.
+#' Read from the trees table rather than model metadata because ranger has no
+#' usable depth field (max.depth = 0 means unlimited) and xgboost's config
+#' parsing is version-fragile.
+#' Relies on child node ids being larger than their parent's, which holds for
+#' both xgb.model.dt.tree(use_int_id = TRUE) and ranger::treeInfo() numbering.
+#' @param trees data.table with columns Node, Yes, No, Feature_num, Tree;
+#'   leaves have Yes = NA
+#' @keywords internal
+#' @noRd
+max_order_bound <- function(trees) {
+  Tree <- Node <- NULL
+
+  max(vapply(
+    0:max(trees$Tree),
+    function(tree) {
+      tree_info <- trees[Tree == tree, ][order(Node)]
+      depth <- integer(nrow(tree_info))
+      for (i in seq_len(nrow(tree_info))) {
+        if (!is.na(tree_info$Yes[i])) {
+          depth[tree_info$Yes[i] + 1L] <- depth[i] + 1L
+          depth[tree_info$No[i] + 1L] <- depth[i] + 1L
+        }
+      }
+      n_features <- length(unique(tree_info$Feature_num[
+        tree_info$Feature_num > 0L
+      ]))
+      min(max(depth), n_features)
+    },
+    integer(1)
+  ))
+}
+
 #' Internal tree function wrapper that returns the actual tree function
 #' @param trees data.table
 #' @param x observerations, matrix like data-structure
@@ -676,6 +717,15 @@ calc_components <- function(
       1L
     all_S <- get_all_subsets_cpp(sort(unique(features_num)), max_interaction)
   }
+  # SHAP values can only be reconstructed from a complete decomposition: if terms
+  # are dropped via max_interaction or features, the components no longer sum to
+  # the full model prediction and the SHAP efficiency property cannot hold.
+  shap_valid <- max_interaction >= max_order_bound(trees)
+  if (!is.null(features)) {
+    used_features_num <- trees[Feature_num > 0, sort(unique(Feature_num))]
+    shap_valid <- shap_valid && all(used_features_num %in% features_num)
+  }
+
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
 
@@ -730,6 +780,15 @@ calc_components <- function(
     },
     FUN.VALUE = numeric(nrow(x))
   )
+
+  if (!shap_valid) {
+    warning(
+      "SHAP values set to NA: the decomposition is constrained by `max_interaction` or ",
+      "`features` and does not sum to the full model prediction, so SHAP values cannot ",
+      "be reconstructed from it (the efficiency property would be violated)."
+    )
+    shap[] <- NA_real_
+  }
 
   # Return shap values, decomposition and intercept
   ret <- list(

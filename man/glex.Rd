@@ -57,7 +57,11 @@ If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 Decomposition of the regression or classification function.
 A \code{list} with elements:
 \itemize{
-\item \code{shap}: SHAP values (\code{xgboost} method only).
+\item \code{shap}: SHAP values (\code{xgboost} and \code{ranger} methods only). These are reconstructed
+from the functional decomposition, which is only possible if the decomposition is
+complete: if it is constrained via \code{max_interaction} or \code{features}, the components
+no longer sum to the full model prediction and the SHAP efficiency property cannot
+hold, so \code{shap} is set to \code{NA} (with a warning).
 \item \code{m}: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by \code{max_interaction}.
 The variable names correspond to the original variable names,

@@ -17,14 +17,14 @@ test_that("max_interaction respects xgb's max_depth", {
 test_that("features argument only calculates for given features", {
   x <- as.matrix(mtcars[, -1])
   xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbosity = 0)
-  glexb <- glex(xg, x, features = c("cyl", "disp"))
+  glexb <- suppressWarnings(glex(xg, x, features = c("cyl", "disp")))
   expect_equal(colnames(glexb$m), c("cyl", "cyl:disp", "disp"))
 })
 
 test_that("features argument results in same values as without", {
   x <- as.matrix(mtcars[, -1])
   xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbosity = 0)
-  glexb1 <- glex(xg, x, features = c("cyl", "disp"))
+  glexb1 <- suppressWarnings(glex(xg, x, features = c("cyl", "disp")))
   glexb2 <- glex(xg, x)
   cols <- c("cyl", "disp", "cyl:disp")
   expect_equal(glexb1$m[, ..cols], glexb2$m[, ..cols])
@@ -33,10 +33,52 @@ test_that("features argument results in same values as without", {
 test_that("features argument works together with max_interaction", {
   x <- as.matrix(mtcars[, -1])
   xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbosity = 0)
-  glexb <- glex(xg, x, features = c("cyl", "disp"), max_interaction = 1)
+  glexb <- suppressWarnings(glex(
+    xg,
+    x,
+    features = c("cyl", "disp"),
+    max_interaction = 1
+  ))
   expect_equal(colnames(glexb$m), c("cyl", "disp"))
 })
 
+
+test_that("shap is NA when decomposition is constrained", {
+  set.seed(1)
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(
+    x,
+    mtcars$mpg,
+    nrounds = 10,
+    max_depth = 4,
+    verbosity = 0,
+    nthreads = 1
+  )
+
+  # constrained via max_interaction
+  expect_warning(
+    gl_mi <- glex(xg, x, max_interaction = 1),
+    "efficiency property"
+  )
+  expect_true(all(is.na(gl_mi$shap)))
+  expect_false(anyNA(gl_mi$m))
+
+  # constrained via features
+  expect_warning(
+    gl_ft <- glex(xg, x, features = c("cyl", "disp")),
+    "efficiency property"
+  )
+  expect_true(all(is.na(gl_ft$shap)))
+
+  # unconstrained: shap present and satisfies the efficiency property
+  gl_full <- glex(xg, x)
+  expect_false(anyNA(gl_full$shap))
+  expect_equal(
+    unname(gl_full$intercept + rowSums(gl_full$shap)),
+    unname(predict(xg, x)),
+    tolerance = 1e-5
+  )
+})
 
 x_train <- as.matrix(mtcars[1:26, -1])
 x_test <- as.matrix(mtcars[27:32, -1])

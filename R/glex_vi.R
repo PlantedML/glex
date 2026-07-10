@@ -45,7 +45,6 @@
 glex_vi <- function(object, ...) {
   checkmate::assert_class(object, classes = "glex")
 
-  # FIXME: data.table NSE warnings
   term <- degree <- m <- m_rel <- NULL
 
   m_long <- melt_m(object$m, object$target_levels)
