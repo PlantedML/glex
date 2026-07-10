@@ -1,3 +1,14 @@
+# glex (development version)
+
+* Plot colors are now configurable via `options()` and documented in `?glex_options`:
+  `glex.palette` (diverging scico palette for continuous interaction effects),
+  `glex.palette_discrete` (brewer palette for categorical predictors),
+  `glex.colors_sign` (negative/positive colors in `glex_explain()`), and
+  `glex.color_line` (main effect line/column color).
+* Default colors updated: continuous interaction effects now use the blue–white–red
+  scico palette `"vik"` (previously the cyclic `"vikO"`), and `glex_explain()` uses
+  blue/red sign colors following the convention of the Python `shap`/`shapiq` packages.
+
 # glex 0.5.2
 
 * **Fix newer xgboost R package compatibility**:

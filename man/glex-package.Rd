@@ -21,6 +21,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Marvin N. Wright \email{cran@wrig.de} (\href{https://orcid.org/0000-0002-8542-6291}{ORCID})
   \item Joseph Theo Meyer
   \item Munir Hiabu
   \item Lukas Burk \email{burk@leibniz-bips.de} (\href{https://orcid.org/0000-0001-7528-3795}{ORCID})
