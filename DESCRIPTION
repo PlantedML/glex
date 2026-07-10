@@ -1,7 +1,7 @@
 Type: Package
 Package: glex
 Title: Global Explanations for Tree-Based Models
-Version: 0.5.2
+Version: 0.6.0
 Authors@R: c(
     person(c("Marvin", "N."), "Wright", , "cran@wrig.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8542-6291")),
@@ -50,8 +50,8 @@ VignetteBuilder:
 Remotes:
     PlantedML/randomPlantedForest
 Additional_repositories: https://plantedml.r-universe.dev
+Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.0.0
