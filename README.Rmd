@@ -220,9 +220,9 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-xg <- xgboost(data = x[1:26, ], label = y[1:26],
-              params = list(max_depth = 3, eta = .1),
-              nrounds = 30, verbose = 0)
+xg <- xgboost(x[1:26, ], y[1:26],
+              max_depth = 3, learning_rate = .1,
+              nrounds = 30, verbosity = 0, nthreads = 1)
 
 ```
 

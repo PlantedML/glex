@@ -4,7 +4,7 @@ y_train <- mtcars$mpg[1:26]
 y_test <- mtcars$mpg[27:32]
 
 # xgboost
-xg <- xgboost(data = x_train, label = y_train, params = list(max_depth = 4, eta = .1), nrounds = 10, verbose = 0)
+xg <- xgboost(x_train, y_train, max_depth = 4, learning_rate = .1, nrounds = 10, verbosity = 0, nthreads = 1)
 pred_train <- predict(xg, x_train)
 pred_test <- predict(xg, x_test)
 

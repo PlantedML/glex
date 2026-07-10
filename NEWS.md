@@ -1,5 +1,8 @@
 # glex (development version)
 
+* Extended compatibility with `xgboost`, now requiring `xgboost (>= 3.0.0)` in `Suggests:`
+  - Updated tests and examples for the new API
+
 * Plot colors are now configurable via `options()` and documented in `?glex_options`:
   `glex.palette` (diverging palette for continuous interaction effects; `NULL` for the
   default shap-style gradient, or the name of a scico palette),

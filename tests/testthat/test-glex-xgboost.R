@@ -2,7 +2,7 @@ test_that("max_interaction respects xgb's max_depth", {
   set.seed(1)
   x <- as.matrix(mtcars[, -1])
 
-  xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbose = 0, max_depth = 2)
+  xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbosity = 0, max_depth = 2)
   glexb <- glex(xg, x)
   max_degree <- max(lengths(strsplit(names(glexb$m), split = ":", fixed = TRUE)))
 
@@ -12,14 +12,14 @@ test_that("max_interaction respects xgb's max_depth", {
 
 test_that("features argument only calculates for given features", {
   x <- as.matrix(mtcars[, -1])
-  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbose = 0)
+  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbosity = 0)
   glexb <- glex(xg, x, features = c("cyl", "disp"))
   expect_equal(colnames(glexb$m), c("cyl", "cyl:disp", "disp"))
 })
 
 test_that("features argument results in same values as without", {
   x <- as.matrix(mtcars[, -1])
-  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbose = 0)
+  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbosity = 0)
   glexb1 <- glex(xg, x, features = c("cyl", "disp"))
   glexb2 <- glex(xg, x)
   cols <- c("cyl", "disp", "cyl:disp")
@@ -28,7 +28,7 @@ test_that("features argument results in same values as without", {
 
 test_that("features argument works together with max_interaction", {
   x <- as.matrix(mtcars[, -1])
-  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbose = 0)
+  xg <- xgboost(x, mtcars$mpg, nrounds = 10, verbosity = 0)
   glexb <- glex(xg, x, features = c("cyl", "disp"), max_interaction = 1)
   expect_equal(colnames(glexb$m), c("cyl", "disp"))
 })
@@ -39,7 +39,7 @@ x_test <- as.matrix(mtcars[27:32, -1])
 y_train <- mtcars$mpg[1:26]
 y_test <- mtcars$mpg[27:32]
 
-xg <- xgboost(x_train, y_train, nrounds = 10, max_depth = 4, verbose = 0)
+xg <- xgboost(x_train, y_train, nrounds = 10, max_depth = 4, verbosity = 0)
 pred_train <- predict(xg, x_train)
 pred_test <- predict(xg, x_test)
 
