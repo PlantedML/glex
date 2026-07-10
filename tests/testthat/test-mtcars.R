@@ -4,7 +4,15 @@ y_train <- mtcars$mpg[1:26]
 y_test <- mtcars$mpg[27:32]
 
 # xgboost
-xg <- xgboost(x_train, y_train, max_depth = 4, learning_rate = .1, nrounds = 10, verbosity = 0, nthreads = 1)
+xg <- xgboost(
+  x_train,
+  y_train,
+  max_depth = 4,
+  learning_rate = .1,
+  nrounds = 10,
+  verbosity = 0,
+  nthreads = 1
+)
 pred_train <- predict(xg, x_train)
 pred_test <- predict(xg, x_test)
 
@@ -13,25 +21,33 @@ res_train <- glex(xg, x_train)
 res_test <- glex(xg, x_test)
 
 test_that("Prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(unname(res_train$intercept + rowSums(res_train$shap)),
-               unname(pred_train),
-               tolerance = 1e-5)
+  expect_equal(
+    unname(res_train$intercept + rowSums(res_train$shap)),
+    unname(pred_train),
+    tolerance = 1e-5
+  )
 })
 
 test_that("Prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(unname(res_test$intercept + rowSums(res_test$shap)),
-               unname(pred_test),
-               tolerance = 1e-5)
+  expect_equal(
+    unname(res_test$intercept + rowSums(res_test$shap)),
+    unname(pred_test),
+    tolerance = 1e-5
+  )
 })
 
 test_that("Prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(unname(res_train$intercept + rowSums(res_train$m)),
-               unname(pred_train),
-               tolerance = 1e-5)
+  expect_equal(
+    unname(res_train$intercept + rowSums(res_train$m)),
+    unname(pred_train),
+    tolerance = 1e-5
+  )
 })
 
 test_that("Prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(unname(res_test$intercept + rowSums(res_test$m)),
-               unname(pred_test),
-               tolerance = 1e-5)
+  expect_equal(
+    unname(res_test$intercept + rowSums(res_test$m)),
+    unname(pred_test),
+    tolerance = 1e-5
+  )
 })

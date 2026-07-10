@@ -35,7 +35,9 @@ glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' @export
 glex.default <- function(object, ...) {
   stop(
-    "`glex()` is not defined for a '", class(object)[1], "'.",
+    "`glex()` is not defined for a '",
+    class(object)[1],
+    "'.",
     call. = FALSE
   )
 }
@@ -55,12 +57,16 @@ glex.default <- function(object, ...) {
 #' }
 glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
-    stop(paste0("randomPlantedForest needs to be installed: ",
-                "remotes::install_github(\"PlantedML/randomPlantedForest\")"))
+    stop(paste0(
+      "randomPlantedForest needs to be installed: ",
+      "remotes::install_github(\"PlantedML/randomPlantedForest\")"
+    ))
   }
 
   ret <- randomPlantedForest::predict_components(
-    object = object, new_data = x, max_interaction = max_interaction,
+    object = object,
+    new_data = x,
+    max_interaction = max_interaction,
     predictors = features
   )
   # class(ret) <- c("glex", "rpf_components", class(ret))
@@ -90,17 +96,27 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #'               nrounds = 10, verbosity = 0, nthreads = 1)
 #' glex(xg, x[27:32, ])
 #' glex(xg, mtcars[27:32, ])
-#' 
+#'
 #' \dontrun{
 #' # Parallel execution
 #' doParallel::registerDoParallel()
 #' glex(xg, x[27:32, ])
 #' }
 #' }
-glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
+glex.xgb.Booster <- function(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  max_background_sample_size = NULL,
+  weighting_method = "fastpd",
+  ...
+) {
   if (!is.matrix(x)) {
     if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
-      stop("Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex.")
+      stop(
+        "Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex."
+      )
     }
     x <- as.matrix(x)
   }
@@ -122,7 +138,14 @@ glex.xgb.Booster <- function(object, x, max_interaction = NULL, features = NULL,
   trees$Type <- "<"
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, weighting_method, max_background_sample_size)
+  res <- calc_components(
+    trees,
+    x,
+    max_interaction,
+    features,
+    weighting_method,
+    max_background_sample_size
+  )
   res$intercept <- res$intercept + get_xgb_base_score(object)
 
   # Return components
@@ -152,7 +175,10 @@ get_xgb_base_score <- function(object) {
 
   parse_objective <- function(config) {
     if (is.list(config)) {
-      objective_name <- tryCatch(config$learner$objective$name, error = function(e) NULL)
+      objective_name <- tryCatch(
+        config$learner$objective$name,
+        error = function(e) NULL
+      )
       if (!is.null(objective_name) && length(objective_name) > 0) {
         return(as.character(objective_name[[1]]))
       }
@@ -162,7 +188,12 @@ get_xgb_base_score <- function(object) {
       m <- regexpr('"name"\\s*:\\s*"([^"]+)"', config, perl = TRUE)
       if (m != -1) {
         match_str <- regmatches(config, m)
-        objective_name <- sub('.*"name"\\s*:\\s*"([^"]+)".*', '\\1', match_str, perl = TRUE)
+        objective_name <- sub(
+          '.*"name"\\s*:\\s*"([^"]+)".*',
+          '\\1',
+          match_str,
+          perl = TRUE
+        )
         return(objective_name)
       }
     }
@@ -194,7 +225,10 @@ get_xgb_base_score <- function(object) {
   objective <- parse_objective(config)
 
   if (is.list(config)) {
-    base_score <- tryCatch(config$learner$learner_model_param$base_score, error = function(e) NULL)
+    base_score <- tryCatch(
+      config$learner$learner_model_param$base_score,
+      error = function(e) NULL
+    )
     if (!is.null(base_score)) {
       base_score_num <- parse_base_score(base_score)
       if (!is.na(base_score_num)) {
@@ -208,7 +242,12 @@ get_xgb_base_score <- function(object) {
     m <- regexpr('"base_score"\\s*:\\s*"?([^",}]+)"?', config, perl = TRUE)
     if (m != -1) {
       match_str <- regmatches(config, m)
-      base_score <- sub('.*"base_score"\\s*:\\s*"?([^",}]+)"?.*', '\\1', match_str, perl = TRUE)
+      base_score <- sub(
+        '.*"base_score"\\s*:\\s*"?([^",}]+)"?.*',
+        '\\1',
+        match_str,
+        perl = TRUE
+      )
       base_score_num <- parse_base_score(base_score)
       if (!is.na(base_score_num)) {
         return(base_score_to_margin(base_score_num, objective))
@@ -221,7 +260,9 @@ get_xgb_base_score <- function(object) {
     return(base_score_to_margin(base_score_attr, objective))
   }
 
-  warning("Could not determine xgboost base_score. Falling back to legacy default 0.5.")
+  warning(
+    "Could not determine xgboost base_score. Falling back to legacy default 0.5."
+  )
   0.5
 }
 
@@ -251,17 +292,27 @@ get_xgb_base_score <- function(object) {
 #'              node.stats = TRUE)
 #' glex(rf, x[27:32, ])
 #' glex(rf, mtcars[27:32, ])
-#' 
+#'
 #' \dontrun{
 #' # Parallel execution
 #' doParallel::registerDoParallel()
 #' glex(rf, x[27:32, ])
 #' }
 #' }
-glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_background_sample_size = NULL, weighting_method = "fastpd", ...) {
+glex.ranger <- function(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  max_background_sample_size = NULL,
+  weighting_method = "fastpd",
+  ...
+) {
   if (!is.matrix(x)) {
     if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
-      stop("Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex.")
+      stop(
+        "Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex."
+      )
     }
     x <- as.matrix(x)
   }
@@ -291,7 +342,7 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
 
   # Convert model into xgboost format
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
-    as.data.table(ranger::treeInfo(object, tree = i))[, tree := i-1]
+    as.data.table(ranger::treeInfo(object, tree = i))[, tree := i - 1]
   }))
   prediction_cols <- grep("^pred\\.", colnames(trees), value = TRUE)
   prediction_col <- if ("prediction" %in% colnames(trees)) {
@@ -300,7 +351,9 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
     # For binary probability forests, use the second class probability.
     prediction_cols[2L]
   } else if (length(prediction_cols) > 0L) {
-    stop("ranger classification with more than 2 classes is not supported by glex.ranger yet.")
+    stop(
+      "ranger classification with more than 2 classes is not supported by glex.ranger yet."
+    )
   } else {
     stop("Could not identify ranger prediction column from treeInfo output.")
   }
@@ -314,12 +367,40 @@ glex.ranger <- function(object, x, max_interaction = NULL, features = NULL, max_
   if (length(drop_cols) > 0L) {
     trees[, (drop_cols) := NULL]
   }
-  setcolorder(trees, c("nodeID", "leftChild", "rightChild", "splitvarName", "splitval", "numSamples", "splitStat", "tree"))
-  colnames(trees) <- c("Node", "Yes", "No", "Feature", "Split", "Cover", "Gain", "Tree")
+  setcolorder(
+    trees,
+    c(
+      "nodeID",
+      "leftChild",
+      "rightChild",
+      "splitvarName",
+      "splitval",
+      "numSamples",
+      "splitStat",
+      "tree"
+    )
+  )
+  colnames(trees) <- c(
+    "Node",
+    "Yes",
+    "No",
+    "Feature",
+    "Split",
+    "Cover",
+    "Gain",
+    "Tree"
+  )
   trees$Type <- "<="
 
   # Calculate components
-  res <- calc_components(trees, x, max_interaction, features, weighting_method, max_background_sample_size)
+  res <- calc_components(
+    trees,
+    x,
+    max_interaction,
+    features,
+    weighting_method,
+    max_background_sample_size
+  )
 
   # Divide everything by the number of trees
   res$shap <- res$shap / object$num.trees
@@ -345,7 +426,13 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   is_weak_inequality <- tree_info$Type[1] == "<="
 
   # Call the optimized C++ function
-  m_all <- explainTreePathDependent(x, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  m_all <- explainTreePathDependent(
+    x,
+    tree_mat,
+    lapply(all_S, function(S) S - 1L),
+    max_interaction,
+    is_weak_inequality
+  )
 
   # The C++ function returns the final m_all matrix with column names
   m_all
@@ -389,19 +476,36 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
 
   subsets_in_tree <- setdiff(tree_info[, sort(unique(Feature_num))], 0L)
   U <- get_all_subsets_cpp(subsets_in_tree, max_interaction)
-  mat <- recurseRcppEmpProbfunction(x,
-    tree_info$Feature_num, tree_info$Split,
-    tree_info$Yes, tree_info$No,
-    tree_info$Gain, lb, ub, integer(0), U, 0)
+  mat <- recurseRcppEmpProbfunction(
+    x,
+    tree_info$Feature_num,
+    tree_info$Split,
+    tree_info$Yes,
+    tree_info$No,
+    tree_info$Gain,
+    lb,
+    ub,
+    integer(0),
+    U,
+    0
+  )
 
-  colnames(mat) <- vapply(U, function(u) {
-    paste(sort(colnames(x)[u]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  colnames(mat) <- vapply(
+    U,
+    function(u) {
+      paste(sort(colnames(x)[u]), collapse = ":")
+    },
+    FUN.VALUE = character(1)
+  )
   # Init m matrix
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
-  colnames(m_all) <- vapply(all_S, function(s) {
-    paste(sort(colnames(x)[s]), collapse = ":")
-  }, FUN.VALUE = character(1))
+  colnames(m_all) <- vapply(
+    all_S,
+    function(s) {
+      paste(sort(colnames(x)[s]), collapse = ":")
+    },
+    FUN.VALUE = character(1)
+  )
 
   # Calculate contribution, use only selected features and subsets with not more than max_interaction involved features
   for (S in intersect(U, all_S)) {
@@ -411,14 +515,21 @@ tree_fun_emp <- function(tree, trees, x, all_S, max_interaction) {
     } else {
       colnum <- which(colnames(m_all) == colname)
     }
-    contribute(mat, m_all, S, subsets_in_tree, U, colnum-1)
+    contribute(mat, m_all, S, subsets_in_tree, U, colnum - 1)
   }
 
   # Return m matrix
   m_all
 }
 
-tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_interaction) {
+tree_fun_emp_fastPD <- function(
+  tree,
+  trees,
+  x,
+  background_sample,
+  all_S,
+  max_interaction
+) {
   # Calculate matrix
   tree_info <- trees[get("Tree") == tree, ]
   max_node <- max(tree_info$Node)
@@ -430,7 +541,14 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
   tree_mat <- as.matrix(tree_mat)
 
   is_weak_inequality <- tree_info$Type[1] == "<="
-  m_all <- explainTreeFastPDBitmask(x, background_sample, tree_mat, lapply(all_S, function(S) S - 1L), max_interaction, is_weak_inequality)
+  m_all <- explainTreeFastPDBitmask(
+    x,
+    background_sample,
+    tree_mat,
+    lapply(all_S, function(S) S - 1L),
+    max_interaction,
+    is_weak_inequality
+  )
   m_all
 }
 
@@ -442,37 +560,68 @@ tree_fun_emp_fastPD <- function(tree, trees, x, background_sample, all_S, max_in
 #' @param weighting_method the weighting method that was supplied to \code{glex}
 #' @keywords internal
 #' @noRd
-tree_fun_wrapper <- function(trees, x, all_S, weighting_method, max_interaction, max_background_sample_size) {
+tree_fun_wrapper <- function(
+  trees,
+  x,
+  all_S,
+  weighting_method,
+  max_interaction,
+  max_background_sample_size
+) {
   if (is.null(weighting_method)) {
     weighting_method <- "fastpd"
   }
 
   checkmate::assert_string(weighting_method)
   if (weighting_method == "path-dependent") {
-    return(function(tree) tree_fun_path_dependent(tree, trees, x, all_S, max_interaction))
-  }
-  else if (weighting_method == "empirical") {
+    return(function(tree) {
+      tree_fun_path_dependent(tree, trees, x, all_S, max_interaction)
+    })
+  } else if (weighting_method == "empirical") {
     if (trees$Type[1] != "<=") {
-      warning("Using `weighting_method = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`weighting_method = 'fastpd'`) instead.")
+      warning(
+        "Using `weighting_method = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`weighting_method = 'fastpd'`) instead."
+      )
     }
     return(function(tree) tree_fun_emp(tree, trees, x, all_S, max_interaction))
   } else if (weighting_method == "fastpd") {
     if (max_background_sample_size > nrow(x)) {
-      warning("max_background_sample_size is larger than the number of observations in x. Using all observations.")
+      warning(
+        "max_background_sample_size is larger than the number of observations in x. Using all observations."
+      )
     }
-    background_sample <- x[sample(nrow(x), min(max_background_sample_size, nrow(x))), ]
+    background_sample <- x[
+      sample(nrow(x), min(max_background_sample_size, nrow(x))),
+    ]
 
-    return(function(tree) tree_fun_emp_fastPD(tree, trees, x, background_sample, all_S, max_interaction))
+    return(function(tree) {
+      tree_fun_emp_fastPD(
+        tree,
+        trees,
+        x,
+        background_sample,
+        all_S,
+        max_interaction
+      )
+    })
   } else {
-    stop("The weighting method can either be 'path-dependent', 'empirical', or 'fastpd'")
+    stop(
+      "The weighting method can either be 'path-dependent', 'empirical', or 'fastpd'"
+    )
   }
 }
 
 #' Internal function to calculate the components
 #' @keywords internal
 #' @noRd
-calc_components <- function(trees, x, max_interaction, features, weighting_method = NULL, max_background_sample_size = nrow(x)) {
-
+calc_components <- function(
+  trees,
+  x,
+  max_interaction,
+  features,
+  weighting_method = NULL,
+  max_background_sample_size = nrow(x)
+) {
   # data.table NSE global variable workaround
   Feature <- NULL
   Feature_num <- NULL
@@ -480,31 +629,51 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
 
   # Convert features to numerics (leaf = 0)
   unique_features_in_tree <- unique(trees$Feature)
-  unique_features_in_tree <- unique_features_in_tree[unique_features_in_tree != "Leaf"]
-  all_is_integer <- suppressWarnings(all(!is.na(as.integer(unique_features_in_tree))))
+  unique_features_in_tree <- unique_features_in_tree[
+    unique_features_in_tree != "Leaf"
+  ]
+  all_is_integer <- suppressWarnings(all(
+    !is.na(as.integer(unique_features_in_tree))
+  ))
 
   if (all_is_integer) {
     trees[Feature == "Leaf", Feature_num := 0L]
     trees[Feature != "Leaf", Feature_num := as.integer(Feature) + 1L]
   } else {
-    trees[, Feature_num := as.integer(factor(Feature, levels = c("Leaf", colnames(x)))) - 1L]
+    trees[,
+      Feature_num := as.integer(factor(
+        Feature,
+        levels = c("Leaf", colnames(x))
+      )) -
+        1L
+    ]
   }
 
   # Calculate coverage from theoretical distribution, if given
 
   if (is.null(features)) {
     # All subsets S (that appear in any of the trees)
-    all_S <- unique(do.call(c,lapply(0:max(trees$Tree), function(tree) {
-      unique_features <- trees[Tree == tree & Feature_num > 0, sort(unique(Feature_num))]
-      s <- get_all_subsets_cpp(unique_features, max_interaction)
-      s
-    })))
+    all_S <- unique(do.call(
+      c,
+      lapply(0:max(trees$Tree), function(tree) {
+        unique_features <- trees[
+          Tree == tree & Feature_num > 0,
+          sort(unique(Feature_num))
+        ]
+        s <- get_all_subsets_cpp(unique_features, max_interaction)
+        s
+      })
+    ))
   } else {
     # All subsets with supplied features
     if (!all(features %in% colnames(x))) {
       stop("All selected features have to be column names of x.")
     }
-    features_num <- as.integer(factor(features, levels = c("Leaf", colnames(x)))) - 1L
+    features_num <- as.integer(factor(
+      features,
+      levels = c("Leaf", colnames(x))
+    )) -
+      1L
     all_S <- get_all_subsets_cpp(sort(unique(features_num)), max_interaction)
   }
   # Keep only those with not more than max_interaction involved features
@@ -514,7 +683,14 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
   j <- NULL
   idx <- 0:max(trees$Tree)
 
-  tree_fun <- tree_fun_wrapper(trees, x, all_S, weighting_method, max_interaction, max_background_sample_size)
+  tree_fun <- tree_fun_wrapper(
+    trees,
+    x,
+    all_S,
+    weighting_method,
+    max_interaction,
+    max_background_sample_size
+  )
   m_all <- matrix(0, nrow = nrow(x), ncol = length(all_S))
   pb <- progress::progress_bar$new(
     format = "  Explaining trees... [:bar] :percent   Tree :current/:total   ETA :eta",
@@ -523,10 +699,11 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
     width = 60,
   )
   if (foreach::getDoParRegistered()) {
-    m_all <- foreach(j = idx, .combine = "+") %dopar% {
-      pb$tick()
-      tree_fun(j)
-    }
+    m_all <- foreach(j = idx, .combine = "+") %dopar%
+      {
+        pb$tick()
+        tree_fun(j)
+      }
   } else {
     for (j in idx) {
       pb$tick()
@@ -540,15 +717,19 @@ calc_components <- function(trees, x, max_interaction, features, weighting_metho
   interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
 
   # SHAP values are the sum of the m's * 1/d
-  shap <- vapply(colnames(x), function(col) {
-    idx <- find_term_matches(col, colnames(interactions))
+  shap <- vapply(
+    colnames(x),
+    function(col) {
+      idx <- find_term_matches(col, colnames(interactions))
 
-    if (length(idx) == 0) {
-      numeric(nrow(interactions))
-    } else {
-      rowSums(interactions[, idx, drop = FALSE])
-    }
-  }, FUN.VALUE = numeric(nrow(x)))
+      if (length(idx) == 0) {
+        numeric(nrow(interactions))
+      } else {
+        rowSums(interactions[, idx, drop = FALSE])
+      }
+    },
+    FUN.VALUE = numeric(nrow(x))
+  )
 
   # Return shap values, decomposition and intercept
   ret <- list(
