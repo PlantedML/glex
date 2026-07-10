@@ -1,0 +1,8 @@
+[format]
+line-width = 120              # More lenient than common 80
+indent-width = 2
+indent-style = "space"
+line-ending = "lf"
+persistent-line-breaks = true # preserve existing line breaks when reformatting
+default-exclude = true        # use built-in default exclusions
+assignment-style = "arrow"
