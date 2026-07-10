@@ -83,14 +83,30 @@ diverging_palette <- function(...) {
     title.vjust = 1
   )
 
-  scico::scale_color_scico(
-    palette = getOption("glex.palette", "vik"),
-    guide = guide_colorbar,
-    midpoint = 0,
-    begin = 0.1,
-    end = 0.9,
-    ...
-  )
+  pal <- getOption("glex.palette", NULL)
+
+  if (is.null(pal)) {
+    # Default: shap/shapiq-style gradient built from the same endpoints
+    # as the sign colors used in glex_explain()
+    cols <- sign_colors()
+    ggplot2::scale_color_gradient2(
+      low = cols[["-1"]],
+      mid = "#F7F7F7",
+      high = cols[["1"]],
+      midpoint = 0,
+      guide = guide_colorbar,
+      ...
+    )
+  } else {
+    scico::scale_color_scico(
+      palette = pal,
+      guide = guide_colorbar,
+      midpoint = 0,
+      begin = 0.1,
+      end = 0.9,
+      ...
+    )
+  }
 }
 
 #' Consistent discrete color scale for categorical predictors

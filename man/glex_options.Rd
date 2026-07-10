@@ -9,14 +9,19 @@ adjusted globally via \code{\link[=options]{options()}}:
 }
 \details{
 \describe{
-\item{\code{glex.palette}}{(\code{"vik"}) Name of a diverging \link[scico:scico]{scico}
-palette used to color continuous interaction effects in
-\code{\link[=plot_twoway_effects]{plot_twoway_effects()}} and \code{\link[=plot_threeway_effects]{plot_threeway_effects()}}.}
+\item{\code{glex.palette}}{(\code{NULL}) Diverging palette used to color continuous
+interaction effects in \code{\link[=plot_twoway_effects]{plot_twoway_effects()}} and
+\code{\link[=plot_threeway_effects]{plot_threeway_effects()}}. The default \code{NULL} uses a blue/red gradient
+built from \code{glex.colors_sign}, matching the look of the Python \code{shap}
+and \code{shapiq} packages. Set to the name of a diverging
+\link[scico:scico]{scico} palette (e.g. \code{"vik"}, \code{"roma"}) to use that
+instead.}
 \item{\code{glex.palette_discrete}}{(\code{"Dark2"}) Name of a discrete
 \link[ggplot2:scale_color_brewer]{RColorBrewer} palette used to color
 categorical predictors in interaction plots.}
 \item{\code{glex.colors_sign}}{(\code{c("#008BFB", "#FF0051")}) Two colors for
-negative and positive contributions in \code{\link[=glex_explain]{glex_explain()}}. The defaults
+negative and positive contributions in \code{\link[=glex_explain]{glex_explain()}}, also used as
+the endpoints of the default continuous gradient. The defaults
 follow the blue/red convention familiar from the Python \code{shap} and
 \code{shapiq} packages.}
 \item{\code{glex.color_line}}{(\code{"#194155"}) Color for main effect lines and
@@ -24,10 +29,10 @@ columns drawn by \code{autoplot()} and \code{\link[=plot_pdp]{plot_pdp()}}.}
 }
 }
 \examples{
-# Align continuous effects with a different scico palette
+# Use a scico palette for continuous effects instead of the default gradient
 options(glex.palette = "roma")
 
-# Restore defaults
+# Restore the default shap-style gradient
 options(glex.palette = NULL)
 
 }
