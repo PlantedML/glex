@@ -1,5 +1,12 @@
+# These tests crash R on Windows: randomPlantedForest's purify_3() has an
+# out-of-bounds read (grid sized lim_list[dim-1].size() instead of .size() - 1
+# in src/lib/rpf.cpp, read at gridPoint + 1) that these tests happen to trigger.
+# Fixed upstream in https://github.com/PlantedML/randomPlantedForest/pull/61 —
+# remove the skips once that (or a minimal fix) is merged.
+
 test_that("rpf binary: FastPD sum identity matches predicted class probability", {
   skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
 
   rp <- randomPlantedForest::rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex::glex(rp, xdat, weighting_method = "fastpd")
@@ -14,6 +21,7 @@ test_that("rpf binary: FastPD sum identity matches predicted class probability",
 
 test_that("rpf binary: path-dependent sum identity matches predicted class probability", {
   skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
 
   rp <- randomPlantedForest::rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex::glex(rp, xdat, weighting_method = "path-dependent")
@@ -28,6 +36,7 @@ test_that("rpf binary: path-dependent sum identity matches predicted class proba
 
 test_that("rpf multiclass: classwise sum identity matches predicted probabilities", {
   skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
 
   rp <- randomPlantedForest::rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex::glex(rp, xdat)
