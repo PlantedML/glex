@@ -5,6 +5,7 @@
 # Regression / rpf ------------------------------------------------------------------------------------------------
 test_that("regression rpf", {
   skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see test-rpf-sum-identity.R
   mtcars$cyl <- factor(mtcars$cyl)
   rp <- rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
   gl <- glex(rp, mtcars)
@@ -16,6 +17,7 @@ test_that("regression rpf", {
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {
   skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see test-rpf-sum-identity.R
   rp <- rpf(y ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
@@ -33,6 +35,7 @@ test_that("binary rpf", {
 # Multiclass / rpf ------------------------------------------------------------------------------------------------
 test_that("multiclass rpf", {
   skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see test-rpf-sum-identity.R
   rp <- rpf(yk ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
