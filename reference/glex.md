@@ -130,7 +130,7 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat     : num [1:6] 2.94 -0.503 2.94 -0.423 -0.423 ...
 #>   ..$ wt       : num [1:6] 1.621 1.569 0.465 0.814 -1.043 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5630e8791a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55c435a35a10> 
 #>  $ intercept: num 20.1
 #>  $ x        :Classes ‘data.table’ and 'data.frame':  6 obs. of  10 variables:
 #>   ..$ cyl : num [1:6] 4 4 8 6 8 4
@@ -139,7 +139,7 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5630e8791a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55c435a35a10> 
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 # xgboost -----
 if (requireNamespace("xgboost", quietly = TRUE)) {
