@@ -4,7 +4,11 @@ test_that("max_interaction respects xgb's max_depth", {
 
   xg <- xgboost(x, mtcars$mpg, nrounds = 50, verbosity = 0, max_depth = 2)
   glexb <- glex(xg, x)
-  max_degree <- max(lengths(strsplit(names(glexb$m), split = ":", fixed = TRUE)))
+  max_degree <- max(lengths(strsplit(
+    names(glexb$m),
+    split = ":",
+    fixed = TRUE
+  )))
 
   # The maximum interaction degree is 2^d - 1 = 4 - 1 = 3
   expect_equal(max_degree, 3)
@@ -46,33 +50,47 @@ pred_test <- predict(xg, x_test)
 res_train <- glex(xg, x_train, max_interaction = 4, weighting_method = "fastpd")
 res_test <- glex(xg, x_test, max_interaction = 4, weighting_method = "fastpd")
 
-res_train_path <- glex(xg, x_train, max_interaction = 4, weighting_method = "path-dependent")
-res_test_path <- glex(xg, x_test, max_interaction = 4, weighting_method = "path-dependent")
+res_train_path <- glex(
+  xg,
+  x_train,
+  max_interaction = 4,
+  weighting_method = "path-dependent"
+)
+res_test_path <- glex(
+  xg,
+  x_test,
+  max_interaction = 4,
+  weighting_method = "path-dependent"
+)
 
 
 test_that("FastPD xgboost prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(unname(res_train$intercept + rowSums(res_train$shap)),
+  expect_equal(
+    unname(res_train$intercept + rowSums(res_train$shap)),
     unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("FastPD xgboost prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(unname(res_test$intercept + rowSums(res_test$shap)),
+  expect_equal(
+    unname(res_test$intercept + rowSums(res_test$shap)),
     unname(pred_test),
     tolerance = 1e-5
   )
 })
 
 test_that("FastPD xgboost prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(unname(res_train$intercept + rowSums(res_train$m)),
+  expect_equal(
+    unname(res_train$intercept + rowSums(res_train$m)),
     unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("FastPD xgboost prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(unname(res_test$intercept + rowSums(res_test$m)),
+  expect_equal(
+    unname(res_test$intercept + rowSums(res_test$m)),
     unname(pred_test),
     tolerance = 1e-5
   )
@@ -80,28 +98,32 @@ test_that("FastPD xgboost prediction is approx. same as sum of decomposition + i
 
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(unname(res_train_path$intercept + rowSums(res_train_path$shap)),
+  expect_equal(
+    unname(res_train_path$intercept + rowSums(res_train_path$shap)),
     unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(unname(res_test_path$intercept + rowSums(res_test_path$shap)),
+  expect_equal(
+    unname(res_test_path$intercept + rowSums(res_test_path$shap)),
     unname(pred_test),
     tolerance = 1e-5
   )
 })
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(unname(res_train_path$intercept + rowSums(res_train_path$m)),
+  expect_equal(
+    unname(res_train_path$intercept + rowSums(res_train_path$m)),
     unname(pred_train),
     tolerance = 1e-5
   )
 })
 
 test_that("Path-dependent xgboost prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(unname(res_test_path$intercept + rowSums(res_test_path$m)),
+  expect_equal(
+    unname(res_test_path$intercept + rowSums(res_test_path$m)),
     unname(pred_test),
     tolerance = 1e-5
   )
@@ -129,7 +151,12 @@ test_that("xgboost models with different base_score values are reconstructed cor
     )
 
     pred_bs <- predict(xg_bs, x_test)
-    res_bs <- glex(xg_bs, x_test, max_interaction = 4, weighting_method = "fastpd")
+    res_bs <- glex(
+      xg_bs,
+      x_test,
+      max_interaction = 4,
+      weighting_method = "fastpd"
+    )
 
     expect_equal(
       get_xgb_base_score(xg_bs),
