@@ -136,7 +136,7 @@ str(components$m, list.len = 8)
 #>  $ weathersit                     : num  4.29 4.29 4.29 4.29 4.29 ...
 #>  $ season                         : num  -24 -24 -24 -24 -24 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<pointer: 0x55eba2139ee0>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x55922d725ee0>
 ```
 
 Please note that fitting the model, purification, and the extraction of
