@@ -44,12 +44,12 @@ glex(rp, mtcars[27:32, ])
 #>   ..$ hp:wt  : num [1:6] 0.21143 0.00946 -0.00105 -0.29992 -0.16586 ...
 #>   ..$ drat:hp: num [1:6] 0.2645 -0.0681 0.1689 0.0802 -0.0323 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<externalptr> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560ab86faa10> 
 #>  $ intercept: num 20.2
 #>  $ x        :Classes ‘data.table’ and 'data.frame':  6 obs. of  3 variables:
 #>   ..$ hp  : num [1:6] 91 113 264 175 335 109
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
-#>   ..- attr(*, ".internal.selfref")=<externalptr> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560ab86faa10> 
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 ```

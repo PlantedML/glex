@@ -24,6 +24,8 @@ Visualize main and interaction terms
   : Plot glex Variable Importances
 - [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
   : Explain a single prediction
+- [`glex_options`](http://plantedml.com/glex/reference/glex_options.md)
+  : Package options for glex plots
 
 ## Utility functions
 

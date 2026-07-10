@@ -22,6 +22,9 @@ Useful links:
 
 Authors:
 
+- Marvin N. Wright <cran@wrig.de>
+  ([ORCID](https://orcid.org/0000-0002-8542-6291))
+
 - Joseph Theo Meyer
 
 - Munir Hiabu

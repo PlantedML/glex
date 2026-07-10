@@ -1,9 +1,15 @@
 # Bikesharing: Decomposition with Random Planted Forest
 
 ``` r
+
 library(glex)
 library(randomPlantedForest)
 library(data.table)
+#> 
+#> Attaching package: 'data.table'
+#> The following object is masked from 'package:base':
+#> 
+#>     %notin%
 library(ISLR2) # For Bikeshare dataset
 library(ggplot2)
 library(patchwork) # To arrange plots
@@ -34,6 +40,7 @@ We recode the `hr` variable from a 24-level `factor` to a numeric
 column.
 
 ``` r
+
 data(Bikeshare)
 bike <- data.table(Bikeshare)
 bike[, hr := as.numeric(as.character(hr))]
@@ -75,6 +82,7 @@ decomposition. This step is not required for global predictions and may
 take some time, which is why it is implemented as a separate step.
 
 ``` r
+
 rp <- rpf(
   bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit + season,
   data = bike,
@@ -111,6 +119,7 @@ interactions. The resulting object also contains the original data as
 `x`, which we need for later visualization.
 
 ``` r
+
 vars <- c("hr", "temp", "workingday", "hum", "weathersit", "season")
 
 components <- glex(rp, bike, predictors = vars)
@@ -127,17 +136,18 @@ str(components$m, list.len = 8)
 #>  $ weathersit                     : num  4.29 4.29 4.29 4.29 4.29 ...
 #>  $ season                         : num  -24 -24 -24 -24 -24 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<externalptr>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x562140d33ee0>
 ```
 
 Please note that fitting the model, purification, and the extraction of
 the components may take some time, depending on available resources and
-the size of the data. For example, the above steps took around 260
+the size of the data. For example, the above steps took around 300
 seconds to complete on GitHub Actions.
 
 ## Main Effects
 
 ``` r
+
 p_main <- plot_main_effect(components, "temp") +
   plot_main_effect(components, "hr") +
   plot_main_effect(components, "workingday")
@@ -150,6 +160,7 @@ p_main + plot_layout(widths = c(.3, .3, .4))
 ## 2-Way Interactions
 
 ``` r
+
 p_2way1 <- plot_twoway_effects(components, c("workingday", "temp"))
 p_2way2 <- plot_twoway_effects(components, c("hr", "workingday"))
 p_2way3 <- plot_twoway_effects(components, c("hr", "temp"))
@@ -169,6 +180,7 @@ p_2way
 ## 3-Way Interaction
 
 ``` r
+
 p_3way <- plot_threeway_effects(components, c("hr", "temp", "workingday"))
 
 p_3way
@@ -179,6 +191,7 @@ p_3way
 ## Everything Together
 
 ``` r
+
 p_main / p_2way / p_3way + 
   plot_layout(heights = c(.2, .5, .3))
 ```
@@ -194,6 +207,7 @@ and passing each to `plot_main_effect`, then collecting the plots with
 [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html):
 
 ``` r
+
 wrap_plots(lapply(vars, plot_main_effect, object = components))
 ```
 
@@ -204,30 +218,35 @@ its arguments on to the specialized `plot_*` functions, depending on the
 number of predictors supplied.
 
 ``` r
+
 autoplot(components, c("season", "workingday"))
 ```
 
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-1.png)
 
 ``` r
+
 autoplot(components, c("season", "hr"))
 ```
 
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-2.png)
 
 ``` r
+
 autoplot(components, c("season", "weathersit"))
 ```
 
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-3.png)
 
 ``` r
+
 autoplot(components, c("weathersit", "temp"))
 ```
 
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-4-4.png)
 
 ``` r
+
 autoplot(components, c("hum", "temp"))
 ```
 
@@ -236,18 +255,21 @@ autoplot(components, c("hum", "temp"))
 3rd degree interactions can be tricky, if they have any effect at all.
 
 ``` r
+
 autoplot(components, c("season", "hr", "weathersit"))
 ```
 
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-1.png)
 
 ``` r
+
 autoplot(components, c("workingday", "hr", "season"))
 ```
 
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-2.png)
 
 ``` r
+
 # Hard to interpret
 autoplot(components, c("workingday", "hr", "weathersit"))
 ```
@@ -255,6 +277,7 @@ autoplot(components, c("workingday", "hr", "weathersit"))
 ![](Bikesharing-Decomposition-rpf_files/figure-html/unnamed-chunk-5-3.png)
 
 ``` r
+
 # zero effect
 autoplot(components, c("weathersit", "season", "workingday"))
 ```

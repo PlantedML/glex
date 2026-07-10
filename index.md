@@ -44,6 +44,7 @@ You can install the development version of glex from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("PlantedML/glex")
 ```
@@ -51,6 +52,7 @@ pak::pak("PlantedML/glex")
 or from [r-universe](https://plantedml.r-universe.dev/packages) with
 
 ``` r
+
 install.packages("glex", repos = "https://plantedml.r-universe.dev")
 ```
 
@@ -58,11 +60,11 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 `glex` currently provides methods for the model classes below.
 
-| Model package         | Model class   | Regression | Binary classification       | Multiclass classification | Link function(s)                                                                | Notes                                                                                                                                                                                                                                    |
-|-----------------------|---------------|------------|-----------------------------|---------------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `xgboost`             | `xgb.Booster` | Yes        | Yes\*                       | Not yet fully supported   | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.                                                                 |
-| `randomPlantedForest` | `rpf`         | Yes        | Yes                         | Yes                       | Not applicable                                                                  | Native support for multiclass terms in plotting and variable importance workflows.                                                                                                                                                       |
-| `ranger`              | `ranger`      | Yes        | Yes\* (probability forests) | Not yet supported         | Not applicable                                                                  | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
+| Model package | Model class | Regression | Binary classification | Multiclass classification | Link function(s) | Notes |
+|----|----|----|----|----|----|----|
+| `xgboost` | `xgb.Booster` | Yes | Yes\* | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. |
+| `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Not applicable | Native support for multiclass terms in plotting and variable importance workflows. |
+| `ranger` | `ranger` | Yes | Yes\* (probability forests) | Not yet supported | Not applicable | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
@@ -72,33 +74,45 @@ a suggestion, please open an issue on our GitHub repository.
 For generalized objectives, XGBoost outputs an additive raw-score
 (margin) function:
 
-$$\eta(x) = b + \sum\limits_{t = 1}^{T}f_{t}(x),\qquad\mu(x) = g^{- 1}\left( \eta(x) \right).$$
+``` math
+\eta(x) = b + \sum_{t=1}^{T} f_t(x), \qquad \mu(x)=g^{-1}(\eta(x)).
+```
 
-Here, $b$ is the global bias term (`base_score` on the margin scale),
-and each $f_{t}$ is the prediction function of tree $t$ (its leaf weight
-for input $x$). In other words, the XGBoost model output is $\eta(x)$
-itself; response-scale prediction is obtained by applying the
-objective-specific inverse link $g^{- 1}$ to that output.  
+Here, $`b`$ is the global bias term (`base_score` on the margin scale),
+and each $`f_t`$ is the prediction function of tree $`t`$ (its leaf
+weight for input $`x`$). In other words, the XGBoost model output is
+$`\eta(x)`$ itself; response-scale prediction is obtained by applying
+the objective-specific inverse link $`g^{-1}`$ to that output.  
 [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes
-$\eta(x)$, not $\mu(x)$. The decomposition is
+$`\eta(x)`$, not $`\mu(x)`$. The decomposition is
 
-$$\eta(x) = m_{\varnothing} + \sum\limits_{S \neq \varnothing}m_{S}\left( x_{S} \right) = m_{\varnothing} + \sum\limits_{k = 1}^{p}\phi_{k}(x),$$
+``` math
+\eta(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S) = m_{\emptyset} + \sum_{k=1}^{p} \phi_k(x),
+```
 
-where $m_{\varnothing}$ is the intercept term, $m_{S}$ are the
-functional ANOVA components indexed by feature subsets $S$, and
-$\phi_{k}$ are SHAP values aggregated per feature $k$. This margin
+where $`m_{\emptyset}`$ is the intercept term, $`m_S`$ are the
+functional ANOVA components indexed by feature subsets $`S`$, and
+$`\phi_k`$ are SHAP values aggregated per feature $`k`$. This margin
 equals `predict(model, x, outputmargin = TRUE)`.  
 Predictions on response scale are obtained by applying the inverse link:
 
-$$\mu(x) = g^{- 1}\left( \eta(x) \right) = g^{- 1}\left( m_{\varnothing} + \sum\limits_{S \neq \varnothing}m_{S}\left( x_{S} \right) \right).$$
+``` math
+\mu(x)=g^{-1}(\eta(x))=g^{-1}\left(m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S)\right).
+```
 
 This yields the objective-specific identities:
 
-$$\text{identity link:}\quad\mu(x) = \eta(x)$$
+``` math
+\text{identity link:}\quad \mu(x)=\eta(x)
+```
 
-$$\text{logistic link (binary:logistic):}\quad\mu(x) = \sigma\left( \eta(x) \right) = \frac{1}{1 + e^{- \eta{(x)}}}$$
+``` math
+\text{logistic link (binary:logistic):}\quad \mu(x)=\sigma(\eta(x))=\frac{1}{1+e^{-\eta(x)}}
+```
 
-$$\text{log link (count:poisson, reg:gamma, reg:tweedie):}\quad\mu(x) = \exp\left( \eta(x) \right)$$
+``` math
+\text{log link (count:poisson, reg:gamma, reg:tweedie):}\quad \mu(x)=\exp(\eta(x))
+```
 
 For custom objectives, XGBoost does not provide a built-in response
 transform. In that case, run
@@ -110,6 +124,7 @@ decompose the raw margin, then apply your own inverse link
 predictions.
 
 ``` r
+
 x <- as.matrix(mtcars[, -1])
 y_bin <- as.numeric(mtcars$mpg > median(mtcars$mpg))
 
@@ -149,37 +164,52 @@ max(abs(pred_prob - prob_from_glex))
 
 Binary logistic example (`objective = "binary:logistic"`):
 
-In this case $\eta(x)$ is log-odds and the inverse link is the logistic
-map:
+In this case $`\eta(x)`$ is log-odds and the inverse link is the
+logistic map:
 
-$$F(x) = b + \sum\limits_{t = 1}^{T}f_{t}(x),\qquad p(x) = \sigma\left( F(x) \right) = \frac{1}{1 + e^{- F{(x)}}}.$$
+``` math
+F(x) = b + \sum_{t=1}^{T} f_t(x), \qquad p(x) = \sigma(F(x)) = \frac{1}{1 + e^{-F(x)}}.
+```
 
 XGBoost optimizes logistic loss directly in this margin:
 
-$$\ell(y,F) = - \left\lbrack y\log\sigma(F) + (1 - y)\log\left( 1 - \sigma(F) \right) \right\rbrack.$$
+``` math
+\ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
+```
 
 [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes the
 margin additively into interaction components indexed by feature subsets
-$S$:
+$`S`$:
 
-$$F(x) = m_{\varnothing} + \sum\limits_{S \neq \varnothing}m_{S}\left( x_{S} \right),$$
+``` math
+F(x) = m_{\emptyset} + \sum_{S \neq \emptyset} m_S(x_S),
+```
 
-where `intercept` is $m_{\varnothing}$ and `m` stores $m_{S}$. Hence:
+where `intercept` is $`m_{\emptyset}`$ and `m` stores $`m_S`$. Hence:
 
-$$\texttt{𝚒𝚗𝚝𝚎𝚛𝚌𝚎𝚙𝚝 + 𝚛𝚘𝚠𝚂𝚞𝚖𝚜(𝚖)} \equiv \texttt{𝚙𝚛𝚎𝚍𝚒𝚌𝚝(..., 𝚘𝚞𝚝𝚙𝚞𝚝𝚖𝚊𝚛𝚐𝚒𝚗 = 𝚃𝚁𝚄𝙴)}.$$
+``` math
+\texttt{intercept + rowSums(m)} \equiv \texttt{predict(..., outputmargin = TRUE)}.
+```
 
 For SHAP values, `glex` distributes each interaction term equally across
 features in that term:
 
-$$\phi_{j}(x) = \sum\limits_{S \ni j}\frac{m_{S}\left( x_{S} \right)}{|S|},\qquad F(x) = m_{\varnothing} + \sum\limits_{j = 1}^{p}\phi_{j}(x).$$
+``` math
+\phi_j(x) = \sum_{S \ni j} \frac{m_S(x_S)}{|S|},
+\qquad
+F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
+```
 
 Hence:
 
-$$\texttt{𝚙𝚕𝚘𝚐𝚒𝚜(𝚒𝚗𝚝𝚎𝚛𝚌𝚎𝚙𝚝 + 𝚛𝚘𝚠𝚂𝚞𝚖𝚜(𝚜𝚑𝚊𝚙))} \equiv \texttt{𝚙𝚛𝚎𝚍𝚒𝚌𝚝(...)}.$$
+``` math
+\texttt{plogis(intercept + rowSums(shap))} \equiv \texttt{predict(...)}.
+```
 
 Interpretation on this scale is direct: positive components increase
 log-odds (and therefore probability), negative components decrease
-log-odds, and an increase of $+ 1$ in margin multiplies the odds by $e$.
+log-odds, and an increase of $`+1`$ in margin multiplies the odds by
+$`e`$.
 
 ## What’s Included
 
@@ -189,6 +219,7 @@ The examples below use
 models:
 
 ``` r
+
 # Install xgboost from CRAN
 install.packages("xgboost")
 # ... and randomPlantedForest from r-universe
@@ -196,6 +227,7 @@ install.packages("randomPlantedForest", repos = "https://plantedml.r-universe.de
 ```
 
 ``` r
+
 library(glex)
 
 # Model fitting
@@ -214,6 +246,7 @@ Note that `xgboost`, unlike `randomPlantedForest`, requires `matrix`
 input and does not support categorical predictors.
 
 ``` r
+
 rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 
 x <- as.matrix(mtcars[, -1])
@@ -233,6 +266,7 @@ feature effects, and the average predicted value for the model
 values (`$shap`) for each feature in the model.
 
 ``` r
+
 glex_rpf <- glex(rp, mtcars[27:32, ])
 glex_xgb <- glex(xg, x[27:32, ])
 ```
@@ -242,6 +276,7 @@ observation) together with the `intercept` are equal to the model
 prediction for each observation:
 
 ``` r
+
 # Calculating sum of components and sum of SHAP values
 sum_m_rpf <- rowSums(glex_rpf$m) + glex_rpf$intercept
 sum_m_xgb <- rowSums(glex_xgb$m) + glex_xgb$intercept
@@ -280,6 +315,7 @@ term by calculating the average of the absolute prediction components
 [`glex()`](http://plantedml.com/glex/reference/glex.md).
 
 ``` r
+
 vi_rpf <- glex_vi(glex_rpf)
 vi_xgb <- glex_vi(glex_xgb)
 
@@ -308,6 +344,7 @@ with terms below the threshold aggregated into one labelled “Remaining
 terms”:
 
 ``` r
+
 p_vi1 <- autoplot(vi_rpf, threshold = .05) + 
   labs(title = NULL, subtitle = "RPF")
 
@@ -326,6 +363,7 @@ interactions above a certain degree to not be particularly relevant for
 a given model.
 
 ``` r
+
 p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
   labs(title = NULL, subtitle = "RPF")
 
@@ -345,6 +383,7 @@ which admittedly produces more interesting output with larger, more
 interesting datasets.
 
 ``` r
+
 p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
 
@@ -355,6 +394,7 @@ p1 + p2 +
 ![](reference/figures/README-plot_components-1.png)
 
 ``` r
+
 
 p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
 p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
@@ -373,6 +413,7 @@ Note that these main effect plots correspond to PDP plots, where the
 latter are merely the main effect plus the intercept term:
 
 ``` r
+
 plot_pdp(glex_rpf, "hp")
 ```
 
@@ -387,6 +428,7 @@ compactness, we only plot one feature and collapse all interaction terms
 above the second degree into one as their combined effect is very small.
 
 ``` r
+
 p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) + 
   labs(tag = "RPF")
 p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
