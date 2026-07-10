@@ -6,10 +6,10 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
-[![glex status
-badge](https://plantedml.r-universe.dev/glex/badges/version)](https://plantedml.r-universe.dev/glex)
+[![R-universe
+version](https://PlantedML.r-universe.dev/glex/badges/version)](https://PlantedML.r-universe.dev/glex)
 [![CRAN
-status](https://www.r-pkg.org/badges/version/glex)](https://CRAN.R-project.org/package=glex)
+status](https://img.shields.io/cran/v/glex)](https://CRAN.R-project.org/package=glex)
 <!-- badges: end -->
 
 # Overview
