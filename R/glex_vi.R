@@ -3,7 +3,7 @@
 #' @param object Object of class `glex`.
 #' @param ... (Unused)
 #'
-#' @return A [`data.table`] with columns:
+#' @return A [data.table::data.table()] with columns:
 #' * `degree` (`integer`): Degree of interaction of the `term`, with `1` being main effects,
 #'    `2` being 2-degree interactions etc.
 #' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
@@ -26,25 +26,6 @@
 #' @seealso [autoplot.glex_vi]
 #' @examples
 #' set.seed(1)
-#' # Random Planted Forest -----
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
-#' library(randomPlantedForest)
-#'
-#' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
-#'
-#' glex_rpf <- glex(rp, mtcars[27:32, ])
-#'
-#' # All terms
-#' vi_rpf <- glex_vi(glex_rpf)
-#'
-#' library(ggplot2)
-#' # Filter to contributions greater 0.05 on the scale of the target
-#' autoplot(vi_rpf, threshold = 0.05)
-#' # Summarize by degree of interaction
-#' autoplot(vi_rpf, by_degree = TRUE)
-#' # Filter by relative contributions greater 0.1%
-#' autoplot(vi_rpf, scale = "relative", threshold = 0.001)
-#' }
 #'
 #' # xgboost -----
 #' if (requireNamespace("xgboost", quietly = TRUE)) {

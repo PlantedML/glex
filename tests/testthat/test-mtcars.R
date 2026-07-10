@@ -13,25 +13,25 @@ res_train <- glex(xg, x_train)
 res_test <- glex(xg, x_test)
 
 test_that("Prediction is approx. same as sum of shap + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$shap),
-               pred_train,
+  expect_equal(unname(res_train$intercept + rowSums(res_train$shap)),
+               unname(pred_train),
                tolerance = 1e-5)
 })
 
 test_that("Prediction is approx. same as sum of shap + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$shap),
-               pred_test,
+  expect_equal(unname(res_test$intercept + rowSums(res_test$shap)),
+               unname(pred_test),
                tolerance = 1e-5)
 })
 
 test_that("Prediction is approx. same as sum of decomposition + intercept, training data", {
-  expect_equal(res_train$intercept + rowSums(res_train$m),
-               pred_train,
+  expect_equal(unname(res_train$intercept + rowSums(res_train$m)),
+               unname(pred_train),
                tolerance = 1e-5)
 })
 
 test_that("Prediction is approx. same as sum of decomposition + intercept, test data", {
-  expect_equal(res_test$intercept + rowSums(res_test$m),
-               pred_test,
+  expect_equal(unname(res_test$intercept + rowSums(res_test$m)),
+               unname(pred_test),
                tolerance = 1e-5)
 })

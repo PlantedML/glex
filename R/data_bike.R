@@ -1,7 +1,7 @@
 #' Bikesharing data
 #'
 #' A reduced version of the `Bikeshare` data as included with `ISLR2`.
-#' The dataset has been converted to a [`data.table`], with the following changes:
+#' The dataset has been converted to a [data.table::data.table()], with the following changes:
 #'
 #' - `hr` has been copnverted to a numeric
 #' - `workingday` was recoded to a binary `factor` with labels `c("No Workingday", "Workingday")`

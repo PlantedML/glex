@@ -12,7 +12,7 @@ glex_vi(object, ...)
 \item{...}{(Unused)}
 }
 \value{
-A \code{\link{data.table}} with columns:
+A \code{\link[data.table:data.table]{data.table::data.table()}} with columns:
 \itemize{
 \item \code{degree} (\code{integer}): Degree of interaction of the \code{term}, with \code{1} being main effects,
 \code{2} being 2-degree interactions etc.
@@ -37,25 +37,6 @@ In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (
 }
 \examples{
 set.seed(1)
-# Random Planted Forest -----
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
-library(randomPlantedForest)
-
-rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
-
-glex_rpf <- glex(rp, mtcars[27:32, ])
-
-# All terms
-vi_rpf <- glex_vi(glex_rpf)
-
-library(ggplot2)
-# Filter to contributions greater 0.05 on the scale of the target
-autoplot(vi_rpf, threshold = 0.05)
-# Summarize by degree of interaction
-autoplot(vi_rpf, by_degree = TRUE)
-# Filter by relative contributions greater 0.1\%
-autoplot(vi_rpf, scale = "relative", threshold = 0.001)
-}
 
 # xgboost -----
 if (requireNamespace("xgboost", quietly = TRUE)) {
