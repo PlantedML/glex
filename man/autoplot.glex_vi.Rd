@@ -40,9 +40,9 @@ Plot glex Variable Importances
 \seealso{
 \link{glex_vi}
 
-Other Visualization functions: 
-\code{\link{autoplot.glex}()},
-\code{\link{glex_explain}()},
-\code{\link{plot_pdp}()}
+Other Visualization functions:
+\code{\link[=autoplot.glex]{autoplot.glex()}},
+\code{\link[=glex_explain]{glex_explain()}},
+\code{\link[=plot_pdp]{plot_pdp()}}
 }
 \concept{Visualization functions}

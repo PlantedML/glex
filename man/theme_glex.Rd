@@ -28,7 +28,7 @@ theme_glex(
 A \code{ggplot2} theme object
 }
 \description{
-This is a slight variation of \code{\link[ggplot2:ggtheme]{ggplot2::theme_minimal()}} with increased font size.
+This is a slight variation of \code{\link[ggplot2:theme_minimal]{ggplot2::theme_minimal()}} with increased font size.
 }
 \examples{
 library(ggplot2)

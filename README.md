@@ -40,14 +40,14 @@ decomposition of low dimensional structures”
 ([arxiv](https://arxiv.org/abs/2208.06151),
 [PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
 
-> **Hiabu, Meyer & Wright (2023).**\
+> **Hiabu, Meyer & Wright (2023).**  
 > *Unifying local and global model explanations by functional
-> decomposition of low dimensional structures.*\
+> decomposition of low dimensional structures.*  
 > [arXiv](https://arxiv.org/abs/2208.06151) • [AISTATS 2023
 > Proceedings](https://proceedings.mlr.press/v206/hiabu23a.html)
 
-> **Liu, Steensgaard, Wright, Pfister, Hiabu (2023).**\
-> *Fast Estimation of Partial Dependence Functions using Trees.*\
+> **Liu, Steensgaard, Wright, Pfister, Hiabu (2023).**  
+> *Fast Estimation of Partial Dependence Functions using Trees.*  
 > [arXiv](https://arxiv.org/abs/2410.13448)
 
 ## Installation
@@ -70,11 +70,11 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 `glex` currently provides methods for the model classes below.
 
-| Model package | Model class | Regression | Binary classification | Multiclass classification | Link function(s) | Notes |
-|----|----|----|----|----|----|----|
-| `xgboost` | `xgb.Booster` | Yes | Yes\* | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. |
-| `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Not applicable | Native support for multiclass terms in plotting and variable importance workflows. |
-| `ranger` | `ranger` | Yes | Yes\* (probability forests) | Not yet supported | Not applicable | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
+| Model package         | Model class   | Regression | Binary classification       | Multiclass classification | Link function(s)                                                                | Notes                                                                                                                                                                                                                                    |
+|-----------------------|---------------|------------|-----------------------------|---------------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `xgboost`             | `xgb.Booster` | Yes        | Yes\*                       | Not yet fully supported   | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* `x` must be a numeric matrix. `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.                                                                                  |
+| `randomPlantedForest` | `rpf`         | Yes        | Yes                         | Yes                       | Not applicable                                                                  | Native support for multiclass terms in plotting and variable importance workflows.                                                                                                                                                       |
+| `ranger`              | `ranger`      | Yes        | Yes\* (probability forests) | Not yet supported         | Not applicable                                                                  | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
@@ -92,7 +92,7 @@ Here, $b$ is the global bias term (`base_score` on the margin scale),
 and each $f_t$ is the prediction function of tree $t$ (its leaf weight
 for input $x$). In other words, the XGBoost model output is $\eta(x)$
 itself; response-scale prediction is obtained by applying the
-objective-specific inverse link $g^{-1}$ to that output.\
+objective-specific inverse link $g^{-1}$ to that output.  
 `glex()` decomposes $\eta(x)$, not $\mu(x)$. The decomposition is
 
 $$
@@ -102,7 +102,7 @@ $$
 where $m_{\emptyset}$ is the intercept term, $m_S$ are the functional
 ANOVA components indexed by feature subsets $S$, and $\phi_k$ are SHAP
 values aggregated per feature $k$. This margin equals
-`predict(model, x, outputmargin = TRUE)`.\
+`predict(model, x, outputmargin = TRUE)`.  
 Predictions on response scale are obtained by applying the inverse link:
 
 $$
@@ -252,9 +252,9 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-xg <- xgboost(data = x[1:26, ], label = y[1:26],
-              params = list(max_depth = 3, eta = .1),
-              nrounds = 30, verbose = 0)
+xg <- xgboost(x[1:26, ], y[1:26],
+              max_depth = 3, learning_rate = .1,
+              nrounds = 30, verbosity = 0, nthreads = 1)
 ```
 
 Using the model objects and a dataset to explain (such as a test set in
@@ -288,22 +288,22 @@ pred_xgb <- predict(xg, x[27:32, ])
 # For XGBoost
 cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 #>                pred_xgb sum_m_xgb sum_shap_xgb
-#> Porsche 914-2  23.84291  23.84291     23.84291
-#> Lotus Europa   25.30800  25.30801     25.30801
-#> Ford Pantera L 20.71024  20.71024     20.71024
-#> Ferrari Dino   20.99034  20.99034     20.99034
-#> Maserati Bora  14.89887  14.89887     14.89887
-#> Volvo 142E     21.55361  21.55361     21.55361
+#> Porsche 914-2  23.97394  23.97394     23.97394
+#> Lotus Europa   24.51319  24.51319     24.51319
+#> Ford Pantera L 18.58279  18.58279     18.58279
+#> Ferrari Dino   20.95484  20.95484     20.95484
+#> Maserati Bora  14.56915  14.56915     14.56915
+#> Volvo 142E     21.25796  21.25796     21.25796
 
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 #>      pred_rpf sum_m_rpf
-#> [1,] 29.34468  29.34468
-#> [2,] 28.28776  28.28776
-#> [3,] 18.10135  18.10135
-#> [4,] 20.31319  20.31319
-#> [5,] 14.80156  14.80156
-#> [6,] 23.96188  23.96188
+#> [1,] 30.24462  30.24462
+#> [2,] 28.57819  28.57819
+#> [3,] 17.18719  17.18719
+#> [4,] 20.10791  20.10791
+#> [5,] 15.26417  15.26417
+#> [6,] 24.44504  24.44504
 ```
 
 ### Variable Importances
@@ -319,19 +319,19 @@ vi_xgb <- glex_vi(glex_xgb)
 vi_rpf[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     wt 1.4893211
-#> 2:      1   disp 1.2539334
-#> 3:      1     hp 1.1017759
-#> 4:      1    cyl 0.7172987
-#> 5:      1   drat 0.5465836
+#> 1:      1     hp 1.4759828
+#> 2:      1   disp 1.2247785
+#> 3:      1     wt 0.9918772
+#> 4:      1    cyl 0.8994921
+#> 5:      1   drat 0.7221286
 vi_xgb[1:5, c("degree", "term", "m")]
-#>    degree      term         m
-#>     <int>    <char>     <num>
-#> 1:      1        wt 1.4145524
-#> 2:      1      disp 1.0614659
-#> 3:      1        hp 0.6307429
-#> 4:      2     hp:wt 0.5823452
-#> 5:      3 cyl:hp:wt 0.3538588
+#>    degree   term         m
+#>     <int> <char>     <num>
+#> 1:      1     wt 1.0529180
+#> 2:      1     hp 0.9319990
+#> 3:      1   disp 0.7915431
+#> 4:      1    cyl 0.6608505
+#> 5:      2  hp:wt 0.3798320
 ```
 
 The output additionally contains the degree of interaction, which can be
@@ -351,7 +351,7 @@ p_vi1 + p_vi2 +
   plot_annotation(title = "Variable importance scores by term")
 ```
 
-<img src="man/figures/README-glex_vi-plot-1.png" width="100%" />
+<img src="man/figures/README-glex_vi-plot-1.png" alt="" width="100%" />
 
 We can also sum values within each degree of interaction for a more
 aggregated view, which can be useful as it allows us to judge
@@ -369,7 +369,7 @@ p_vi1 + p_vi2 +
   plot_annotation(title = "Variable importance scores by degree") 
 ```
 
-<img src="man/figures/README-glex_vi-plot-by-degree-1.png" width="100%" />
+<img src="man/figures/README-glex_vi-plot-by-degree-1.png" alt="" width="100%" />
 
 ### Feature Effects
 
@@ -385,7 +385,7 @@ p1 + p2 +
   plot_annotation(title = "Main effect for 'hp'")
 ```
 
-<img src="man/figures/README-plot_components-1.png" width="100%" />
+<img src="man/figures/README-plot_components-1.png" alt="" width="100%" />
 
 ``` r
 
@@ -396,7 +396,7 @@ p1 + p2 +
   plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
-<img src="man/figures/README-plot_components-2.png" width="100%" />
+<img src="man/figures/README-plot_components-2.png" alt="" width="100%" />
 
 Currently there is support for plots of interactions up to the third
 degree, including continuous and categorical features. Unfortunately,
@@ -409,7 +409,7 @@ latter are merely the main effect plus the intercept term:
 plot_pdp(glex_rpf, "hp")
 ```
 
-<img src="man/figures/README-main_pdp-1.png" width="100%" />
+<img src="man/figures/README-main_pdp-1.png" alt="" width="100%" />
 
 ### Decomposition of Individual Predictions
 
@@ -428,4 +428,4 @@ p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) +
 p1 + p2 & theme(plot.tag.position = "bottom")
 ```
 
-<img src="man/figures/README-glex_explain-1.png" width="100%" />
+<img src="man/figures/README-glex_explain-1.png" alt="" width="100%" />
