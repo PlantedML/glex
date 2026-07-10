@@ -32,23 +32,17 @@ it can
 Under the hood, `glex` relies on fast algorithms to compute all required
 partial dependence functions exactly.
 
-For a detailed description of the methodology, see:
+See the accompanying papers for more details and exact definitions:
 
-See the accompanying paper for more details and exact definitions:
-“Unifying local and global model explanations by functional
-decomposition of low dimensional structures”
-([arxiv](https://arxiv.org/abs/2208.06151),
-[PMLR](https://proceedings.mlr.press/v206/hiabu23a.html)).
-
-> **Hiabu, Meyer & Wright (2023).**  
-> *Unifying local and global model explanations by functional
-> decomposition of low dimensional structures.*  
-> [arXiv](https://arxiv.org/abs/2208.06151) • [AISTATS 2023
+> **Hiabu, Meyer & Wright (2023).** *Unifying local and global model
+> explanations by functional decomposition of low dimensional
+> structures.* [arXiv](https://arxiv.org/abs/2208.06151) • [AISTATS 2023
 > Proceedings](https://proceedings.mlr.press/v206/hiabu23a.html)
 
-> **Liu, Steensgaard, Wright, Pfister, Hiabu (2023).**  
-> *Fast Estimation of Partial Dependence Functions using Trees.*  
-> [arXiv](https://arxiv.org/abs/2410.13448)
+> **Liu, Steensgaard, Wright, Pfister & Hiabu (2025).** *Fast Estimation
+> of Partial Dependence Functions using Trees.*
+> [arXiv](https://arxiv.org/abs/2410.13448) • [ICML 2025
+> Proceedings](https://proceedings.mlr.press/v267/liu25bm.html)
 
 ## Installation
 
@@ -70,11 +64,14 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 `glex` currently provides methods for the model classes below.
 
-| Model package         | Model class   | Regression | Binary classification       | Multiclass classification | Link function(s)                                                                | Notes                                                                                                                                                                                                                                    |
-|-----------------------|---------------|------------|-----------------------------|---------------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `xgboost`             | `xgb.Booster` | Yes        | Yes\*                       | Not yet fully supported   | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* `x` must be a numeric matrix. `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.                                                                                  |
-| `randomPlantedForest` | `rpf`         | Yes        | Yes                         | Yes                       | Not applicable                                                                  | Native support for multiclass terms in plotting and variable importance workflows.                                                                                                                                                       |
-| `ranger`              | `ranger`      | Yes        | Yes\* (probability forests) | Not yet supported         | Not applicable                                                                  | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
+|                           | `xgboost`                                                                                                                                               | `randomPlantedForest`                                                              | `ranger`                                                                                                                                                                                                                                 |
+|---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Model class               | `xgb.Booster`                                                                                                                                           | `rpf`                                                                              | `ranger`                                                                                                                                                                                                                                 |
+| Regression                | Yes                                                                                                                                                     | Yes                                                                                | Yes                                                                                                                                                                                                                                      |
+| Binary classification     | Yes\*                                                                                                                                                   | Yes                                                                                | Yes\* (probability forests)                                                                                                                                                                                                              |
+| Multiclass classification | Not yet fully supported                                                                                                                                 | Yes                                                                                | Not yet supported                                                                                                                                                                                                                        |
+| Link function(s)          | Built-in objectives define the link (e.g., identity, logistic/logit, log-link).                                                                         | Not applicable                                                                     | Not applicable                                                                                                                                                                                                                           |
+| Notes                     | \* `x` must be a numeric matrix. `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
@@ -218,38 +215,30 @@ log-odds, and an increase of $+1$ in margin multiplies the odds by $e$.
 ## What’s Included
 
 The examples below use
-[`xgboost`](https://cran.r-project.org/package=xgboost) and
+[`xgboost`](https://cran.r-project.org/package=xgboost) as the general
+example; `ranger` and
 [`randomPlantedForest`](http://plantedml.com/randomPlantedForest/)
-models:
+models are also supported and work analogously, as described in the
+[Supported Models](#supported-models) section above.
 
 ``` r
 # Install xgboost from CRAN
 install.packages("xgboost")
-# ... and randomPlantedForest from r-universe
-install.packages("randomPlantedForest", repos = "https://plantedml.r-universe.dev")
 ```
 
 ``` r
 library(glex)
-
-# Model fitting
-library(randomPlantedForest)
 library(xgboost)
-
-# Visualization
 library(ggplot2)
-library(patchwork)
 
 theme_set(theme_glex())
 set.seed(21)
 ```
 
-Note that `xgboost`, unlike `randomPlantedForest`, requires `matrix`
-input and does not support categorical predictors.
+Note that `xgboost` requires `matrix` input and does not support
+categorical predictors.
 
 ``` r
-rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
-
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
 xg <- xgboost(x[1:26, ], y[1:26],
@@ -257,17 +246,16 @@ xg <- xgboost(x[1:26, ], y[1:26],
               nrounds = 30, verbosity = 0, nthreads = 1)
 ```
 
-Using the model objects and a dataset to explain (such as a test set in
-this case), we can create `glex` objects for each of the model fits.
-These objects of class `glex` are a list containing the prediction
-components of main and interaction terms (`$m`), the dataset to be
-explained with the observed feature values (`$x`) used to visualize
-feature effects, and the average predicted value for the model
-(`$intercept`). The `xgboost` method additionally returns the SHAP
-values (`$shap`) for each feature in the model.
+Using the model object and a dataset to explain (such as a test set in
+this case), we can create a `glex` object. These objects of class `glex`
+are a list containing the prediction components of main and interaction
+terms (`$m`), the dataset to be explained with the observed feature
+values (`$x`) used to visualize feature effects, and the average
+predicted value for the model (`$intercept`). The `xgboost` method
+additionally returns the SHAP values (`$shap`) for each feature in the
+model.
 
 ``` r
-glex_rpf <- glex(rp, mtcars[27:32, ])
 glex_xgb <- glex(xg, x[27:32, ])
 ```
 
@@ -277,15 +265,12 @@ prediction for each observation:
 
 ``` r
 # Calculating sum of components and sum of SHAP values
-sum_m_rpf <- rowSums(glex_rpf$m) + glex_rpf$intercept
 sum_m_xgb <- rowSums(glex_xgb$m) + glex_xgb$intercept
 sum_shap_xgb <- rowSums(glex_xgb$shap) + glex_xgb$intercept
 
 # Model predictions
-pred_rpf <- predict(rp, mtcars[27:32, ])[[1]]
 pred_xgb <- predict(xg, x[27:32, ])
 
-# For XGBoost
 cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 #>                pred_xgb sum_m_xgb sum_shap_xgb
 #> Porsche 914-2  23.97394  23.97394     23.97394
@@ -294,16 +279,6 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 #> Ferrari Dino   20.95484  20.95484     20.95484
 #> Maserati Bora  14.56915  14.56915     14.56915
 #> Volvo 142E     21.25796  21.25796     21.25796
-
-# For RPF
-cbind(pred_rpf, sum_m_rpf)
-#>      pred_rpf sum_m_rpf
-#> [1,] 30.24462  30.24462
-#> [2,] 28.57819  28.57819
-#> [3,] 17.18719  17.18719
-#> [4,] 20.10791  20.10791
-#> [5,] 15.26417  15.26417
-#> [6,] 24.44504  24.44504
 ```
 
 ### Variable Importances
@@ -313,17 +288,8 @@ term by calculating the average of the absolute prediction components
 (`m`) over the dataset supplied to `glex()`.
 
 ``` r
-vi_rpf <- glex_vi(glex_rpf)
 vi_xgb <- glex_vi(glex_xgb)
 
-vi_rpf[1:5, c("degree", "term", "m")]
-#>    degree   term         m
-#>     <int> <char>     <num>
-#> 1:      1     hp 1.4759828
-#> 2:      1   disp 1.2247785
-#> 3:      1     wt 0.9918772
-#> 4:      1    cyl 0.8994921
-#> 5:      1   drat 0.7221286
 vi_xgb[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
@@ -341,14 +307,7 @@ with terms below the threshold aggregated into one labelled “Remaining
 terms”:
 
 ``` r
-p_vi1 <- autoplot(vi_rpf, threshold = .05) + 
-  labs(title = NULL, subtitle = "RPF")
-
-p_vi2 <- autoplot(vi_xgb, threshold = .05) + 
-  labs(title = NULL, subtitle = "XGBoost")
-
-p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by term")
+autoplot(vi_xgb, threshold = .05)
 ```
 
 <img src="man/figures/README-glex_vi-plot-1.png" alt="" width="100%" />
@@ -359,14 +318,7 @@ interactions above a certain degree to not be particularly relevant for
 a given model.
 
 ``` r
-p_vi1 <- autoplot(vi_rpf, by_degree = TRUE) + 
-  labs(title = NULL, subtitle = "RPF")
-
-p_vi2 <- autoplot(vi_xgb, by_degree = TRUE) + 
-  labs(title = NULL, subtitle = "XGBoost")
-
-p_vi1 + p_vi2 +
-  plot_annotation(title = "Variable importance scores by degree") 
+autoplot(vi_xgb, by_degree = TRUE)
 ```
 
 <img src="man/figures/README-glex_vi-plot-by-degree-1.png" alt="" width="100%" />
@@ -378,22 +330,14 @@ which admittedly produces more interesting output with larger, more
 interesting datasets.
 
 ``` r
-p1 <- autoplot(glex_rpf, "hp") + labs(subtitle = "RPF")
-p2 <- autoplot(glex_xgb, "hp") + labs(subtitle = "XGBoost")
-
-p1 + p2 + 
-  plot_annotation(title = "Main effect for 'hp'")
+autoplot(glex_xgb, "hp") + labs(title = "Main effect for 'hp'")
 ```
 
 <img src="man/figures/README-plot_components-1.png" alt="" width="100%" />
 
 ``` r
 
-p1 <- autoplot(glex_rpf, c("hp", "wt")) + labs(subtitle = "RPF")
-p2 <- autoplot(glex_xgb, c("hp", "wt")) + labs(subtitle = "XGBoost")
-
-p1 + p2 + 
-  plot_annotation(title = "Two-way effects for 'hp' and 'wt'")
+autoplot(glex_xgb, c("hp", "wt")) + labs(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
 <img src="man/figures/README-plot_components-2.png" alt="" width="100%" />
@@ -406,7 +350,7 @@ Note that these main effect plots correspond to PDP plots, where the
 latter are merely the main effect plus the intercept term:
 
 ``` r
-plot_pdp(glex_rpf, "hp")
+plot_pdp(glex_xgb, "hp")
 ```
 
 <img src="man/figures/README-main_pdp-1.png" alt="" width="100%" />
@@ -420,12 +364,7 @@ compactness, we only plot one feature and collapse all interaction terms
 above the second degree into one as their combined effect is very small.
 
 ``` r
-p1 <- glex_explain(glex_rpf, id = 2, predictors = "hp", max_interaction = 2) + 
-  labs(tag = "RPF")
-p2 <- glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2) + 
-  labs(tag = "XGBoost")
-
-p1 + p2 & theme(plot.tag.position = "bottom")
+glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2)
 ```
 
 <img src="man/figures/README-glex_explain-1.png" alt="" width="100%" />
