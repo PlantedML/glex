@@ -110,13 +110,30 @@ diverging_palette <- function(...) {
 }
 
 #' Consistent discrete color scale for categorical predictors
+#'
+#' The glex.palette_discrete option accepts a vector of colors,
+#' "okabe-ito", a scico palette name, or a brewer palette name (default).
 #' @noRd
 #' @keywords internal
 discrete_palette <- function(...) {
-  ggplot2::scale_color_brewer(
-    palette = getOption("glex.palette_discrete", "Dark2"),
-    ...
-  )
+  pal <- getOption("glex.palette_discrete", "Dark2")
+
+  if (length(pal) > 1) {
+    return(ggplot2::scale_color_manual(values = pal, ...))
+  }
+
+  checkmate::assert_string(pal)
+
+  if (identical(tolower(pal), "okabe-ito")) {
+    cols <- unname(grDevices::palette.colors(palette = "Okabe-Ito"))
+    return(ggplot2::scale_color_manual(values = cols, ...))
+  }
+
+  if (pal %in% scico::scico_palette_names()) {
+    return(scico::scale_color_scico_d(palette = pal, ...))
+  }
+
+  ggplot2::scale_color_brewer(palette = pal, ...)
 }
 
 #' Colors for negative/zero/positive contributions in glex_explain()

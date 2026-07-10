@@ -3,7 +3,8 @@
 * Plot colors are now configurable via `options()` and documented in `?glex_options`:
   `glex.palette` (diverging palette for continuous interaction effects; `NULL` for the
   default shap-style gradient, or the name of a scico palette),
-  `glex.palette_discrete` (brewer palette for categorical predictors),
+  `glex.palette_discrete` (palette for categorical predictors: a color vector,
+  `"okabe-ito"`, a scico palette name, or a brewer palette name),
   `glex.colors_sign` (negative/positive colors in `glex_explain()` and gradient endpoints), and
   `glex.color_line` (main effect line/column color).
 * Default colors updated to follow the blue/red convention of the Python `shap`/`shapiq`

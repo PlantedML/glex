@@ -16,9 +16,12 @@ built from \code{glex.colors_sign}, matching the look of the Python \code{shap}
 and \code{shapiq} packages. Set to the name of a diverging
 \link[scico:scico]{scico} palette (e.g. \code{"vik"}, \code{"roma"}) to use that
 instead.}
-\item{\code{glex.palette_discrete}}{(\code{"Dark2"}) Name of a discrete
-\link[ggplot2:scale_color_brewer]{RColorBrewer} palette used to color
-categorical predictors in interaction plots.}
+\item{\code{glex.palette_discrete}}{(\code{"Dark2"}) Discrete palette used to color
+categorical predictors in interaction plots. Accepts a vector of colors
+(used via \code{\link[ggplot2:scale_color_manual]{ggplot2::scale_color_manual()}}), the string \code{"okabe-ito"}
+(the colorblind-safe Okabe-Ito palette via \code{\link[grDevices:palette.colors]{grDevices::palette.colors()}}),
+the name of a \link[scico:scico]{scico} palette, or the name of an
+\link[ggplot2:scale_color_brewer]{RColorBrewer} palette.}
 \item{\code{glex.colors_sign}}{(\code{c("#008BFB", "#FF0051")}) Two colors for
 negative and positive contributions in \code{\link[=glex_explain]{glex_explain()}}, also used as
 the endpoints of the default continuous gradient. The defaults
@@ -34,5 +37,10 @@ options(glex.palette = "roma")
 
 # Restore the default shap-style gradient
 options(glex.palette = NULL)
+
+# Categorical predictors: Okabe-Ito, a scico/brewer palette, or custom colors
+options(glex.palette_discrete = "okabe-ito")
+options(glex.palette_discrete = "batlow")
+options(glex.palette_discrete = c("#E69F00", "#56B4E9", "#009E73"))
 
 }
