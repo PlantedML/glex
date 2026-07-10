@@ -130,7 +130,7 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat     : num [1:6] 2.94 -0.503 2.94 -0.423 -0.423 ...
 #>   ..$ wt       : num [1:6] 1.621 1.569 0.465 0.814 -1.043 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560ab86faa10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x559955ad4a10> 
 #>  $ intercept: num 20.1
 #>  $ x        :Classes ‘data.table’ and 'data.frame':  6 obs. of  10 variables:
 #>   ..$ cyl : num [1:6] 4 4 8 6 8 4
@@ -139,16 +139,16 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560ab86faa10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x559955ad4a10> 
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 # xgboost -----
 if (requireNamespace("xgboost", quietly = TRUE)) {
 library(xgboost)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-xg <- xgboost(data = x[1:26, ], label = y[1:26],
-              params = list(max_depth = 4, eta = .1),
-              nrounds = 10, verbose = 0)
+xg <- xgboost(x[1:26, ], y[1:26],
+              max_depth = 4, learning_rate = .1,
+              nrounds = 10, verbosity = 0, nthreads = 1)
 glex(xg, x[27:32, ])
 glex(xg, mtcars[27:32, ])
 
@@ -158,10 +158,6 @@ doParallel::registerDoParallel()
 glex(xg, x[27:32, ])
 } # }
 }
-#> Warning: Parameter(s) have been removed from this function: params. This warning will become an error in a future version.
-#> Warning: Passed unrecognized parameters: verbose. This warning will become an error in a future version.
-#> Warning: Parameter 'data' has been renamed to 'x'. This warning will become an error in a future version.
-#> Warning: Parameter 'label' has been renamed to 'y'. This warning will become an error in a future version.
 # ranger -----
 if (requireNamespace("ranger", quietly = TRUE)) {
 library(ranger)

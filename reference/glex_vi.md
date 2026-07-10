@@ -68,9 +68,9 @@ if (requireNamespace("xgboost", quietly = TRUE)) {
 library(xgboost)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-xg <- xgboost(data = x[1:26, ], label = y[1:26],
-              params = list(max_depth = 4, eta = .1),
-              nrounds = 10, verbose = 0)
+xg <- xgboost(x[1:26, ], y[1:26],
+              max_depth = 4, learning_rate = .1,
+              nrounds = 10, verbosity = 0, nthreads = 1)
 glex_xgb <- glex(xg, x[27:32, ])
 vi_xgb <- glex_vi(glex_xgb)
 
@@ -78,8 +78,4 @@ library(ggplot2)
 autoplot(vi_xgb)
 autoplot(vi_xgb, by_degree = TRUE)
 }
-#> Warning: Parameter(s) have been removed from this function: params. This warning will become an error in a future version.
-#> Warning: Passed unrecognized parameters: verbose. This warning will become an error in a future version.
-#> Warning: Parameter 'data' has been renamed to 'x'. This warning will become an error in a future version.
-#> Warning: Parameter 'label' has been renamed to 'y'. This warning will become an error in a future version.
 ```

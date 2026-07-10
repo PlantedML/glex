@@ -94,15 +94,15 @@
 <h1 id="supported-models">Supported Models<a class="anchor" aria-label="anchor" href="#supported-models"></a>
 </h1>
 <p><code>glex</code> currently provides methods for the model classes below.</p>
-<table style="width:100%;" class="table">
+<table class="table">
 <colgroup>
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
+<col width="5%">
+<col width="3%">
+<col width="2%">
+<col width="6%">
+<col width="6%">
+<col width="19%">
+<col width="55%">
 </colgroup>
 <thead><tr>
 <th>Model package</th>
@@ -121,7 +121,7 @@
 <td>Yes*</td>
 <td>Not yet fully supported</td>
 <td>Built-in objectives define the link (e.g., identity, logistic/logit, log-link).</td>
-<td>* <code><a href="reference/glex.html">glex()</a></code> decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.</td>
+<td>* <code>x</code> must be a numeric matrix. <code><a href="reference/glex.html">glex()</a></code> decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.</td>
 </tr>
 <tr>
 <td><code>randomPlantedForest</code></td>
@@ -264,9 +264,9 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span></span>
-<span><span class="va">xg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgboost.html" class="external-link">xgboost</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, label <span class="op">=</span> <span class="va">y</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span><span class="op">]</span>,</span>
-<span>              params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max_depth <span class="op">=</span> <span class="fl">3</span>, eta <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span>,</span>
-<span>              nrounds <span class="op">=</span> <span class="fl">30</span>, verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">xg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgboost.html" class="external-link">xgboost</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, <span class="va">y</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span><span class="op">]</span>,</span>
+<span>              max_depth <span class="op">=</span> <span class="fl">3</span>, learning_rate <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>              nrounds <span class="op">=</span> <span class="fl">30</span>, verbosity <span class="op">=</span> <span class="fl">0</span>, nthreads <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>Using the model objects and a dataset to explain (such as a test set in this case), we can create <code>glex</code> objects for each of the model fits. These objects of class <code>glex</code> are a list containing the prediction components of main and interaction terms (<code>$m</code>), the dataset to be explained with the observed feature values (<code>$x</code>) used to visualize feature effects, and the average predicted value for the model (<code>$intercept</code>). The <code>xgboost</code> method additionally returns the SHAP values (<code>$shap</code>) for each feature in the model.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span>
@@ -285,22 +285,22 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span><span class="co"># For XGBoost</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_xgb</span>, <span class="va">sum_m_xgb</span>, <span class="va">sum_shap_xgb</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                pred_xgb sum_m_xgb sum_shap_xgb</span></span>
-<span><span class="co">#&gt; Porsche 914-2  23.84291  23.84291     23.84291</span></span>
-<span><span class="co">#&gt; Lotus Europa   25.30800  25.30801     25.30801</span></span>
-<span><span class="co">#&gt; Ford Pantera L 20.71024  20.71024     20.71024</span></span>
-<span><span class="co">#&gt; Ferrari Dino   20.99034  20.99034     20.99034</span></span>
-<span><span class="co">#&gt; Maserati Bora  14.89887  14.89887     14.89887</span></span>
-<span><span class="co">#&gt; Volvo 142E     21.55361  21.55361     21.55361</span></span>
+<span><span class="co">#&gt; Porsche 914-2  23.97394  23.97394     23.97394</span></span>
+<span><span class="co">#&gt; Lotus Europa   24.51319  24.51319     24.51319</span></span>
+<span><span class="co">#&gt; Ford Pantera L 18.58279  18.58279     18.58279</span></span>
+<span><span class="co">#&gt; Ferrari Dino   20.95484  20.95484     20.95484</span></span>
+<span><span class="co">#&gt; Maserati Bora  14.56915  14.56915     14.56915</span></span>
+<span><span class="co">#&gt; Volvo 142E     21.25796  21.25796     21.25796</span></span>
 <span></span>
 <span><span class="co"># For RPF</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">pred_rpf</span>, <span class="va">sum_m_rpf</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      pred_rpf sum_m_rpf</span></span>
-<span><span class="co">#&gt; [1,] 29.34468  29.34468</span></span>
-<span><span class="co">#&gt; [2,] 28.28776  28.28776</span></span>
-<span><span class="co">#&gt; [3,] 18.10135  18.10135</span></span>
-<span><span class="co">#&gt; [4,] 20.31319  20.31319</span></span>
-<span><span class="co">#&gt; [5,] 14.80156  14.80156</span></span>
-<span><span class="co">#&gt; [6,] 23.96188  23.96188</span></span></code></pre></div>
+<span><span class="co">#&gt; [1,] 30.24462  30.24462</span></span>
+<span><span class="co">#&gt; [2,] 28.57819  28.57819</span></span>
+<span><span class="co">#&gt; [3,] 17.18719  17.18719</span></span>
+<span><span class="co">#&gt; [4,] 20.10791  20.10791</span></span>
+<span><span class="co">#&gt; [5,] 15.26417  15.26417</span></span>
+<span><span class="co">#&gt; [6,] 24.44504  24.44504</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="variable-importances">Variable Importances<a class="anchor" aria-label="anchor" href="#variable-importances"></a>
 </h3>
@@ -312,19 +312,19 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span><span class="va">vi_rpf</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    degree   term         m</span></span>
 <span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      1     wt 1.4893211</span></span>
-<span><span class="co">#&gt; 2:      1   disp 1.2539334</span></span>
-<span><span class="co">#&gt; 3:      1     hp 1.1017759</span></span>
-<span><span class="co">#&gt; 4:      1    cyl 0.7172987</span></span>
-<span><span class="co">#&gt; 5:      1   drat 0.5465836</span></span>
+<span><span class="co">#&gt; 1:      1     hp 1.4759828</span></span>
+<span><span class="co">#&gt; 2:      1   disp 1.2247785</span></span>
+<span><span class="co">#&gt; 3:      1     wt 0.9918772</span></span>
+<span><span class="co">#&gt; 4:      1    cyl 0.8994921</span></span>
+<span><span class="co">#&gt; 5:      1   drat 0.7221286</span></span>
 <span><span class="va">vi_xgb</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"degree"</span>, <span class="st">"term"</span>, <span class="st">"m"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;    degree      term         m</span></span>
-<span><span class="co">#&gt;     &lt;int&gt;    &lt;char&gt;     &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      1        wt 1.4145524</span></span>
-<span><span class="co">#&gt; 2:      1      disp 1.0614659</span></span>
-<span><span class="co">#&gt; 3:      1        hp 0.6307429</span></span>
-<span><span class="co">#&gt; 4:      2     hp:wt 0.5823452</span></span>
-<span><span class="co">#&gt; 5:      3 cyl:hp:wt 0.3538588</span></span></code></pre></div>
+<span><span class="co">#&gt;    degree   term         m</span></span>
+<span><span class="co">#&gt;     &lt;int&gt; &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      1     wt 1.0529180</span></span>
+<span><span class="co">#&gt; 2:      1     hp 0.9319990</span></span>
+<span><span class="co">#&gt; 3:      1   disp 0.7915431</span></span>
+<span><span class="co">#&gt; 4:      1    cyl 0.6608505</span></span>
+<span><span class="co">#&gt; 5:      2  hp:wt 0.3798320</span></span></code></pre></div>
 <p>The output additionally contains the degree of interaction, which can be used for filtering and aggregating. Here we filter for terms with contributions above a <code>threshold</code> of <code>0.05</code> to get a more compact plot, with terms below the threshold aggregated into one labelled “Remaining terms”:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_vi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_rpf</span>, threshold <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">+</span> </span>
@@ -335,7 +335,7 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span></span>
 <span><span class="va">p_vi1</span> <span class="op">+</span> <span class="va">p_vi2</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance scores by term"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-glex_vi-plot-1.png" width="100%"></p>
+<p><img src="reference/figures/README-glex_vi-plot-1.png" alt="" width="100%"></p>
 <p>We can also sum values within each degree of interaction for a more aggregated view, which can be useful as it allows us to judge interactions above a certain degree to not be particularly relevant for a given model.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_vi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">vi_rpf</span>, by_degree <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> </span>
@@ -346,7 +346,7 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span></span>
 <span><span class="va">p_vi1</span> <span class="op">+</span> <span class="va">p_vi2</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance scores by degree"</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="reference/figures/README-glex_vi-plot-by-degree-1.png" width="100%"></p>
+<p><img src="reference/figures/README-glex_vi-plot-by-degree-1.png" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="feature-effects">Feature Effects<a class="anchor" aria-label="anchor" href="#feature-effects"></a>
@@ -358,7 +358,7 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Main effect for 'hp'"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot_components-1.png" width="100%"></p>
+<p><img src="reference/figures/README-plot_components-1.png" alt="" width="100%"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hp"</span>, <span class="st">"wt"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>subtitle <span class="op">=</span> <span class="st">"RPF"</span><span class="op">)</span></span>
@@ -366,12 +366,12 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Two-way effects for 'hp' and 'wt'"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot_components-2.png" width="100%"></p>
+<p><img src="reference/figures/README-plot_components-2.png" alt="" width="100%"></p>
 <p>Currently there is support for plots of interactions up to the third degree, including continuous and categorical features. Unfortunately, three-way interactions of continuous features are not supported yet.</p>
 <p>Note that these main effect plots correspond to PDP plots, where the latter are merely the main effect plus the intercept term:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_pdp.html">plot_pdp</a></span><span class="op">(</span><span class="va">glex_rpf</span>, <span class="st">"hp"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-main_pdp-1.png" width="100%"></p>
+<p><img src="reference/figures/README-main_pdp-1.png" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="decomposition-of-individual-predictions">Decomposition of Individual Predictions<a class="anchor" aria-label="anchor" href="#decomposition-of-individual-predictions"></a>
@@ -384,7 +384,7 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>tag <span class="op">=</span> <span class="st">"XGBoost"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.tag.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-glex_explain-1.png" width="100%"></p>
+<p><img src="reference/figures/README-glex_explain-1.png" alt="" width="100%"></p>
 </div>
 </div>
 </div>

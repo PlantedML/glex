@@ -2,6 +2,9 @@
 
 ## glex (development version)
 
+- Extended compatibility with `xgboost`, now requiring
+  `xgboost (>= 3.0.0)` in `Suggests:`
+  - Updated tests and examples for the new API
 - Plot colors are now configurable via
   [`options()`](https://rdrr.io/r/base/options.html) and documented in
   [`?glex_options`](http://plantedml.com/glex/reference/glex_options.md):

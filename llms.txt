@@ -62,7 +62,7 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 | Model package | Model class | Regression | Binary classification | Multiclass classification | Link function(s) | Notes |
 |----|----|----|----|----|----|----|
-| `xgboost` | `xgb.Booster` | Yes | Yes\* | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. |
+| `xgboost` | `xgb.Booster` | Yes | Yes\* | Not yet fully supported | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | \* `x` must be a numeric matrix. [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. |
 | `randomPlantedForest` | `rpf` | Yes | Yes | Yes | Not applicable | Native support for multiclass terms in plotting and variable importance workflows. |
 | `ranger` | `ranger` | Yes | Yes\* (probability forests) | Not yet supported | Not applicable | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
@@ -251,9 +251,9 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 3)
 
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-xg <- xgboost(data = x[1:26, ], label = y[1:26],
-              params = list(max_depth = 3, eta = .1),
-              nrounds = 30, verbose = 0)
+xg <- xgboost(x[1:26, ], y[1:26],
+              max_depth = 3, learning_rate = .1,
+              nrounds = 30, verbosity = 0, nthreads = 1)
 ```
 
 Using the model objects and a dataset to explain (such as a test set in
@@ -289,22 +289,22 @@ pred_xgb <- predict(xg, x[27:32, ])
 # For XGBoost
 cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 #>                pred_xgb sum_m_xgb sum_shap_xgb
-#> Porsche 914-2  23.84291  23.84291     23.84291
-#> Lotus Europa   25.30800  25.30801     25.30801
-#> Ford Pantera L 20.71024  20.71024     20.71024
-#> Ferrari Dino   20.99034  20.99034     20.99034
-#> Maserati Bora  14.89887  14.89887     14.89887
-#> Volvo 142E     21.55361  21.55361     21.55361
+#> Porsche 914-2  23.97394  23.97394     23.97394
+#> Lotus Europa   24.51319  24.51319     24.51319
+#> Ford Pantera L 18.58279  18.58279     18.58279
+#> Ferrari Dino   20.95484  20.95484     20.95484
+#> Maserati Bora  14.56915  14.56915     14.56915
+#> Volvo 142E     21.25796  21.25796     21.25796
 
 # For RPF
 cbind(pred_rpf, sum_m_rpf)
 #>      pred_rpf sum_m_rpf
-#> [1,] 29.34468  29.34468
-#> [2,] 28.28776  28.28776
-#> [3,] 18.10135  18.10135
-#> [4,] 20.31319  20.31319
-#> [5,] 14.80156  14.80156
-#> [6,] 23.96188  23.96188
+#> [1,] 30.24462  30.24462
+#> [2,] 28.57819  28.57819
+#> [3,] 17.18719  17.18719
+#> [4,] 20.10791  20.10791
+#> [5,] 15.26417  15.26417
+#> [6,] 24.44504  24.44504
 ```
 
 ### Variable Importances
@@ -322,19 +322,19 @@ vi_xgb <- glex_vi(glex_xgb)
 vi_rpf[1:5, c("degree", "term", "m")]
 #>    degree   term         m
 #>     <int> <char>     <num>
-#> 1:      1     wt 1.4893211
-#> 2:      1   disp 1.2539334
-#> 3:      1     hp 1.1017759
-#> 4:      1    cyl 0.7172987
-#> 5:      1   drat 0.5465836
+#> 1:      1     hp 1.4759828
+#> 2:      1   disp 1.2247785
+#> 3:      1     wt 0.9918772
+#> 4:      1    cyl 0.8994921
+#> 5:      1   drat 0.7221286
 vi_xgb[1:5, c("degree", "term", "m")]
-#>    degree      term         m
-#>     <int>    <char>     <num>
-#> 1:      1        wt 1.4145524
-#> 2:      1      disp 1.0614659
-#> 3:      1        hp 0.6307429
-#> 4:      2     hp:wt 0.5823452
-#> 5:      3 cyl:hp:wt 0.3538588
+#>    degree   term         m
+#>     <int> <char>     <num>
+#> 1:      1     wt 1.0529180
+#> 2:      1     hp 0.9319990
+#> 3:      1   disp 0.7915431
+#> 4:      1    cyl 0.6608505
+#> 5:      2  hp:wt 0.3798320
 ```
 
 The output additionally contains the degree of interaction, which can be
