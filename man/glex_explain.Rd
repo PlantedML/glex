@@ -44,9 +44,9 @@ recommended to use \code{predictors}, \code{max_interaction}, or \code{threshold
 elements in the plot.
 }
 \examples{
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 # Random Planted Forest -----
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 
 rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
@@ -54,7 +54,7 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 glex_rpf <- glex(rp, mtcars[27:32, ])
 
 glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other Visualization functions:

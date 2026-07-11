@@ -9,8 +9,7 @@
 #'
 #' @rdname subset_components
 #' @export
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -26,7 +25,6 @@
 #' subset_components(components, "hp")
 #'
 #' subset_component_names(components, "hp")
-#' }
 #'
 subset_components <- function(components, term) {
   checkmate::assert_string(term)

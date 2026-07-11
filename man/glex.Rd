@@ -45,7 +45,7 @@ Defaults to using all possible interactions available in the model.\cr
 For \code{\link[xgboost:xgb.train]{xgboost}}, this defaults to the \code{max_depth} parameter of the model fit.\cr
 If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
-\item{features}{Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.}
+\item{features}{Vector of column names in \code{x} to calculate components for. Default is \code{NULL}, i.e. all features are used.}
 
 \item{...}{Further arguments passed to methods.}
 
@@ -79,27 +79,29 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost.
 For parallel execution using \code{xgboost} models, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
 
-The different weighting methods are described in detail in Liu et al. (2024). The default method is "fastpd" as it consistently estimates the correct partial dependence function.
+The different weighting methods are described in detail in Liu et al. (2025). The default
+method is \code{"fastpd"} as it consistently estimates the correct partial dependence function.
 }
 \examples{
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 
 # Random Planted Forest -----
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 
 rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 
 glex_rpf <- glex(rp, mtcars[27:32, ])
 str(glex_rpf, list.len = 5)
-}
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("xgboost", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 # xgboost -----
-if (requireNamespace("xgboost", quietly = TRUE)) {
 library(xgboost)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
 xg <- xgboost(x[1:26, ], y[1:26],
-              max_depth = 4, learning_rate = .1,
-              nrounds = 10, verbosity = 0, nthreads = 1)
+  max_depth = 4, learning_rate = .1,
+  nrounds = 10, verbosity = 0, nthreads = 1
+)
 glex(xg, x[27:32, ])
 glex(xg, mtcars[27:32, ])
 
@@ -108,15 +110,17 @@ glex(xg, mtcars[27:32, ])
 doParallel::registerDoParallel()
 glex(xg, x[27:32, ])
 }
-}
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 # ranger -----
-if (requireNamespace("ranger", quietly = TRUE)) {
 library(ranger)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
-rf <- ranger(x = x[1:26, ], y = y[1:26],
-             num.trees = 5, max.depth = 3,
-             node.stats = TRUE)
+rf <- ranger(
+  x = x[1:26, ], y = y[1:26],
+  num.trees = 5, max.depth = 3,
+  node.stats = TRUE
+)
 glex(rf, x[27:32, ])
 glex(rf, mtcars[27:32, ])
 
@@ -125,10 +129,12 @@ glex(rf, mtcars[27:32, ])
 doParallel::registerDoParallel()
 glex(rf, x[27:32, ])
 }
-}
+\dontshow{\}) # examplesIf}
 }
 \references{
-Liu, J., Steensgaard, T., Wright, M. N., Pfister, N., & Hiabu, M. (2024).
+Liu, J., Steensgaard, T., Wright, M. N., Pfister, N., & Hiabu, M. (2025).
 \emph{Fast Estimation of Partial Dependence Functions using Trees}.
-arXiv preprint \href{https://arxiv.org/abs/2410.13448}{arXiv:2410.13448}.
+Proceedings of the 42nd International Conference on Machine Learning, PMLR 267:39496-39534.
+\href{https://proceedings.mlr.press/v267/liu25bm.html}{PMLR} |
+\href{https://arxiv.org/abs/2410.13448}{arXiv:2410.13448}
 }

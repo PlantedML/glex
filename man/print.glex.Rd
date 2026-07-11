@@ -17,11 +17,11 @@ uses many terms, which leads to a large amount of column names of \verb{$m} bein
 This function wraps \code{\link[utils:str]{str()}} with a truncated output for a more compact representation.
 }
 \examples{
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 # Random Planted Forest -----
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 rp <- rpf(mpg ~ hp + wt + drat, data = mtcars[1:26, ], max_interaction = 2)
 
 glex(rp, mtcars[27:32, ])
-}
+\dontshow{\}) # examplesIf}
 }

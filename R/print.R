@@ -8,14 +8,12 @@
 #'
 #' @export
 #' @importFrom utils str
-#' @examples
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
 #' # Random Planted Forest -----
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
 #' rp <- rpf(mpg ~ hp + wt + drat, data = mtcars[1:26, ], max_interaction = 2)
 #'
 #' glex(rp, mtcars[27:32, ])
-#' }
 print.glex <- function(x, ...) {
   n <- nrow(x$x)
   n_m <- ncol(x$m)

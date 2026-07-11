@@ -24,7 +24,7 @@ subset_component_names(components, term)
 Subset components
 }
 \examples{
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # introduce factor variables to show categorical feature handling
@@ -40,6 +40,5 @@ components <- glex(rpfit, mtcars)
 subset_components(components, "hp")
 
 subset_component_names(components, "hp")
-}
-
+\dontshow{\}) # examplesIf}
 }

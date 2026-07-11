@@ -16,8 +16,7 @@
 #' @export
 #' @seealso [plot_pdp()]
 #'
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -32,7 +31,6 @@
 #' # Main effects ----
 #' plot_main_effect(components, "wt")
 #' plot_main_effect(components, "cyl")
-#' }
 plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
   plot_main_effect_impl(object, predictor, pdp = FALSE, ...)
 }
@@ -51,8 +49,7 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' @export
 #' @seealso [plot_main_effect()]
 #' @family Visualization functions
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -66,7 +63,6 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #'
 #' plot_pdp(components, "wt")
 #' plot_pdp(components, "cyl")
-#' }
 plot_pdp <- function(object, predictor, rug_sides = "b", ...) {
   plot_main_effect_impl(object, predictor, pdp = TRUE)
 }
