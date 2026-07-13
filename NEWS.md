@@ -24,9 +24,10 @@
   a value reconstructed from the constrained components, and for objects created by
   earlier versions of glex, which have no `$shap`.
 * `print()` on a `glex` object reports when the decomposition is constrained.
-* Tests that fit `randomPlantedForest` models are skipped on Windows for now: an
-  out-of-bounds read in randomPlantedForest's `purify_3()` crashes R there
-  (fixed upstream in PlantedML/randomPlantedForest#61, not yet merged).
+* Tests that fit `randomPlantedForest` models remain skipped on Windows: an
+  out-of-bounds read in randomPlantedForest's purification crashes R there. Fixed
+  upstream in randomPlantedForest 0.3.0; the skips are lifted separately, once glex
+  requires that version.
 
 # glex 0.6.0
 
