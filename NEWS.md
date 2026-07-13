@@ -8,6 +8,11 @@
 * `glex()` objects gain a `$constrained` field naming the arguments that constrained
   the decomposition (`character(0)` if complete), so `length(x$constrained) > 0` tells
   you whether `$shap` is usable.
+* A requested constraint only invalidates `$shap` if it actually drops something: a
+  model can contain a high-order term whose value is zero, in which case dropping it
+  leaves the decomposition (and the SHAP values) unchanged. `glex()` confirms the
+  constraint against the model's own predictions and, if the dropped terms were inert,
+  keeps `$shap` and emits a message instead of a warning.
 * `glex()` on `randomPlantedForest` models now returns `$shap` as well, computed from
   the components like for the other model classes (for multiclass models, `$shap`
   columns are class-specific like those of `$m`). Previously the field was absent.

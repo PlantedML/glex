@@ -74,6 +74,9 @@ with \code{:} separating interaction terms as one would specify in a \code{\link
 \item \code{constrained}: Character vector naming the arguments that constrained the
 decomposition (\code{"max_interaction"}, \code{"features"}), or \code{character(0)} if it is
 complete. Use \code{length(x$constrained) > 0} to check whether \code{shap} is valid.
+A constraint that only drops terms whose value is zero leaves the decomposition
+unchanged; \code{glex()} confirms this against the model's predictions, reports it with
+a message, and treats the result as complete.
 }
 }
 \description{

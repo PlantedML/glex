@@ -153,3 +153,46 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
     )
   }
 })
+
+test_that("rpf: constraints that drop only zero terms keep shap valid", {
+  skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+
+  set.seed(42)
+  n <- 120
+  p <- 6
+  x <- matrix(rnorm(n * p), ncol = p)
+  colnames(x) <- paste0("x", seq_len(p))
+  y <- x[, 1] + x[, 2] * x[, 3] + rnorm(n, sd = 0.3)
+  dat <- data.frame(x, y = y)
+
+  # Fit at the maximum order: the model contains a p-way term, but the data has no
+  # p-way structure, so that term is exactly zero.
+  rp <- randomPlantedForest::rpf(
+    y ~ .,
+    data = dat,
+    max_interaction = p,
+    ntrees = 20
+  )
+  full <- glex::glex(rp, dat[, -ncol(dat)])
+  degree <- lengths(strsplit(names(full$m), ":", fixed = TRUE))
+  expect_equal(max(abs(as.matrix(full$m[, degree == p, with = FALSE]))), 0)
+
+  # Dropping only that zero term changes nothing, so shap must survive -- with a
+  # message rather than a warning, since a constraint *was* requested.
+  expect_message(
+    gl <- glex::glex(rp, dat[, -ncol(dat)], max_interaction = p - 1L),
+    "dropped terms are all zero"
+  )
+  expect_identical(gl$constrained, character(0))
+  expect_false(anyNA(gl$shap))
+  expect_equal(as.matrix(gl$shap), as.matrix(full$shap), tolerance = 1e-8)
+
+  # Dropping terms that carry weight still invalidates
+  expect_warning(
+    gl_real <- glex::glex(rp, dat[, -ncol(dat)], max_interaction = 1),
+    "efficiency property"
+  )
+  expect_identical(gl_real$constrained, "max_interaction")
+  expect_true(all(is.na(gl_real$shap)))
+})

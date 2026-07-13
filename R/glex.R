@@ -37,6 +37,9 @@
 #' * `constrained`: Character vector naming the arguments that constrained the
 #'   decomposition (`"max_interaction"`, `"features"`), or `character(0)` if it is
 #'   complete. Use `length(x$constrained) > 0` to check whether `shap` is valid.
+#'   A constraint that only drops terms whose value is zero leaves the decomposition
+#'   unchanged; `glex()` confirms this against the model's predictions, reports it with
+#'   a message, and treats the result as complete.
 #' @export
 glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
@@ -120,8 +123,15 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
     )
   }
 
-  shap <- invalidate_shap(shap, ret$constrained)
   ret$shap <- data.table::setDT(as.data.frame(shap))
+
+  # Multiclass rpf models report a single intercept for all classes, so the
+  # components only reconstruct the class scores approximately and the numeric
+  # confirmation is not reliable: the structural verdict is final there.
+  target <- if (is.null(ret$target_levels)) {
+    stats::predict(object, x)[[1]]
+  }
+  ret <- confirm_constrained(ret, target = target)
 
   # class(ret) <- c("glex", "rpf_components", class(ret))
   ret
@@ -201,6 +211,12 @@ glex.xgb.Booster <- function(
     max_background_sample_size
   )
   res$intercept <- res$intercept + get_xgb_base_score(object)
+
+  # glex decomposes the raw margin, so the constraint is confirmed against it
+  res <- confirm_constrained(
+    res,
+    target = stats::predict(object, x, outputmargin = TRUE)
+  )
 
   # Return components
   res
@@ -461,6 +477,13 @@ glex.ranger <- function(
   res$m <- res$m / object$num.trees
   res$intercept <- res$intercept / object$num.trees
 
+  ranger_pred <- stats::predict(object, x)$predictions
+  if (is.matrix(ranger_pred)) {
+    # Probability forests: glex decomposes the second class probability
+    ranger_pred <- ranger_pred[, 2L]
+  }
+  res <- confirm_constrained(res, target = ranger_pred)
+
   # Return components
   res
 }
@@ -675,25 +698,59 @@ constrained_by <- function(
   constrained
 }
 
-#' Warn about, and invalidate, SHAP values from a constrained decomposition
-#' @param shap SHAP value matrix.
-#' @param constrained Character vector from [constrained_by()].
+#' Confirm a structural constraint numerically, and invalidate SHAP values if real
+#'
+#' The structural check ([constrained_by()]) only knows which terms were dropped, not
+#' what they were worth: a model can contain a high-order term whose value is exactly
+#' zero, in which case dropping it changes nothing and the SHAP values remain valid.
+#' This confirms the constraint against the model's own predictions before discarding
+#' anything: if the components still reconstruct the prediction, the dropped terms were
+#' inert and `$shap` is kept (with a message, since the user did ask for a constraint).
+#' Otherwise `$shap` is invalidated with a warning.
+#' @param res `glex` object with `$m`, `$shap`, `$intercept` and `$constrained`.
+#' @param target Model predictions on the scale of the decomposition, or `NULL` to skip
+#'   the numeric confirmation and treat the structural verdict as final.
 #' @keywords internal
 #' @noRd
-invalidate_shap <- function(shap, constrained) {
-  if (length(constrained) == 0) {
-    return(shap)
+confirm_constrained <- function(res, target = NULL) {
+  if (length(res$constrained) == 0) {
+    return(res)
+  }
+
+  constrained_labels <- paste0("`", res$constrained, "`", collapse = " and ")
+
+  if (!is.null(target)) {
+    reconstruction <- res$intercept + rowSums(res$m)
+    inert <- isTRUE(all.equal(
+      unname(reconstruction),
+      unname(target),
+      tolerance = 1e-5
+    ))
+
+    if (inert) {
+      message(
+        "The decomposition is constrained by ",
+        constrained_labels,
+        ", but the dropped terms are all zero: the components still sum to the model ",
+        "prediction, so SHAP values remain valid."
+      )
+      res$constrained <- character(0)
+      return(res)
+    }
   }
 
   warning(
     "SHAP values set to NA: the decomposition is constrained by ",
-    paste0("`", constrained, "`", collapse = " and "),
+    constrained_labels,
     " and does not sum to the full model prediction, so SHAP values cannot be ",
     "reconstructed from it (the efficiency property would be violated). ",
     "The components in `$m` are unaffected."
   )
-  shap[] <- NA_real_
-  shap
+  for (col in names(res$shap)) {
+    data.table::set(res$shap, j = col, value = NA_real_)
+  }
+
+  res
 }
 
 #' Maximum interaction order present in the model's decomposition.
@@ -915,9 +972,10 @@ calc_components <- function(
   }
 
   shap <- shap_from_components(m_all[, -1, drop = FALSE], colnames(x))
-  shap <- invalidate_shap(shap, constrained)
 
-  # Return shap values, decomposition and intercept
+  # Return shap values, decomposition and intercept. Whether a structural constraint
+  # actually invalidates `shap` is confirmed against the model's predictions by the
+  # calling method, which has the model object (see `confirm_constrained()`).
   ret <- list(
     shap = data.table::setDT(as.data.frame(shap)),
     m = data.table::setDT(as.data.frame(m_all[, -1])),
