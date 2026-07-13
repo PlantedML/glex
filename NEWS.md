@@ -4,6 +4,19 @@
   `max_interaction` or `features`: a constrained decomposition does not sum to the
   full model prediction, so SHAP values cannot be reconstructed from it without
   violating the efficiency property. Previously, misleading values were returned.
+  `$m` is unaffected. Supersedes #18, closes #13.
+* `glex()` objects gain a `$constrained` field naming the arguments that constrained
+  the decomposition (`character(0)` if complete), so `length(x$constrained) > 0` tells
+  you whether `$shap` is usable.
+* `glex()` on `randomPlantedForest` models now returns `$shap` as well, computed from
+  the components like for the other model classes (for multiclass models, `$shap`
+  columns are class-specific like those of `$m`). Previously the field was absent.
+  Constraining the decomposition post-hoc via `max_interaction` or `features` is now
+  detected for `rpf` models too, where it previously passed silently.
+* `glex_explain()` now reads SHAP values from `$shap` instead of recomputing them from
+  the components, so the `glex` object is the single source of truth. The SHAP
+  reference bar is omitted for constrained decompositions, where it previously showed
+  a value reconstructed from the constrained components.
 * Tests that fit `randomPlantedForest` models are skipped on Windows for now: an
   out-of-bounds read in randomPlantedForest's `purify_3()` crashes R there
   (fixed upstream in PlantedML/randomPlantedForest#61, not yet merged).

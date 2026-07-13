@@ -162,13 +162,32 @@ glex_explain <- function(
   xtemp <- unlist(Map(paste, xnames, xtemp, sep = " = "))
   names(xtemp) <- xnames
 
+  # SHAP values are read from `$shap` rather than recomputed, so the object is the
+  # single source of truth. They are NA for constrained decompositions (see `?glex`),
+  # in which case the SHAP bar is omitted.
+  shap_valid <- length(object$constrained) == 0
+
   # helper df of shap values to plot them in as separate rectangles, at last (lowest) position (determined by term_int)
   xshap <- xdf[,
-    list(shap = sum(m_scaled), term_int = max(term_int) + 1),
+    list(term_int = max(term_int) + 1),
     by = c("reference_term", "class")
   ]
-  xshap[, xleft := avgpred + shap]
-  xshap[, xright := avgpred]
+
+  if (shap_valid) {
+    shap_long <- melt_m(object$shap, object$target_levels)
+    shap_id <- shap_long[shap_long[[".id"]] == id, ]
+    shap_id[, .id := NULL]
+    data.table::setnames(shap_id, c("term", "m"), c("reference_term", "shap"))
+
+    if (is.null(object$target_levels)) {
+      # dummy class column to match xdf, see above
+      shap_id[, class := 1L]
+    }
+
+    xshap <- merge(xshap, shap_id, by = c("reference_term", "class"))
+    xshap[, xleft := avgpred + shap]
+    xshap[, xright := avgpred]
+  }
 
   # Subset to selected class, could be of length > 1
   if (!is.null(class)) {
@@ -221,28 +240,6 @@ glex_explain <- function(
       ),
       alpha = .75
     ) +
-    # Draw SHAP bar below with separate df
-    geom_rect(
-      data = xshap,
-      aes(
-        fill = as.character(sign(shap)),
-        xmin = xleft,
-        xmax = xright,
-        ymin = term_int - barheight / 2,
-        ymax = term_int + barheight / 2
-      ),
-      alpha = .75
-    ) +
-    # Label SHAP values below other bars
-    geom_label(
-      data = xshap,
-      aes(
-        label = sprintf("SHAP: %s", format(shap, digits = 2)),
-        x = xright,
-        fill = NULL,
-        hjust = pmin(1.05, 0.95 + sign(shap))
-      )
-    ) +
     # Label contribution values
     geom_label(
       aes(
@@ -253,6 +250,32 @@ glex_explain <- function(
       color = "white",
       alpha = .75
     )
+
+  if (shap_valid) {
+    p <- p +
+      # Draw SHAP bar below with separate df
+      geom_rect(
+        data = xshap,
+        aes(
+          fill = as.character(sign(shap)),
+          xmin = xleft,
+          xmax = xright,
+          ymin = term_int - barheight / 2,
+          ymax = term_int + barheight / 2
+        ),
+        alpha = .75
+      ) +
+      # Label SHAP values below other bars
+      geom_label(
+        data = xshap,
+        aes(
+          label = sprintf("SHAP: %s", format(shap, digits = 2)),
+          x = xright,
+          fill = NULL,
+          hjust = pmin(1.05, 0.95 + sign(shap))
+        )
+      )
+  }
 
   # scales / coords
   p <- p +
@@ -273,7 +296,18 @@ glex_explain <- function(
         id,
         pred
       ),
-      subtitle = sprintf("Centered around average prediction: %1.2f", avgpred),
+      subtitle = sprintf(
+        "Centered around average prediction: %1.2f%s",
+        avgpred,
+        if (shap_valid) {
+          ""
+        } else {
+          sprintf(
+            "\nSHAP values omitted: decomposition constrained by %s",
+            paste0("`", object$constrained, "`", collapse = " and ")
+          )
+        }
+      ),
       x = "Average prediction +/- m",
       y = NULL
     ) +

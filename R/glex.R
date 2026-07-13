@@ -20,16 +20,20 @@
 #'
 #' @return Decomposition of the regression or classification function.
 #' A `list` with elements:
-#' * `shap`: SHAP values (`xgboost` and `ranger` methods only). These are reconstructed
-#'   from the functional decomposition, which is only possible if the decomposition is
-#'   complete: if it is constrained via `max_interaction` or `features`, the components
+#' * `shap`: SHAP values, derived from the functional decomposition as
+#'   \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
+#'   decomposition is complete: if it is constrained (see `constrained`), the components
 #'   no longer sum to the full model prediction and the SHAP efficiency property cannot
-#'   hold, so `shap` is set to `NA` (with a warning).
+#'   hold, so `shap` is set to `NA` (with a warning) while `m` remains valid.
+#'   For multiclass models, columns are class-specific like those of `m`.
 #' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
 #'   The variable names correspond to the original variable names,
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
+#' * `constrained`: Character vector naming the arguments that constrained the
+#'   decomposition (`"max_interaction"`, `"features"`), or `character(0)` if it is
+#'   complete. Use `length(x$constrained) > 0` to check whether `shap` is valid.
 #' @export
 glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
@@ -73,6 +77,49 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
     max_interaction = max_interaction,
     predictors = features
   )
+
+  model_features <- names(object$blueprint$ptypes$predictors)
+  ret$constrained <- constrained_by(
+    max_interaction = max_interaction,
+    features = features,
+    # An rpf model cannot contain interactions of higher order than it was fit with
+    available_interaction = min(
+      object$params$max_interaction,
+      length(model_features)
+    ),
+    model_features = model_features
+  )
+
+  # SHAP values are derived from the components, like in the other methods.
+  # For multiclass models `$shap` mirrors the class-suffixed columns of `$m`.
+  if (is.null(ret$target_levels)) {
+    shap <- shap_from_components(ret$m, names(ret$x))
+  } else {
+    term_class <- split_names(names(ret$m), "__class:", target_index = 2)
+
+    shap <- do.call(
+      cbind,
+      lapply(ret$target_levels, function(level) {
+        m_class <- ret$m[, names(ret$m)[term_class == level], with = FALSE]
+        data.table::setnames(
+          m_class,
+          split_names(names(m_class), "__class:", target_index = 1)
+        )
+
+        shap_class <- shap_from_components(m_class, names(ret$x))
+        colnames(shap_class) <- paste0(
+          colnames(shap_class),
+          "__class:",
+          level
+        )
+        shap_class
+      })
+    )
+  }
+
+  shap <- invalidate_shap(shap, ret$constrained)
+  ret$shap <- data.table::setDT(as.data.frame(shap))
+
   # class(ret) <- c("glex", "rpf_components", class(ret))
   ret
 }
@@ -557,6 +604,87 @@ tree_fun_emp_fastPD <- function(
 }
 
 
+#' Compute SHAP values from a functional decomposition
+#'
+#' Each interaction term is distributed equally across the features it involves:
+#' \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. Shared by all `glex()` methods so
+#' that `$shap` is derived from `$m` in exactly one place.
+#' @param m Component matrix or `data.table` (without the intercept column).
+#' @param features Character vector of feature names to compute SHAP values for.
+#' @keywords internal
+#' @noRd
+shap_from_components <- function(m, features) {
+  m <- as.matrix(m)
+  d <- get_degree(colnames(m))
+
+  # Interaction terms contribute m_S / |S| to each involved feature
+  interactions <- sweep(m, MARGIN = 2, d, "/")
+
+  vapply(
+    features,
+    function(col) {
+      idx <- find_term_matches(col, colnames(interactions))
+
+      if (length(idx) == 0) {
+        numeric(nrow(interactions))
+      } else {
+        rowSums(interactions[, idx, drop = FALSE])
+      }
+    },
+    FUN.VALUE = numeric(nrow(m))
+  )
+}
+
+#' Report which constraints were applied to a decomposition
+#'
+#' SHAP values can only be reconstructed from a complete decomposition: if terms
+#' are dropped, the components no longer sum to the full model prediction and the
+#' SHAP efficiency property cannot hold. Returns the names of the constrained
+#' arguments, or `character(0)` if the decomposition is complete.
+#' @param max_interaction,features As supplied to `glex()`.
+#' @param available_interaction Interaction order available in the model.
+#' @param model_features Features the model actually uses.
+#' @keywords internal
+#' @noRd
+constrained_by <- function(
+  max_interaction,
+  features,
+  available_interaction,
+  model_features
+) {
+  constrained <- character(0)
+
+  if (!is.null(max_interaction) && max_interaction < available_interaction) {
+    constrained <- c(constrained, "max_interaction")
+  }
+  if (!is.null(features) && !all(model_features %in% features)) {
+    constrained <- c(constrained, "features")
+  }
+
+  constrained
+}
+
+#' Warn about, and invalidate, SHAP values from a constrained decomposition
+#' @param shap SHAP value matrix.
+#' @param constrained Character vector from [constrained_by()].
+#' @keywords internal
+#' @noRd
+invalidate_shap <- function(shap, constrained) {
+  if (length(constrained) == 0) {
+    return(shap)
+  }
+
+  warning(
+    "SHAP values set to NA: the decomposition is constrained by ",
+    paste0("`", constrained, "`", collapse = " and "),
+    " and does not sum to the full model prediction, so SHAP values cannot be ",
+    "reconstructed from it (the efficiency property would be violated). ",
+    "The components in `$m` are unaffected."
+  )
+  shap[] <- NA_real_
+  shap
+}
+
 #' Upper bound on the interaction order present in the decomposition.
 #' Interactions can only arise between features sharing a root-to-leaf path, so
 #' per tree the order is bounded by both its depth and its number of distinct
@@ -717,14 +845,16 @@ calc_components <- function(
       1L
     all_S <- get_all_subsets_cpp(sort(unique(features_num)), max_interaction)
   }
-  # SHAP values can only be reconstructed from a complete decomposition: if terms
-  # are dropped via max_interaction or features, the components no longer sum to
-  # the full model prediction and the SHAP efficiency property cannot hold.
-  shap_valid <- max_interaction >= max_order_bound(trees)
-  if (!is.null(features)) {
-    used_features_num <- trees[Feature_num > 0, sort(unique(Feature_num))]
-    shap_valid <- shap_valid && all(used_features_num %in% features_num)
-  }
+  # Features the model actually splits on, for the constraint check below
+  model_features <- colnames(x)[
+    setdiff(sort(unique(trees$Feature_num)), 0L)
+  ]
+  constrained <- constrained_by(
+    max_interaction = max_interaction,
+    features = features,
+    available_interaction = max_order_bound(trees),
+    model_features = model_features
+  )
 
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
@@ -761,41 +891,16 @@ calc_components <- function(
     }
   }
 
-  d <- get_degree(colnames(m_all))
-
-  # Overall feature effect is sum of all elements where feature is involved
-  interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
-
-  # SHAP values are the sum of the m's * 1/d
-  shap <- vapply(
-    colnames(x),
-    function(col) {
-      idx <- find_term_matches(col, colnames(interactions))
-
-      if (length(idx) == 0) {
-        numeric(nrow(interactions))
-      } else {
-        rowSums(interactions[, idx, drop = FALSE])
-      }
-    },
-    FUN.VALUE = numeric(nrow(x))
-  )
-
-  if (!shap_valid) {
-    warning(
-      "SHAP values set to NA: the decomposition is constrained by `max_interaction` or ",
-      "`features` and does not sum to the full model prediction, so SHAP values cannot ",
-      "be reconstructed from it (the efficiency property would be violated)."
-    )
-    shap[] <- NA_real_
-  }
+  shap <- shap_from_components(m_all[, -1, drop = FALSE], colnames(x))
+  shap <- invalidate_shap(shap, constrained)
 
   # Return shap values, decomposition and intercept
   ret <- list(
     shap = data.table::setDT(as.data.frame(shap)),
     m = data.table::setDT(as.data.frame(m_all[, -1])),
     intercept = unique(m_all[, 1]),
-    x = data.table::setDT(as.data.frame(x))
+    x = data.table::setDT(as.data.frame(x)),
+    constrained = constrained
   )
   class(ret) <- c("glex", "xgb_components", class(ret))
   ret

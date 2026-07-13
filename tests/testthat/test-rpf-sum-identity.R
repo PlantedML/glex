@@ -70,3 +70,77 @@ test_that("rpf multiclass: classwise sum identity matches predicted probabilitie
 
   expect_true(all(class_diffs < 0.8))
 })
+
+test_that("rpf: shap is derived from components and satisfies efficiency", {
+  skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+
+  rp <- randomPlantedForest::rpf(
+    mpg ~ cyl + hp + wt,
+    data = mtcars,
+    max_interaction = 3
+  )
+  gl <- glex::glex(rp, mtcars)
+
+  expect_identical(gl$constrained, character(0))
+  expect_false(anyNA(gl$shap))
+  expect_equal(
+    unname(gl$intercept + rowSums(gl$shap)),
+    unname(predict(rp, mtcars)[[1]]),
+    tolerance = 1e-6
+  )
+})
+
+test_that("rpf: constrained decompositions invalidate shap", {
+  skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+
+  rp <- randomPlantedForest::rpf(
+    mpg ~ cyl + hp + wt,
+    data = mtcars,
+    max_interaction = 3
+  )
+
+  expect_warning(gl_mi <- glex::glex(rp, mtcars, max_interaction = 1), "NA")
+  expect_identical(gl_mi$constrained, "max_interaction")
+  expect_true(all(is.na(gl_mi$shap)))
+  expect_false(anyNA(gl_mi$m))
+
+  expect_warning(gl_ft <- glex::glex(rp, mtcars, features = c("hp", "wt")), "NA")
+  expect_identical(gl_ft$constrained, "features")
+  expect_true(all(is.na(gl_ft$shap)))
+})
+
+test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
+  skip_if_not_installed("randomPlantedForest")
+  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+
+  mt <- mtcars
+  mt$cyl <- factor(mt$cyl)
+  rpk <- randomPlantedForest::rpf(
+    cyl ~ mpg + hp + wt,
+    data = mt,
+    max_interaction = 2
+  )
+  glk <- glex::glex(rpk, mt)
+  pred <- predict(rpk, mt)
+
+  expect_identical(glk$constrained, character(0))
+  # one shap column per feature and class, like the terms in `m`
+  expect_setequal(
+    names(glk$shap),
+    paste0(rep(names(glk$x), each = 3), "__class:", rep(glk$target_levels, 3))
+  )
+
+  # Per class, shap + intercept reconstructs the predicted class score
+  class_diffs <- vapply(
+    glk$target_levels,
+    function(level) {
+      idx <- grepl(paste0("__class:", level), names(glk$shap), fixed = TRUE)
+      score <- glk$intercept + rowSums(glk$shap[, idx, with = FALSE])
+      max(abs(score - pred[[paste0(".pred_", level)]]))
+    },
+    FUN.VALUE = numeric(1)
+  )
+  expect_true(all(class_diffs < 0.8))
+})

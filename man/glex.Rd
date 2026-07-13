@@ -57,16 +57,20 @@ If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 Decomposition of the regression or classification function.
 A \code{list} with elements:
 \itemize{
-\item \code{shap}: SHAP values (\code{xgboost} and \code{ranger} methods only). These are reconstructed
-from the functional decomposition, which is only possible if the decomposition is
-complete: if it is constrained via \code{max_interaction} or \code{features}, the components
+\item \code{shap}: SHAP values, derived from the functional decomposition as
+\eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
+decomposition is complete: if it is constrained (see \code{constrained}), the components
 no longer sum to the full model prediction and the SHAP efficiency property cannot
-hold, so \code{shap} is set to \code{NA} (with a warning).
+hold, so \code{shap} is set to \code{NA} (with a warning) while \code{m} remains valid.
+For multiclass models, columns are class-specific like those of \code{m}.
 \item \code{m}: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by \code{max_interaction}.
 The variable names correspond to the original variable names,
 with \code{:} separating interaction terms as one would specify in a \code{\link{formula}} interface.
 \item \code{intercept}: Intercept term, the expected value of the prediction.
+\item \code{constrained}: Character vector naming the arguments that constrained the
+decomposition (\code{"max_interaction"}, \code{"features"}), or \code{character(0)} if it is
+complete. Use \code{length(x$constrained) > 0} to check whether \code{shap} is valid.
 }
 }
 \description{
