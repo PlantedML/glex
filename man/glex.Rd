@@ -62,7 +62,10 @@ A \code{list} with elements:
 decomposition is complete: if it is constrained (see \code{constrained}), the components
 no longer sum to the full model prediction and the SHAP efficiency property cannot
 hold, so \code{shap} is set to \code{NA} (with a warning) while \code{m} remains valid.
-For multiclass models, columns are class-specific like those of \code{m}.
+For multiclass models, columns are class-specific like those of \code{m}. Note that
+\code{randomPlantedForest} models report a single \code{intercept} for all classes, so for
+multiclass models \code{intercept + rowSums(shap)} reconstructs the predicted class
+scores only approximately.
 \item \code{m}: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by \code{max_interaction}.
 The variable names correspond to the original variable names,

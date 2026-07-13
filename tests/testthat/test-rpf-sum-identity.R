@@ -101,14 +101,21 @@ test_that("rpf: constrained decompositions invalidate shap", {
     max_interaction = 3
   )
 
-  expect_warning(gl_mi <- glex::glex(rp, mtcars, max_interaction = 1), "NA")
+  expect_warning(
+    gl_mi <- glex::glex(rp, mtcars, max_interaction = 1),
+    "efficiency property"
+  )
   expect_identical(gl_mi$constrained, "max_interaction")
   expect_true(all(is.na(gl_mi$shap)))
   expect_false(anyNA(gl_mi$m))
 
-  expect_warning(gl_ft <- glex::glex(rp, mtcars, features = c("hp", "wt")), "NA")
+  expect_warning(
+    gl_ft <- glex::glex(rp, mtcars, features = c("hp", "wt")),
+    "efficiency property"
+  )
   expect_identical(gl_ft$constrained, "features")
   expect_true(all(is.na(gl_ft$shap)))
+  expect_false(anyNA(gl_ft$m))
 })
 
 test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
@@ -123,7 +130,6 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
     max_interaction = 2
   )
   glk <- glex::glex(rpk, mt)
-  pred <- predict(rpk, mt)
 
   expect_identical(glk$constrained, character(0))
   # one shap column per feature and class, like the terms in `m`
@@ -132,15 +138,18 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
     paste0(rep(names(glk$x), each = 3), "__class:", rep(glk$target_levels, 3))
   )
 
-  # Per class, shap + intercept reconstructs the predicted class score
-  class_diffs <- vapply(
-    glk$target_levels,
-    function(level) {
-      idx <- grepl(paste0("__class:", level), names(glk$shap), fixed = TRUE)
-      score <- glk$intercept + rowSums(glk$shap[, idx, with = FALSE])
-      max(abs(score - pred[[paste0(".pred_", level)]]))
-    },
-    FUN.VALUE = numeric(1)
-  )
-  expect_true(all(class_diffs < 0.8))
+  # SHAP values redistribute the components of their own class, so per class the
+  # two must sum to the same thing exactly. (rpf reports a single intercept for all
+  # classes, so the class scores themselves are only reconstructed approximately.)
+  for (level in glk$target_levels) {
+    shap_cols <- grepl(paste0("__class:", level), names(glk$shap), fixed = TRUE)
+    m_cols <- grepl(paste0("__class:", level), names(glk$m), fixed = TRUE)
+
+    expect_equal(
+      rowSums(glk$shap[, shap_cols, with = FALSE]),
+      rowSums(glk$m[, m_cols, with = FALSE]),
+      tolerance = 1e-10,
+      info = paste("class", level)
+    )
+  }
 })

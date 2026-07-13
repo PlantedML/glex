@@ -164,8 +164,9 @@ glex_explain <- function(
 
   # SHAP values are read from `$shap` rather than recomputed, so the object is the
   # single source of truth. They are NA for constrained decompositions (see `?glex`),
-  # in which case the SHAP bar is omitted.
-  shap_valid <- length(object$constrained) == 0
+  # and absent from objects created by earlier versions of glex, in which case the
+  # SHAP bar is omitted.
+  shap_valid <- !is.null(object$shap) && length(object$constrained) == 0
 
   # helper df of shap values to plot them in as separate rectangles, at last (lowest) position (determined by term_int)
   xshap <- xdf[,

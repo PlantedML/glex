@@ -32,6 +32,16 @@ print.glex <- function(x, ...) {
     max_deg,
     max_deg_lab
   )
-  cat("\n\n")
+  cat("\n")
+
+  if (length(x$constrained) > 0) {
+    cat(
+      "Decomposition constrained by",
+      paste0("`", x$constrained, "`", collapse = " and "),
+      "- SHAP values are NA\n"
+    )
+  }
+
+  cat("\n")
   str(x, list.len = 5)
 }

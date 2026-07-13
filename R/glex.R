@@ -25,7 +25,10 @@
 #'   decomposition is complete: if it is constrained (see `constrained`), the components
 #'   no longer sum to the full model prediction and the SHAP efficiency property cannot
 #'   hold, so `shap` is set to `NA` (with a warning) while `m` remains valid.
-#'   For multiclass models, columns are class-specific like those of `m`.
+#'   For multiclass models, columns are class-specific like those of `m`. Note that
+#'   `randomPlantedForest` models report a single `intercept` for all classes, so for
+#'   multiclass models `intercept + rowSums(shap)` reconstructs the predicted class
+#'   scores only approximately.
 #' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
 #'   The variable names correspond to the original variable names,
@@ -642,7 +645,9 @@ shap_from_components <- function(m, features) {
 #' SHAP efficiency property cannot hold. Returns the names of the constrained
 #' arguments, or `character(0)` if the decomposition is complete.
 #' @param max_interaction,features As supplied to `glex()`.
-#' @param available_interaction Interaction order available in the model.
+#' @param available_interaction Interaction order available in the model. Only
+#'   evaluated when `max_interaction` could bind at all (R's lazy argument
+#'   evaluation keeps a potentially expensive computation out of the default path).
 #' @param model_features Features the model actually uses.
 #' @keywords internal
 #' @noRd
@@ -654,7 +659,13 @@ constrained_by <- function(
 ) {
   constrained <- character(0)
 
-  if (!is.null(max_interaction) && max_interaction < available_interaction) {
+  # A model can never contain interactions of higher order than it has features,
+  # so this cheap check short-circuits the common unconstrained case.
+  if (
+    !is.null(max_interaction) &&
+      max_interaction < length(model_features) &&
+      max_interaction < available_interaction
+  ) {
     constrained <- c(constrained, "max_interaction")
   }
   if (!is.null(features) && !all(model_features %in% features)) {
@@ -685,38 +696,50 @@ invalidate_shap <- function(shap, constrained) {
   shap
 }
 
-#' Upper bound on the interaction order present in the decomposition.
-#' Interactions can only arise between features sharing a root-to-leaf path, so
-#' per tree the order is bounded by both its depth and its number of distinct
-#' features; the model bound is the maximum over trees. This can overestimate
-#' (a path may split repeatedly on one feature), never underestimate.
+#' Maximum interaction order present in the model's decomposition.
+#'
+#' An interaction between features can only arise where they split on the same
+#' root-to-leaf path, so the order of a tree is the largest number of *distinct*
+#' features on any one of its paths, and the model's order is the maximum over
+#' trees. Tree depth alone is not a substitute: a path that splits repeatedly on
+#' the same feature is deeper than its interaction order, which would make a
+#' complete decomposition look constrained and needlessly invalidate `$shap`.
+#'
 #' Read from the trees table rather than model metadata because ranger has no
-#' usable depth field (max.depth = 0 means unlimited) and xgboost's config
-#' parsing is version-fragile.
-#' Relies on child node ids being larger than their parent's, which holds for
-#' both xgb.model.dt.tree(use_int_id = TRUE) and ranger::treeInfo() numbering.
+#' usable depth field (`max.depth = 0` means unlimited) and xgboost's config
+#' parsing is version-fragile. Relies on child node ids being larger than their
+#' parent's, which holds for both `xgb.model.dt.tree(use_int_id = TRUE)` and
+#' `ranger::treeInfo()` numbering, so parents are processed before their children.
 #' @param trees data.table with columns Node, Yes, No, Feature_num, Tree;
-#'   leaves have Yes = NA
+#'   leaves have `Yes = NA` and `Feature_num = 0`
 #' @keywords internal
 #' @noRd
-max_order_bound <- function(trees) {
+max_order <- function(trees) {
   Tree <- Node <- NULL
 
   max(vapply(
     0:max(trees$Tree),
     function(tree) {
       tree_info <- trees[Tree == tree, ][order(Node)]
-      depth <- integer(nrow(tree_info))
+
+      # Distinct features seen on the path from the root to each node
+      path_features <- vector("list", nrow(tree_info))
+      path_features[[1L]] <- integer(0)
+      order_tree <- 0L
+
       for (i in seq_len(nrow(tree_info))) {
-        if (!is.na(tree_info$Yes[i])) {
-          depth[tree_info$Yes[i] + 1L] <- depth[i] + 1L
-          depth[tree_info$No[i] + 1L] <- depth[i] + 1L
+        if (is.na(tree_info$Yes[i])) {
+          # Leaf: the path ends here
+          order_tree <- max(order_tree, length(path_features[[i]]))
+          next
         }
+
+        features <- union(path_features[[i]], tree_info$Feature_num[i])
+        path_features[[tree_info$Yes[i] + 1L]] <- features
+        path_features[[tree_info$No[i] + 1L]] <- features
       }
-      n_features <- length(unique(tree_info$Feature_num[
-        tree_info$Feature_num > 0L
-      ]))
-      min(max(depth), n_features)
+
+      order_tree
     },
     integer(1)
   ))
@@ -852,7 +875,7 @@ calc_components <- function(
   constrained <- constrained_by(
     max_interaction = max_interaction,
     features = features,
-    available_interaction = max_order_bound(trees),
+    available_interaction = max_order(trees),
     model_features = model_features
   )
 
