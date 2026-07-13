@@ -77,6 +77,11 @@ complete. Use \code{length(x$constrained) > 0} to check whether \code{shap} is v
 A constraint that only drops terms whose value is zero leaves the decomposition
 unchanged; \code{glex()} confirms this against the model's predictions, reports it with
 a message, and treats the result as complete.
+\item \code{remainder}: What the dropped terms are collectively worth, per observation:
+\code{prediction - (intercept + rowSums(m))}, on the same scale as \code{m}. Present exactly
+when the decomposition is constrained, and absent otherwise, so
+\code{intercept + rowSums(m) + remainder} reconstructs the prediction in either case.
+For multiclass \code{randomPlantedForest} models it is class-wise, mirroring \code{m}.
 }
 }
 \description{

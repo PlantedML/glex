@@ -40,6 +40,11 @@
 #'   A constraint that only drops terms whose value is zero leaves the decomposition
 #'   unchanged; `glex()` confirms this against the model's predictions, reports it with
 #'   a message, and treats the result as complete.
+#' * `remainder`: What the dropped terms are collectively worth, per observation:
+#'   `prediction - (intercept + rowSums(m))`, on the same scale as `m`. Present exactly
+#'   when the decomposition is constrained, and absent otherwise, so
+#'   `intercept + rowSums(m) + remainder` reconstructs the prediction in either case.
+#'   For multiclass `randomPlantedForest` models it is class-wise, mirroring `m`.
 #' @export
 glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
@@ -700,20 +705,29 @@ constrained_by <- function(
 
 #' Confirm a structural constraint numerically, and invalidate SHAP values if real
 #'
-#' The structural check ([constrained_by()]) only knows which terms were dropped, not
+#' The structural check (`constrained_by()`) only knows which terms were dropped, not
 #' what they were worth: a model can contain a high-order term whose value is exactly
 #' zero, in which case dropping it changes nothing and the SHAP values remain valid.
 #' This confirms the constraint against the model's own predictions before discarding
 #' anything: if the components still reconstruct the prediction, the dropped terms were
 #' inert and `$shap` is kept (with a message, since the user did ask for a constraint).
 #' Otherwise `$shap` is invalidated with a warning.
+#'
+#' The gap between the components and the prediction is what the dropped terms are
+#' collectively worth, and it is reported as `$remainder`. It is the quantitative form of
+#' `$constrained` and exists exactly when the decomposition is incomplete, so a complete
+#' one carries no remainder.
 #' @param res `glex` object with `$m`, `$shap`, `$intercept` and `$constrained`.
+#'   For `rpf` models `$remainder` may already be set by
+#'   `randomPlantedForest::predict_components()`; it is only overwritten where `target`
+#'   lets us compute it ourselves, which keeps the multiclass remainder rpf provides.
 #' @param target Model predictions on the scale of the decomposition, or `NULL` to skip
 #'   the numeric confirmation and treat the structural verdict as final.
 #' @keywords internal
 #' @noRd
 confirm_constrained <- function(res, target = NULL) {
   if (length(res$constrained) == 0) {
+    res$remainder <- NULL
     return(res)
   }
 
@@ -721,6 +735,8 @@ confirm_constrained <- function(res, target = NULL) {
 
   if (!is.null(target)) {
     reconstruction <- res$intercept + rowSums(res$m)
+    res$remainder <- unname(target - reconstruction)
+
     inert <- isTRUE(all.equal(
       unname(reconstruction),
       unname(target),
@@ -735,6 +751,7 @@ confirm_constrained <- function(res, target = NULL) {
         "prediction, so SHAP values remain valid."
       )
       res$constrained <- character(0)
+      res$remainder <- NULL
       return(res)
     }
   }

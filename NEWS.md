@@ -18,6 +18,13 @@
   columns are class-specific like those of `$m`). Previously the field was absent.
   Constraining the decomposition post-hoc via `max_interaction` or `features` is now
   detected for `rpf` models too, where it previously passed silently.
+* `glex()` objects gain a `$remainder` field: what the constraint's dropped terms are
+  collectively worth, per observation, on the scale of `$m`. It is present exactly when
+  the decomposition is constrained, so `intercept + rowSums(m) + remainder` reconstructs
+  the model prediction whether or not a constraint was applied. `randomPlantedForest`
+  objects already carried a `$remainder` computed by `predict_components()`, but the
+  other model classes did not; the two are now one field with one definition, computed
+  in one place. Closes #11, supersedes #25.
 * `glex_explain()` now reads SHAP values from `$shap` instead of recomputing them from
   the components, so the `glex` object is the single source of truth. The SHAP
   reference bar is omitted for constrained decompositions, where it previously showed
