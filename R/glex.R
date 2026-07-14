@@ -751,11 +751,12 @@ confirm_constrained <- function(res, target = NULL) {
     reconstruction <- res$intercept + rowSums(res$m)
     res$remainder <- unname(target - reconstruction)
 
-    inert <- isTRUE(all.equal(
-      unname(reconstruction),
-      unname(target),
-      tolerance = 1e-5
-    ))
+    # The dropped terms are inert only if they are *numerically zero*, which is what the
+    # remainder measures directly. Judge it elementwise: `all.equal()` reports the mean
+    # relative difference, which averages a discrepancy concentrated in a few observations
+    # away to nothing and lets a genuinely non-zero term pass as "all zero" -- and this
+    # verdict decides whether `$shap` is trustworthy or `NA`, so it must not be fuzzy.
+    inert <- max(abs(res$remainder)) <= 1e-8 * max(1, max(abs(unname(target))))
 
     if (inert) {
       message(

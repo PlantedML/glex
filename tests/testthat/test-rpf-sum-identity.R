@@ -155,41 +155,71 @@ test_that("rpf: constraints that drop only zero terms keep shap valid", {
   skip_if_not_installed("randomPlantedForest")
   skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
 
+  # The inert term has to be zero *by construction*, not by luck of the fit. An earlier
+  # version of this test fit at the maximum order and assumed the top-order term came out
+  # exactly zero because the data had no structure at that order; it usually did, but the
+  # forest is not bit-identical across platforms, and on macOS that term came out at 4e-4
+  # -- non-zero, so dropping it moved the SHAP values and the premise collapsed.
+  #
+  # A constant predictor cannot be split on, so *every* term involving it is exactly zero
+  # on every platform. With four features, the sole degree-4 term must involve it too,
+  # which makes both constraint axes deterministically inert.
   set.seed(42)
   n <- 120
-  p <- 6
-  x <- matrix(rnorm(n * p), ncol = p)
-  colnames(x) <- paste0("x", seq_len(p))
-  y <- x[, 1] + x[, 2] * x[, 3] + rnorm(n, sd = 0.3)
-  dat <- data.frame(x, y = y)
+  dat <- data.frame(
+    x1 = rnorm(n),
+    x2 = rnorm(n),
+    x3 = rnorm(n),
+    x4 = rep(1, n)
+  )
+  dat$y <- dat$x1 + dat$x2 * dat$x3 + rnorm(n, sd = 0.3)
+  predictors <- dat[, c("x1", "x2", "x3", "x4")]
 
-  # Fit at the maximum order: the model contains a p-way term, but the data has no
-  # p-way structure, so that term is exactly zero.
   rp <- randomPlantedForest::rpf(
     y ~ .,
     data = dat,
-    max_interaction = p,
+    max_interaction = 4,
     ntrees = 20
   )
-  full <- glex::glex(rp, dat[, -ncol(dat)])
-  degree <- lengths(strsplit(names(full$m), ":", fixed = TRUE))
-  expect_equal(max(abs(as.matrix(full$m[, degree == p, with = FALSE]))), 0)
+  full <- glex::glex(rp, predictors)
 
-  # Dropping only that zero term changes nothing, so shap must survive -- with a
-  # message rather than a warning, since a constraint *was* requested.
+  involves_x4 <- grepl("(^|:)x4($|:)", names(full$m))
+  expect_gt(sum(involves_x4), 0)
+  expect_equal(
+    max(abs(as.matrix(full$m[, involves_x4, with = FALSE]))),
+    0
+  )
+
+  # `max_interaction`: the only degree-4 term contains x4, so it is zero and dropping it
+  # changes nothing. A message rather than a warning, since a constraint *was* requested.
   expect_message(
-    gl <- glex::glex(rp, dat[, -ncol(dat)], max_interaction = p - 1L),
+    gl_mi <- glex::glex(rp, predictors, max_interaction = 3),
     "dropped terms are all zero"
   )
-  expect_identical(gl$constrained, character(0))
-  expect_false(anyNA(gl$shap))
-  expect_equal(as.matrix(gl$shap), as.matrix(full$shap), tolerance = 1e-8)
+  expect_identical(gl_mi$constrained, character(0))
+  expect_null(gl_mi$remainder)
+  expect_false(anyNA(gl_mi$shap))
+  expect_equal(as.matrix(gl_mi$shap), as.matrix(full$shap), tolerance = 1e-8)
+
+  # `features`: dropping x4 drops only its (zero) terms
+  expect_message(
+    gl_ft <- glex::glex(rp, predictors, features = c("x1", "x2", "x3")),
+    "dropped terms are all zero"
+  )
+  expect_identical(gl_ft$constrained, character(0))
+  expect_null(gl_ft$remainder)
+  expect_equal(
+    as.matrix(gl_ft$shap),
+    as.matrix(full$shap[, c("x1", "x2", "x3")]),
+    tolerance = 1e-8
+  )
 
   # Dropping terms that carry weight still invalidates
   expect_warning(
-    gl_real <- glex::glex(rp, dat[, -ncol(dat)], max_interaction = 1),
+    gl_real <- glex::glex(rp, predictors, max_interaction = 1),
     "efficiency property"
   )
   expect_identical(gl_real$constrained, "max_interaction")
   expect_true(all(is.na(gl_real$shap)))
+  expect_false(is.null(gl_real$remainder))
 })

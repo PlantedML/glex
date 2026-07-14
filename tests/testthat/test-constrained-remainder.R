@@ -262,25 +262,30 @@ test_that("an inert constraint leaves no remainder", {
   skip_if_not_installed("randomPlantedForest")
   skip_on_os("windows") # rpf purification OOB read, see test-rpf-sum-identity.R
 
-  # A model fit at the maximum order whose top-order term is exactly zero: dropping it
-  # changes nothing, so the decomposition is still complete and owes no remainder.
+  # A constant predictor cannot be split on, so every term involving it is exactly zero --
+  # on every platform, unlike a high-order term that merely happens to come out zero for a
+  # given fit. Dropping only those terms changes nothing, so the decomposition is still
+  # complete and owes no remainder. See test-rpf-sum-identity.R for the full story.
   set.seed(42)
   n <- 120
-  p <- 6
-  x <- matrix(rnorm(n * p), ncol = p)
-  colnames(x) <- paste0("x", seq_len(p))
-  y <- x[, 1] + x[, 2] * x[, 3] + rnorm(n, sd = 0.3)
-  dat <- data.frame(x, y = y)
+  dat <- data.frame(
+    x1 = rnorm(n),
+    x2 = rnorm(n),
+    x3 = rnorm(n),
+    x4 = rep(1, n)
+  )
+  dat$y <- dat$x1 + dat$x2 * dat$x3 + rnorm(n, sd = 0.3)
+  predictors <- dat[, c("x1", "x2", "x3", "x4")]
 
   rp <- randomPlantedForest::rpf(
     y ~ .,
     data = dat,
-    max_interaction = p,
+    max_interaction = 4,
     ntrees = 20
   )
 
   expect_message(
-    gl <- glex(rp, dat[, -ncol(dat)], max_interaction = p - 1L),
+    gl <- glex(rp, predictors, max_interaction = 3),
     "dropped terms are all zero"
   )
   expect_identical(gl$constrained, character(0))
