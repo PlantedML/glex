@@ -25,6 +25,19 @@
   objects already carried a `$remainder` computed by `predict_components()`, but the
   other model classes did not; the two are now one field with one definition, computed
   in one place. Closes #11, supersedes #25.
+  Unlike #25, this covers classification and other non-identity links: the remainder is
+  taken on the scale the model is decomposed on, so for `xgboost` it is on the link scale
+  (`plogis(intercept + rowSums(m) + remainder)` recovers a `binary:logistic` probability),
+  while `ranger` probability forests and `randomPlantedForest` are decomposed on the
+  response scale directly.
+* For `randomPlantedForest` classification models, `glex()` now confirms the constraint
+  against `predict(type = "numeric")` rather than the default `type = "prob"`. rpf
+  decomposes the raw score, while `type = "prob"` applies rpf's response function --
+  a clamp to `[0, 1]` for `loss = "L2"`, the inverse link for `"logit"` and
+  `"exponential"` -- and for binary models returns the classes in an order whose first
+  column is not the one being decomposed. The components reconstruct the raw score
+  exactly, so `$remainder` now measures only what the dropped terms are worth, instead of
+  silently absorbing the back-transformation and the class mix-up.
 * `glex_explain()` now reads SHAP values from `$shap` instead of recomputing them from
   the components, so the `glex` object is the single source of truth. The SHAP
   reference bar is omitted for constrained decompositions, where it previously showed

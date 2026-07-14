@@ -41,10 +41,18 @@
 #'   unchanged; `glex()` confirms this against the model's predictions, reports it with
 #'   a message, and treats the result as complete.
 #' * `remainder`: What the dropped terms are collectively worth, per observation:
-#'   `prediction - (intercept + rowSums(m))`, on the same scale as `m`. Present exactly
-#'   when the decomposition is constrained, and absent otherwise, so
-#'   `intercept + rowSums(m) + remainder` reconstructs the prediction in either case.
-#'   For multiclass `randomPlantedForest` models it is class-wise, mirroring `m`.
+#'   `prediction - (intercept + rowSums(m))`. Present exactly when the decomposition is
+#'   constrained, and absent otherwise, so `intercept + rowSums(m) + remainder`
+#'   reconstructs the prediction in either case. For multiclass `randomPlantedForest`
+#'   models it is class-wise, mirroring `m`.
+#'
+#'   Like `m` and `shap`, it is on the scale that the model is decomposed on, which for
+#'   `xgboost` is the **link** scale and not the response: for a `binary:logistic` model
+#'   the reconstruction gives the margin, and `plogis(intercept + rowSums(m) + remainder)`
+#'   gives the predicted probability. `ranger` probability forests and
+#'   `randomPlantedForest` are decomposed on the response scale, where no such
+#'   back-transformation is needed. Adding `remainder` to a probability is therefore
+#'   never correct for `xgboost`.
 #' @export
 glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
@@ -130,11 +138,17 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 
   ret$shap <- data.table::setDT(as.data.frame(shap))
 
-  # Multiclass rpf models report a single intercept for all classes, so the
-  # components only reconstruct the class scores approximately and the numeric
-  # confirmation is not reliable: the structural verdict is final there.
+  # rpf decomposes the raw score, which is what `type = "numeric"` returns. The default
+  # for classification is `type = "prob"`, which applies rpf's response function: a clamp
+  # to [0, 1] for `loss = "L2"`, the inverse link for `"logit"` and `"exponential"`.
+  # Comparing against that would confound the dropped terms with the back-transformation
+  # (and, for binary models, silently compare against the wrong class).
+  #
+  # Multiclass rpf models report a single intercept for all classes, so the components
+  # only reconstruct the class scores approximately and the numeric confirmation is not
+  # reliable: the structural verdict is final there, and rpf supplies `$remainder` itself.
   target <- if (is.null(ret$target_levels)) {
-    stats::predict(object, x)[[1]]
+    stats::predict(object, x, type = "numeric")[[1]]
   }
   ret <- confirm_constrained(ret, target = target)
 

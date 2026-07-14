@@ -78,10 +78,18 @@ A constraint that only drops terms whose value is zero leaves the decomposition
 unchanged; \code{glex()} confirms this against the model's predictions, reports it with
 a message, and treats the result as complete.
 \item \code{remainder}: What the dropped terms are collectively worth, per observation:
-\code{prediction - (intercept + rowSums(m))}, on the same scale as \code{m}. Present exactly
-when the decomposition is constrained, and absent otherwise, so
-\code{intercept + rowSums(m) + remainder} reconstructs the prediction in either case.
-For multiclass \code{randomPlantedForest} models it is class-wise, mirroring \code{m}.
+\code{prediction - (intercept + rowSums(m))}. Present exactly when the decomposition is
+constrained, and absent otherwise, so \code{intercept + rowSums(m) + remainder}
+reconstructs the prediction in either case. For multiclass \code{randomPlantedForest}
+models it is class-wise, mirroring \code{m}.
+
+Like \code{m} and \code{shap}, it is on the scale that the model is decomposed on, which for
+\code{xgboost} is the \strong{link} scale and not the response: for a \code{binary:logistic} model
+the reconstruction gives the margin, and \code{plogis(intercept + rowSums(m) + remainder)}
+gives the predicted probability. \code{ranger} probability forests and
+\code{randomPlantedForest} are decomposed on the response scale, where no such
+back-transformation is needed. Adding \code{remainder} to a probability is therefore
+never correct for \code{xgboost}.
 }
 }
 \description{

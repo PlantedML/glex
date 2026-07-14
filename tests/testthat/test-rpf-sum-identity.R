@@ -4,7 +4,20 @@
 # Fixed upstream in https://github.com/PlantedML/randomPlantedForest/pull/61 —
 # remove the skips once that (or a minimal fix) is merged.
 
-test_that("rpf binary: FastPD sum identity matches predicted class probability", {
+# For classification, rpf decomposes the *raw score*, which `predict(type = "numeric")`
+# returns. The default `type = "prob"` applies rpf's response function -- a clamp to
+# [0, 1] for `loss = "L2"`, the inverse link for `"logit"` / `"exponential"` -- which the
+# decomposition knows nothing about, so the components never sum to it. These tests used
+# to compare against `type = "prob"` and needed tolerances loose enough (0.03, 0.8) to
+# swallow that gap, plus a min() over both class columns to avoid committing to one.
+# Against the raw score the identity is exact.
+#
+# There is deliberately no `weighting_method` here: it selects how glex weights leaves
+# when *it* walks the trees, which it only does for xgboost and ranger. rpf purifies its
+# own components in C++, so `glex.rpf()` ignores the argument entirely. Two tests used to
+# pass "fastpd" and "path-dependent" and assert the same thing twice.
+
+test_that("rpf binary: sum identity matches the predicted raw score", {
   skip_if_not_installed("randomPlantedForest")
   skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
 
@@ -13,36 +26,16 @@ test_that("rpf binary: FastPD sum identity matches predicted class probability",
     data = xdat,
     max_interaction = 3
   )
-  gl <- glex::glex(rp, xdat, weighting_method = "fastpd")
-  pred <- predict(rp, xdat)
+  gl <- glex::glex(rp, xdat)
 
-  score <- unname(gl$intercept + rowSums(gl$m))
-  diff_col1 <- max(abs(score - pred[[1]]))
-  diff_col2 <- max(abs(score - pred[[2]]))
-
-  expect_lt(min(diff_col1, diff_col2), 0.03)
-})
-
-test_that("rpf binary: path-dependent sum identity matches predicted class probability", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
-
-  rp <- randomPlantedForest::rpf(
-    y ~ x1 + x2 + x3,
-    data = xdat,
-    max_interaction = 3
+  expect_equal(
+    unname(gl$intercept + rowSums(gl$m)),
+    unname(predict(rp, xdat, type = "numeric")[[1]]),
+    tolerance = 1e-8
   )
-  gl <- glex::glex(rp, xdat, weighting_method = "path-dependent")
-  pred <- predict(rp, xdat)
-
-  score <- unname(gl$intercept + rowSums(gl$m))
-  diff_col1 <- max(abs(score - pred[[1]]))
-  diff_col2 <- max(abs(score - pred[[2]]))
-
-  expect_lt(min(diff_col1, diff_col2), 0.03)
 })
 
-test_that("rpf multiclass: classwise sum identity matches predicted probabilities", {
+test_that("rpf multiclass: classwise sum identity holds up to the class intercept", {
   skip_if_not_installed("randomPlantedForest")
   skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
 
@@ -52,23 +45,27 @@ test_that("rpf multiclass: classwise sum identity matches predicted probabilitie
     max_interaction = 3
   )
   gl <- glex::glex(rp, xdat)
-  pred <- predict(rp, xdat)
+  pred <- predict(rp, xdat, type = "numeric")
 
-  # Each class has its own decomposition terms ending in "__class:<level>".
-  # Summing those terms plus intercept should reconstruct that class score.
-  class_diffs <- vapply(
-    gl$target_levels,
-    function(level) {
-      idx <- grepl(paste0("__class:", level), names(gl$m), fixed = TRUE)
-      score <- unname(
-        gl$intercept + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
-      )
-      max(abs(score - pred[[paste0(".pred_", level)]]))
-    },
-    FUN.VALUE = numeric(1)
-  )
+  # Each class has its own decomposition terms ending in "__class:<level>", but rpf
+  # reports a single intercept for all classes rather than one per class. The class terms
+  # therefore reconstruct that class's raw score exactly up to an additive constant -- the
+  # class intercept we never receive. Assert exactly that: the per-observation residual is
+  # constant within a class, which is much stronger than bounding its magnitude.
+  for (level in gl$target_levels) {
+    idx <- grepl(paste0("__class:", level), names(gl$m), fixed = TRUE)
+    score <- unname(
+      gl$intercept + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
+    )
+    residual <- score - pred[[paste0(".pred_", level)]]
 
-  expect_true(all(class_diffs < 0.8))
+    expect_equal(
+      max(residual) - min(residual),
+      0,
+      tolerance = 1e-8,
+      info = paste("class", level)
+    )
+  }
 })
 
 test_that("rpf: shap is derived from components and satisfies efficiency", {
