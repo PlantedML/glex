@@ -24,7 +24,7 @@
 #'   \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
 #'   decomposition is complete: if it is constrained (see `constrained`), the components
 #'   no longer sum to the full model prediction and the SHAP efficiency property cannot
-#'   hold, so `shap` is set to `NA` (with a warning) while `m` remains valid.
+#'   hold, so `shap` is a scalar `NA` (with a warning) while `m` remains valid.
 #'   For multiclass models, columns are class-specific like those of `m`. Note that
 #'   `randomPlantedForest` models report a single `intercept` for all classes, so for
 #'   multiclass models `intercept + rowSums(shap)` reconstructs the predicted class
@@ -778,9 +778,9 @@ confirm_constrained <- function(res, target = NULL) {
     "reconstructed from it (the efficiency property would be violated). ",
     "The components in `$m` are unaffected."
   )
-  for (col in names(res$shap)) {
-    data.table::set(res$shap, j = col, value = NA_real_)
-  }
+  # Scalar: there are no per-feature values to report, and code that consumes
+  # `$shap` numerically should fail loudly rather than propagate NAs.
+  res$shap <- NA
 
   res
 }

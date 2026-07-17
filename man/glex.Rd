@@ -61,7 +61,7 @@ A \code{list} with elements:
 \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
 decomposition is complete: if it is constrained (see \code{constrained}), the components
 no longer sum to the full model prediction and the SHAP efficiency property cannot
-hold, so \code{shap} is set to \code{NA} (with a warning) while \code{m} remains valid.
+hold, so \code{shap} is a scalar \code{NA} (with a warning) while \code{m} remains valid.
 For multiclass models, columns are class-specific like those of \code{m}. Note that
 \code{randomPlantedForest} models report a single \code{intercept} for all classes, so for
 multiclass models \code{intercept + rowSums(shap)} reconstructs the predicted class

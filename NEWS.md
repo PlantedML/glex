@@ -1,6 +1,6 @@
 # glex 0.6.0.9000 (development version)
 
-* `$shap` is now `NA` (with a warning) when the decomposition is constrained via
+* `$shap` is now a scalar `NA` (with a warning) when the decomposition is constrained via
   `max_interaction` or `features`: a constrained decomposition does not sum to the
   full model prediction, so SHAP values cannot be reconstructed from it without
   violating the efficiency property. Previously, misleading values were returned.

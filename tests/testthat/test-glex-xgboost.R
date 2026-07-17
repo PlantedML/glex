@@ -61,7 +61,7 @@ test_that("shap is NA when decomposition is constrained", {
     "efficiency property"
   )
   expect_identical(gl_mi$constrained, "max_interaction")
-  expect_true(all(is.na(gl_mi$shap)))
+  expect_identical(gl_mi$shap, NA)
   expect_false(anyNA(gl_mi$m))
 
   # constrained via features
@@ -70,7 +70,7 @@ test_that("shap is NA when decomposition is constrained", {
     "efficiency property"
   )
   expect_identical(gl_ft$constrained, "features")
-  expect_true(all(is.na(gl_ft$shap)))
+  expect_identical(gl_ft$shap, NA)
 
   # both axes are reported
   expect_warning(
@@ -78,7 +78,7 @@ test_that("shap is NA when decomposition is constrained", {
     "efficiency property"
   )
   expect_identical(gl_both$constrained, c("max_interaction", "features"))
-  expect_true(all(is.na(gl_both$shap)))
+  expect_identical(gl_both$shap, NA)
 
   # unconstrained: shap present and satisfies the efficiency property
   gl_full <- glex(xg, x)
