@@ -25,7 +25,7 @@ A version of \code{\link{plot_main_effect}} with the intercept term (horizontal 
 resulting in a partial dependence plot.
 }
 \examples{
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # introduce factor variables to show categorical feature handling
@@ -39,7 +39,7 @@ components <- glex(rpfit, mtcars)
 
 plot_pdp(components, "wt")
 plot_pdp(components, "cyl")
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=plot_main_effect]{plot_main_effect()}}

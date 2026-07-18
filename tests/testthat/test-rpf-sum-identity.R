@@ -1,9 +1,3 @@
-# These tests crash R on Windows: randomPlantedForest's purify_3() has an
-# out-of-bounds read (grid sized lim_list[dim-1].size() instead of .size() - 1
-# in src/lib/rpf.cpp, read at gridPoint + 1) that these tests happen to trigger.
-# Fixed upstream in https://github.com/PlantedML/randomPlantedForest/pull/61 —
-# remove the skips once that (or a minimal fix) is merged.
-
 # For classification, rpf decomposes the *raw score*, which `predict(type = "numeric")`
 # returns. The default `type = "prob"` applies rpf's response function -- a clamp to
 # [0, 1] for `loss = "L2"`, the inverse link for `"logit"` / `"exponential"` -- which the
@@ -18,8 +12,7 @@
 # pass "fastpd" and "path-dependent" and assert the same thing twice.
 
 test_that("rpf binary: sum identity matches the predicted raw score", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
   rp <- randomPlantedForest::rpf(
     y ~ x1 + x2 + x3,
@@ -36,8 +29,7 @@ test_that("rpf binary: sum identity matches the predicted raw score", {
 })
 
 test_that("rpf multiclass: classwise sum identity holds up to the class intercept", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
   rp <- randomPlantedForest::rpf(
     yk ~ x1 + x2 + x3,
@@ -69,8 +61,7 @@ test_that("rpf multiclass: classwise sum identity holds up to the class intercep
 })
 
 test_that("rpf: shap is derived from components and satisfies efficiency", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -89,8 +80,7 @@ test_that("rpf: shap is derived from components and satisfies efficiency", {
 })
 
 test_that("rpf: constrained decompositions invalidate shap", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -116,8 +106,7 @@ test_that("rpf: constrained decompositions invalidate shap", {
 })
 
 test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
@@ -152,8 +141,7 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
 })
 
 test_that("rpf: constraints that drop only zero terms keep shap valid", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see comment at top of file
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
   # The inert term has to be zero *by construction*, not by luck of the fit. An earlier
   # version of this test fit at the maximum order and assumed the top-order term came out

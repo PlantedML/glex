@@ -3,7 +3,7 @@
 #' @param object Object of class `glex`.
 #' @param ... (Unused)
 #'
-#' @return A [data.table::data.table()] with columns:
+#' @returns A [data.table::data.table()] with columns:
 #' * `degree` (`integer`): Degree of interaction of the `term`, with `1` being main effects,
 #'    `2` being 2-degree interactions etc.
 #' * `term` (`character`): Model term, e.g. main effect `x1` or interaction term `x1:x2`, `x1:x3:x5` etc.
@@ -24,24 +24,23 @@
 #' \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
 #'
 #' @seealso [autoplot.glex_vi]
-#' @examples
+#' @examplesIf requireNamespace("xgboost", quietly = TRUE)
 #' set.seed(1)
 #'
 #' # xgboost -----
-#' if (requireNamespace("xgboost", quietly = TRUE)) {
 #' library(xgboost)
 #' x <- as.matrix(mtcars[, -1])
 #' y <- mtcars$mpg
 #' xg <- xgboost(x[1:26, ], y[1:26],
-#'               max_depth = 4, learning_rate = .1,
-#'               nrounds = 10, verbosity = 0, nthreads = 1)
+#'   max_depth = 4, learning_rate = .1,
+#'   nrounds = 10, verbosity = 0, nthreads = 1
+#' )
 #' glex_xgb <- glex(xg, x[27:32, ])
 #' vi_xgb <- glex_vi(glex_xgb)
 #'
 #' library(ggplot2)
 #' autoplot(vi_xgb)
 #' autoplot(vi_xgb, by_degree = TRUE)
-#' }
 glex_vi <- function(object, ...) {
   checkmate::assert_class(object, classes = "glex")
 

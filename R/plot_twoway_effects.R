@@ -1,7 +1,6 @@
 #' @rdname plot_components
 #' @export
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # 2-degree interaction effects ----
@@ -16,7 +15,6 @@
 #' # 2d categorical, heatmap of arbitrary orientation
 #' plot_twoway_effects(components, c("vs", "cyl"))
 #' plot_twoway_effects(components, c("cyl", "vs"))
-#' }
 plot_twoway_effects <- function(object, predictors, rug_sides = "b", ...) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_character(predictors, len = 2, unique = TRUE)

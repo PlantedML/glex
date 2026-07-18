@@ -19,7 +19,7 @@ The dataset has been converted to a \code{\link[data.table:data.table]{data.tabl
 }
 \details{
 \itemize{
-\item \code{hr} has been copnverted to a numeric
+\item \code{hr} has been converted to a numeric
 \item \code{workingday} was recoded to a binary \code{factor} with labels \code{c("No Workingday", "Workingday")}
 \item \code{season} was recoded to a \code{factor} with labels \code{c("Winter", "Spring", "Summer", "Fall")}
 \item Variables \code{atemp}, \code{day}, \code{registered} and \code{casual} were removed

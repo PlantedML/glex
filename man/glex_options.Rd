@@ -8,27 +8,27 @@ The color choices used across all \code{glex} visualization functions can be
 adjusted globally via \code{\link[=options]{options()}}:
 }
 \details{
-\describe{
-\item{\code{glex.palette}}{(\code{NULL}) Diverging palette used to color continuous
+\itemize{
+\item \code{glex.palette} (\code{NULL}): Diverging palette used to color continuous
 interaction effects in \code{\link[=plot_twoway_effects]{plot_twoway_effects()}} and
 \code{\link[=plot_threeway_effects]{plot_threeway_effects()}}. The default \code{NULL} uses a blue/red gradient
 built from \code{glex.colors_sign}, matching the look of the Python \code{shap}
 and \code{shapiq} packages. Set to the name of a diverging
 \link[scico:scico]{scico} palette (e.g. \code{"vik"}, \code{"roma"}) to use that
-instead.}
-\item{\code{glex.palette_discrete}}{(\code{"Dark2"}) Discrete palette used to color
+instead.
+\item \code{glex.palette_discrete} (\code{"Dark2"}): Discrete palette used to color
 categorical predictors in interaction plots. Accepts a vector of colors
 (used via \code{\link[ggplot2:scale_color_manual]{ggplot2::scale_color_manual()}}), the string \code{"okabe-ito"}
 (the colorblind-safe Okabe-Ito palette via \code{\link[grDevices:palette.colors]{grDevices::palette.colors()}}),
 the name of a \link[scico:scico]{scico} palette, or the name of an
-\link[ggplot2:scale_color_brewer]{RColorBrewer} palette.}
-\item{\code{glex.colors_sign}}{(\code{c("#008BFB", "#FF0051")}) Two colors for
+\link[ggplot2:scale_color_brewer]{RColorBrewer} palette.
+\item \code{glex.colors_sign} (\code{c("#008BFB", "#FF0051")}): Two colors for
 negative and positive contributions in \code{\link[=glex_explain]{glex_explain()}}, also used as
 the endpoints of the default continuous gradient. The defaults
 follow the blue/red convention familiar from the Python \code{shap} and
-\code{shapiq} packages.}
-\item{\code{glex.color_line}}{(\code{"#194155"}) Color for main effect lines and
-columns drawn by \code{autoplot()} and \code{\link[=plot_pdp]{plot_pdp()}}.}
+\code{shapiq} packages.
+\item \code{glex.color_line} (\code{"#194155"}): Color for main effect lines and
+columns drawn by \code{autoplot()} and \code{\link[=plot_pdp]{plot_pdp()}}.
 }
 }
 \examples{

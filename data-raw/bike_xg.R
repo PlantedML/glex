@@ -6,23 +6,25 @@ bike[, `:=`(mnth = as.integer(mnth), workingday = as.integer(workingday) - 1)]
 
 # Based on mlr3pipelines PipeOpEncode
 # https://github.com/mlr-org/mlr3pipelines/blob/master/R/PipeOpEncode.R
-onehot_encode = function(x) {
+onehot_encode <- function(x) {
   # Ensuring we have a data.table, even if it's a matrix for some reason
-  x = data.table::as.data.table(x)
-  x_names = colnames(x)
-  to_encode = x_names[vapply(
+  x <- data.table::as.data.table(x)
+  x_names <- colnames(x)
+  to_encode <- x_names[vapply(
     x_names,
     \(x) inherits(x[[x]], c("character", "factor")),
     logical(1)
   )]
 
   # If no categorical features are found, return input (as DT though)
-  if (length(to_encode) == 0) return(x)
+  if (length(to_encode) == 0) {
+    return(x)
+  }
 
-  contrast_list = sapply(
+  contrast_list <- sapply(
     to_encode,
     \(column_name) {
-      levels_in = unique(x[[column_name]])
+      levels_in <- unique(x[[column_name]])
 
       stats::contr.treatment(levels_in, contrasts = FALSE)
     },
@@ -30,18 +32,18 @@ onehot_encode = function(x) {
     USE.NAMES = TRUE
   )
 
-  cols_encoded = sapply(
+  cols_encoded <- sapply(
     to_encode,
     \(column_name) {
-      x = as.character(x[[column_name]])
-      current_contrasts = contrast_list[[column_name]]
+      x <- as.character(x[[column_name]])
+      current_contrasts <- contrast_list[[column_name]]
       current_contrasts[match(x, rownames(current_contrasts)), , drop = FALSE]
     },
     simplify = FALSE,
     USE.NAMES = TRUE
   )
 
-  cols_encoded = data.table::as.data.table(cols_encoded)
+  cols_encoded <- data.table::as.data.table(cols_encoded)
   data.table::setnames(
     cols_encoded,
     names(cols_encoded),
@@ -49,24 +51,26 @@ onehot_encode = function(x) {
   )
 
   # Column rekajiggering would fail if input was single-column
-  if (length(x_names) == 1) return(cols_encoded)
+  if (length(x_names) == 1) {
+    return(cols_encoded)
+  }
   # Bind original data sans recodable variable with newly created ones
   cbind(x[, setdiff(x_names, to_encode), with = FALSE], cols_encoded)
 }
 
 
-bmat = as.matrix(bike)[, "season", drop = FALSE]
+bmat <- as.matrix(bike)[, "season", drop = FALSE]
 
 as.data.table(bmat) |>
   onehot_encode()
 
-bike_enc = onehot_encode(bike)
+bike_enc <- onehot_encode(bike)
 setcolorder(
   bike_enc,
   neworder = c("bikers", setdiff(names(bike_enc), "bikers"))
 )
 
-bike_xgb = list(
+bike_xgb <- list(
   x = as.matrix(bike_enc[, -1]),
   label = bike_enc$bikers
 )

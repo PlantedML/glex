@@ -3,14 +3,13 @@
 #' @param components An object of class `glex`.
 #' @param term (`character(1)`) A main term name to subset by, e.g. `"x1"`.
 #'
-#' @return
-#' - `subset_components`: An object of class `glex`.
-#' - `subset_component_names`: A character vector.
+#' @returns
+#' - `subset_components()`: An object of class `glex`.
+#' - `subset_component_names()`: A character vector.
 #'
 #' @rdname subset_components
 #' @export
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -26,7 +25,6 @@
 #' subset_components(components, "hp")
 #'
 #' subset_component_names(components, "hp")
-#' }
 #'
 subset_components <- function(components, term) {
   checkmate::assert_string(term)

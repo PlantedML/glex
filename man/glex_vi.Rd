@@ -36,23 +36,24 @@ In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (
 \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
 }
 \examples{
+\dontshow{if (requireNamespace("xgboost", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 set.seed(1)
 
 # xgboost -----
-if (requireNamespace("xgboost", quietly = TRUE)) {
 library(xgboost)
 x <- as.matrix(mtcars[, -1])
 y <- mtcars$mpg
 xg <- xgboost(x[1:26, ], y[1:26],
-              max_depth = 4, learning_rate = .1,
-              nrounds = 10, verbosity = 0, nthreads = 1)
+  max_depth = 4, learning_rate = .1,
+  nrounds = 10, verbosity = 0, nthreads = 1
+)
 glex_xgb <- glex(xg, x[27:32, ])
 vi_xgb <- glex_vi(glex_xgb)
 
 library(ggplot2)
 autoplot(vi_xgb)
 autoplot(vi_xgb, by_degree = TRUE)
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \link{autoplot.glex_vi}

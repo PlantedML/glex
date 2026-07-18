@@ -35,7 +35,7 @@ Plotting the main effects among the prediction components is effectively
 identical to a partial dependence plot, centered to 0.
 }
 \examples{
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # introduce factor variables to show categorical feature handling
@@ -50,9 +50,9 @@ components <- glex(rpfit, mtcars)
 # Main effects ----
 plot_main_effect(components, "wt")
 plot_main_effect(components, "cyl")
-}
+\dontshow{\}) # examplesIf}
 # plot_threeway_effects(components, c("hr", "temp", "workingday"))
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # 2-degree interaction effects ----
@@ -67,7 +67,7 @@ plot_twoway_effects(components, c("wt", "cyl"))
 # 2d categorical, heatmap of arbitrary orientation
 plot_twoway_effects(components, c("vs", "cyl"))
 plot_twoway_effects(components, c("cyl", "vs"))
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=plot_pdp]{plot_pdp()}}

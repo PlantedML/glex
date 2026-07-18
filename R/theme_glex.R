@@ -8,7 +8,7 @@
 #' @param grid_x (`TRUE`) Display horizontal grid lines?
 #' @param grid_y (`FALSE`) Display vertical grid lines?
 #'
-#' @return A `ggplot2` theme object
+#' @returns A `ggplot2` theme object
 #' @export
 #' @import ggplot2
 #' @examples

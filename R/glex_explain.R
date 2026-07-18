@@ -18,7 +18,7 @@
 #' Preferred value may depend on the number of vertical elements, hence it may be necessary to adjust
 #' this value as needed.
 #'
-#' @return A [ggplot][ggplot2::ggplot] object.
+#' @returns A [ggplot][ggplot2::ggplot] object.
 # Invisibly: A `list` with elements
 # * `components`: A [`data.table`] of the prediction components scaled by their degree of interaction,
 #   grouped by their associated reference term.
@@ -30,10 +30,9 @@
 #' @export
 #' @family Visualization functions
 #'
-#' @examples
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' set.seed(1)
 #' # Random Planted Forest -----
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
 #'
 #' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
@@ -41,7 +40,6 @@
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #'
 #' glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
-#' }
 glex_explain <- function(
   object,
   id,

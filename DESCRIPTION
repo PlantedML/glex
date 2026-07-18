@@ -38,7 +38,7 @@ Suggests:
     ISLR2,
     knitr,
     patchwork,
-    randomPlantedForest,
+    randomPlantedForest (>= 0.3.0),
     ranger,
     rmarkdown,
     testthat (>= 3.0.0),
@@ -51,7 +51,7 @@ Remotes:
     PlantedML/randomPlantedForest
 Additional_repositories: https://plantedml.r-universe.dev
 Config/roxygen2/version: 8.0.0
+Config/roxygen2/markdown: TRUE
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
-Roxygen: list(markdown = TRUE)

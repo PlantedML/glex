@@ -1,5 +1,9 @@
 # glex 0.6.0.9000 (development version)
 
+* `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it fixes an
+  out-of-bounds read in `purify_3()` that crashed R on Windows
+  (PlantedML/randomPlantedForest#61), so rpf tests and examples run on all platforms.
+
 * `$shap` is now a scalar `NA` (with a warning) when the decomposition is constrained via
   `max_interaction` or `features`: a constrained decomposition does not sum to the
   full model prediction, so SHAP values cannot be reconstructed from it without

@@ -15,10 +15,10 @@
 #'  Defaults to using all possible interactions available in the model.\cr
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
-#' @param features Vector of column names in x to calculate components for. Default is \code{NULL}, i.e. all features are used.
+#' @param features Vector of column names in `x` to calculate components for. Default is `NULL`, i.e. all features are used.
 #' @param ... Further arguments passed to methods.
 #'
-#' @return Decomposition of the regression or classification function.
+#' @returns Decomposition of the regression or classification function.
 #' A `list` with elements:
 #' * `shap`: SHAP values, derived from the functional decomposition as
 #'   \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
@@ -71,17 +71,15 @@ glex.default <- function(object, ...) {
 
 #' @rdname glex
 #' @export
-#' @examples
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #'
 #' # Random Planted Forest -----
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 #' library(randomPlantedForest)
 #'
 #' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 #'
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #' str(glex_rpf, list.len = 5)
-#' }
 glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0(
@@ -168,15 +166,15 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #'
 #' @param max_background_sample_size The maximum number of background samples used for the FastPD algorithm, only used when `weighting_method = "fastpd"`. Defaults to `nrow(x)`.
 #' @param weighting_method Use either "path-dependent", "fastpd" (default), or "empirical". See References for details.
-#' @examples
+#' @examplesIf requireNamespace("xgboost", quietly = TRUE)
 #' # xgboost -----
-#' if (requireNamespace("xgboost", quietly = TRUE)) {
 #' library(xgboost)
 #' x <- as.matrix(mtcars[, -1])
 #' y <- mtcars$mpg
 #' xg <- xgboost(x[1:26, ], y[1:26],
-#'               max_depth = 4, learning_rate = .1,
-#'               nrounds = 10, verbosity = 0, nthreads = 1)
+#'   max_depth = 4, learning_rate = .1,
+#'   nrounds = 10, verbosity = 0, nthreads = 1
+#' )
 #' glex(xg, x[27:32, ])
 #' glex(xg, mtcars[27:32, ])
 #'
@@ -184,7 +182,6 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
 #' # Parallel execution
 #' doParallel::registerDoParallel()
 #' glex(xg, x[27:32, ])
-#' }
 #' }
 glex.xgb.Booster <- function(
   object,
@@ -365,20 +362,24 @@ get_xgb_base_score <- function(object) {
 #' @importFrom stats predict
 #' @importFrom utils combn
 #' @details
-#' The different weighting methods are described in detail in Liu et al. (2024). The default method is "fastpd" as it consistently estimates the correct partial dependence function.
+#' The different weighting methods are described in detail in Liu et al. (2025). The default
+#' method is `"fastpd"` as it consistently estimates the correct partial dependence function.
 #' @references
-#' Liu, J., Steensgaard, T., Wright, M. N., Pfister, N., & Hiabu, M. (2024).
-#' \emph{Fast Estimation of Partial Dependence Functions using Trees}.
-#' arXiv preprint \href{https://arxiv.org/abs/2410.13448}{arXiv:2410.13448}.
-#' @examples
+#' Liu, J., Steensgaard, T., Wright, M. N., Pfister, N., & Hiabu, M. (2025).
+#' *Fast Estimation of Partial Dependence Functions using Trees*.
+#' Proceedings of the 42nd International Conference on Machine Learning, PMLR 267:39496-39534.
+#' [PMLR](https://proceedings.mlr.press/v267/liu25bm.html) |
+#' [arXiv:2410.13448](https://arxiv.org/abs/2410.13448)
+#' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' # ranger -----
-#' if (requireNamespace("ranger", quietly = TRUE)) {
 #' library(ranger)
 #' x <- as.matrix(mtcars[, -1])
 #' y <- mtcars$mpg
-#' rf <- ranger(x = x[1:26, ], y = y[1:26],
-#'              num.trees = 5, max.depth = 3,
-#'              node.stats = TRUE)
+#' rf <- ranger(
+#'   x = x[1:26, ], y = y[1:26],
+#'   num.trees = 5, max.depth = 3,
+#'   node.stats = TRUE
+#' )
 #' glex(rf, x[27:32, ])
 #' glex(rf, mtcars[27:32, ])
 #'
@@ -386,7 +387,6 @@ get_xgb_base_score <- function(object) {
 #' # Parallel execution
 #' doParallel::registerDoParallel()
 #' glex(rf, x[27:32, ])
-#' }
 #' }
 glex.ranger <- function(
   object,
@@ -838,7 +838,7 @@ max_order <- function(trees) {
 #' @param trees data.table
 #' @param x observerations, matrix like data-structure
 #' @param all_S all combinations of interactions up to certain order
-#' @param weighting_method the weighting method that was supplied to \code{glex}
+#' @param weighting_method the weighting method that was supplied to `glex`
 #' @keywords internal
 #' @noRd
 tree_fun_wrapper <- function(

@@ -11,13 +11,12 @@
 #' Default is `"b"` for both sides. Set to `"none"` to disable rug plot.
 #' @param ... Used for future expansion.
 #'
-#' @return A `ggplot2` object.
+#' @returns A `ggplot2` object.
 #' @import ggplot2
 #' @export
 #' @seealso [plot_pdp()]
 #'
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -32,7 +31,6 @@
 #' # Main effects ----
 #' plot_main_effect(components, "wt")
 #' plot_main_effect(components, "cyl")
-#' }
 plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
   plot_main_effect_impl(object, predictor, pdp = FALSE, ...)
 }
@@ -46,13 +44,12 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' @param predictor `(character(1))` predictor names, e.g. `"x1"` to plot
 #'   main effect of `x1`.
 #'
-#' @return A `ggplot2` object.
+#' @returns A `ggplot2` object.
 #' @import ggplot2
 #' @export
 #' @seealso [plot_main_effect()]
 #' @family Visualization functions
-#' @examples
-#' if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -66,7 +63,6 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #'
 #' plot_pdp(components, "wt")
 #' plot_pdp(components, "cyl")
-#' }
 plot_pdp <- function(object, predictor, rug_sides = "b", ...) {
   plot_main_effect_impl(object, predictor, pdp = TRUE)
 }

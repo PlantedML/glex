@@ -35,7 +35,7 @@ autoplot.glex <- function(object, predictors, ...) {
 #' `"Remaining terms"` label.
 #' @param ... (Unused)
 #'
-#' @return A [`ggplot`][ggplot2::ggplot] object.
+#' @returns A [`ggplot`][ggplot2::ggplot] object.
 #' @export
 #' @seealso [glex_vi]
 #' @family Visualization functions
