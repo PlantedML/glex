@@ -4,6 +4,12 @@ template:
 
 
 articles:
+- title: Guides
+  navbar: ~
+  desc: |
+    Working with glex decompositions.
+  contents:
+  - feature-grouping
 - title: Showcases
   navbar: ~
   desc: |
