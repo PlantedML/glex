@@ -87,13 +87,13 @@ xdat <- data.frame(
   x3 = runif(100)
 )
 
-xdat$lp <- 3 * xdat$x1 + 0.5 * (xdat$x2 + xdat$x3) + 3 * abs(xdat$x1 * xdat$x3)
-xdat$p <- 1 / (1 + exp(-xdat$lp))
-xdat$y <- factor(
+xdat$lp = 3 * xdat$x1 + 0.5 * (xdat$x2 + xdat$x3) + 3 * abs(xdat$x1 * xdat$x3)
+xdat$p = 1 / (1 + exp(-xdat$lp))
+xdat$y = factor(
   rbinom(100, size = 1, prob = xdat$p),
   labels = c("Negative", "Positive")
 )
-xdat$yk <- factor(
+xdat$yk = factor(
   rbinom(100, size = 2, prob = xdat$p),
   labels = c("N", "P", "K")
 )
