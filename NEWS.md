@@ -1,5 +1,10 @@
 # glex 0.6.0.9000 (development version)
 
+* `glex()` now warns when `x` contains missing values (#41): splits are evaluated
+  without the model's learned missing-value direction, so the decomposition of rows
+  with `NA`s is unreliable and does not sum to the model prediction. Proper missing
+  value support needs more investigation; previously such input passed silently.
+
 * `glex()` on `xgboost` models fit with early stopping now decomposes only the trees
   up to `best_iteration`, matching what `predict()` evaluates by default. Previously
   all fitted trees were decomposed, so the components did not sum to the prediction.

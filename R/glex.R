@@ -921,6 +921,17 @@ calc_components <- function(
   Feature_num <- NULL
   Tree <- NULL
 
+  # Splits are evaluated as plain comparisons, which route an NA to the "No"
+  # branch regardless of the missing-value direction the model learned, and NA
+  # rows distort the background sample used for marginalization (#41).
+  if (anyNA(x)) {
+    warning(
+      "`x` contains missing values. glex routes them through splits without ",
+      "the model's learned missing-value direction, so the decomposition is ",
+      "unreliable and will not sum to the model prediction."
+    )
+  }
+
   # Convert features to numerics (leaf = 0)
   unique_features_in_tree <- unique(trees$Feature)
   unique_features_in_tree <- unique_features_in_tree[
