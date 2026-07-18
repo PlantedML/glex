@@ -164,7 +164,7 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat     : num [1:6] 1.516 -0.143 1.516 -0.37 -0.37 ...
 #>   ..$ wt       : num [1:6] 1.62 1.763 0.593 0.567 -0.801 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ intercept  : num 19.8
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    6 obs. of  10 variables:
 #>   ..$ cyl : num [1:6] 4 4 8 6 8 4
@@ -173,7 +173,7 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ constrained: chr(0) 
 #>  $ shap       :Classes ‘data.table’ and 'data.frame':    6 obs. of  10 variables:
 #>   ..$ cyl : num [1:6] 0.767 0.719 -0.35 0.334 -0.356 ...
@@ -182,7 +182,7 @@ str(glex_rpf, list.len = 5)
 #>   ..$ drat: num [1:6] 1.656 -0.118 1.611 -0.384 -0.35 ...
 #>   ..$ wt  : num [1:6] 1.751 1.966 0.656 0.545 -0.791 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 # xgboost -----
 library(xgboost)
@@ -204,7 +204,7 @@ glex(xg, x[27:32, ])
 #>   ..$ drat: num [1:6] 0 0 0 0 0 0
 #>   ..$ wt  : num [1:6] 0.623 0.809 0.759 0.531 -3.272 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ m          :Classes ‘data.table’ and 'data.frame':    6 obs. of  31 variables:
 #>   ..$ cyl                : num [1:6] 0.0742 0.0742 0 0.0742 0 ...
 #>   ..$ cyl:disp           : num [1:6] 0 0 0 0 0 0
@@ -212,7 +212,7 @@ glex(xg, x[27:32, ])
 #>   ..$ cyl:disp:hp:wt     : num [1:6] 3.33e-16 -3.96e-16 1.18e-16 -1.46e-16 -2.78e-17 ...
 #>   ..$ cyl:disp:wt        : num [1:6] -4.16e-17 -1.39e-17 -1.39e-17 -4.16e-17 0.00 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ intercept  : num 20.6
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    6 obs. of  10 variables:
 #>   ..$ cyl : num [1:6] 4 4 8 6 8 4
@@ -221,7 +221,7 @@ glex(xg, x[27:32, ])
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ constrained: chr(0) 
 #>  - attr(*, "class")= chr [1:3] "glex" "xgb_components" "list"
 glex(xg, mtcars[27:32, ])
@@ -236,7 +236,7 @@ glex(xg, mtcars[27:32, ])
 #>   ..$ hp  : num [1:6] 1.1457 -0.0159 -0.2283 -0.0704 -0.7703 ...
 #>   ..$ drat: num [1:6] 0 0 0 0 0 0
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ m          :Classes ‘data.table’ and 'data.frame':    6 obs. of  31 variables:
 #>   ..$ cyl                : num [1:6] 0.0742 0.0742 0 0.0742 0 ...
 #>   ..$ cyl:disp           : num [1:6] 0 0 0 0 0 0
@@ -244,7 +244,7 @@ glex(xg, mtcars[27:32, ])
 #>   ..$ cyl:disp:hp:wt     : num [1:6] 3.33e-16 -3.96e-16 1.18e-16 -1.46e-16 -2.78e-17 ...
 #>   ..$ cyl:disp:wt        : num [1:6] -4.16e-17 -1.39e-17 -1.39e-17 -4.16e-17 0.00 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ intercept  : num 20.6
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    6 obs. of  11 variables:
 #>   ..$ mpg : num [1:6] 26 30.4 15.8 19.7 15 21.4
@@ -253,7 +253,7 @@ glex(xg, mtcars[27:32, ])
 #>   ..$ hp  : num [1:6] 91 113 264 175 335 109
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ constrained: chr(0) 
 #>  - attr(*, "class")= chr [1:3] "glex" "xgb_components" "list"
 
@@ -283,7 +283,7 @@ glex(rf, x[27:32, ])
 #>   ..$ drat: num [1:6] 1.28 -1.12 1.36 -1.28 -1.28 ...
 #>   ..$ wt  : num [1:6] 3.62 3.45 -1.83 -1.28 -2.79 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ m          :Classes ‘data.table’ and 'data.frame':    6 obs. of  25 variables:
 #>   ..$ cyl             : num [1:6] 0.97 0.97 -0.963 0.97 -0.963 ...
 #>   ..$ cyl:qsec        : num [1:6] 0 0 -0.14 0 -0.14 ...
@@ -291,7 +291,7 @@ glex(rf, x[27:32, ])
 #>   ..$ cyl:carb        : num [1:6] -2.93e-01 -2.93e-01 -2.92e-01 -7.11e-16 -2.92e-01 ...
 #>   ..$ qsec            : num [1:6] -0.236 -0.236 -0.236 -0.236 -0.236 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ intercept  : num 22.2
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    6 obs. of  10 variables:
 #>   ..$ cyl : num [1:6] 4 4 8 6 8 4
@@ -300,7 +300,7 @@ glex(rf, x[27:32, ])
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ constrained: chr(0) 
 #>  - attr(*, "class")= chr [1:3] "glex" "xgb_components" "list"
 glex(rf, mtcars[27:32, ])
@@ -315,7 +315,7 @@ glex(rf, mtcars[27:32, ])
 #>   ..$ hp  : num [1:6] 0.1625 0.4063 -0.0812 -0.325 -0.325 ...
 #>   ..$ drat: num [1:6] 1.28 -1.12 1.36 -1.28 -1.28 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ m          :Classes ‘data.table’ and 'data.frame':    6 obs. of  25 variables:
 #>   ..$ cyl             : num [1:6] 0.97 0.97 -0.963 0.97 -0.963 ...
 #>   ..$ cyl:qsec        : num [1:6] 0 0 -0.14 0 -0.14 ...
@@ -323,7 +323,7 @@ glex(rf, mtcars[27:32, ])
 #>   ..$ cyl:carb        : num [1:6] -2.93e-01 -2.93e-01 -2.92e-01 -7.11e-16 -2.92e-01 ...
 #>   ..$ qsec            : num [1:6] -0.236 -0.236 -0.236 -0.236 -0.236 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ intercept  : num 22.2
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    6 obs. of  11 variables:
 #>   ..$ mpg : num [1:6] 26 30.4 15.8 19.7 15 21.4
@@ -332,7 +332,7 @@ glex(rf, mtcars[27:32, ])
 #>   ..$ hp  : num [1:6] 91 113 264 175 335 109
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ constrained: chr(0) 
 #>  - attr(*, "class")= chr [1:3] "glex" "xgb_components" "list"
 

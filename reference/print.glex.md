@@ -42,18 +42,18 @@ glex(rp, mtcars[27:32, ])
 #>   ..$ hp:wt  : num [1:6] -0.597 0.0628 0.1089 -0.2085 -0.0806 ...
 #>   ..$ drat:hp: num [1:6] 0.16942 -0.00845 0.2715 0.03612 0.03014 ...
 #>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ intercept  : num 19.9
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    6 obs. of  3 variables:
 #>   ..$ hp  : num [1:6] 91 113 264 175 335 109
 #>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...
 #>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  $ constrained: chr(0) 
 #>  $ shap       :Classes ‘data.table’ and 'data.frame':    6 obs. of  3 variables:
 #>   ..$ hp  : num [1:6] 3.993 0.418 -3.603 -0.789 -3.819 ...
 #>   ..$ wt  : num [1:6] 3.35 3.945 1.291 0.997 -1.791 ...
 #>   ..$ drat: num [1:6] 2.4518 -0.2115 2.5208 -0.0748 -0.048 ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ae2d0e2a10> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5632b811ca10> 
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 ```
