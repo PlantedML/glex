@@ -5,7 +5,9 @@
   `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The regrouping is
   exact (components still sum to the prediction, group SHAP values are sums of member
   SHAP values), and `$x` gains a reconstructed factor for dummy-encoded groups so the
-  plot functions work on grouped objects.
+  plot functions work on grouped objects. The companion `dummy_groups()` derives the
+  `groups` list from the original un-encoded data, matching `model.matrix()` column
+  naming by default and taking a `naming` function for other encoding schemes.
 
 * `glex()` now warns when `x` contains missing values (#41): splits are evaluated
   without the model's learned missing-value direction, so the decomposition of rows

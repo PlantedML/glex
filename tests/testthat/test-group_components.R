@@ -144,3 +144,67 @@ test_that("invalid groups error, constrained shap passes through", {
   expect_identical(grouped$shap, NA)
   expect_identical(grouped$constrained, "max_interaction")
 })
+
+test_that("dummy_groups derives groups from model.matrix naming", {
+  task <- make_dummy_task(encoding = "one-hot")
+  xg <- fit_xgb(task$x, task$y)
+  gl <- glex(xg, task$x)
+  d <- data.frame(f = task$f, x1 = task$x[, "x1"])
+
+  groups <- dummy_groups(gl, d)
+  expect_identical(groups, list(f = c("fa", "fb", "fc")))
+
+  grouped <- group_components(gl, groups)
+  expect_setequal(names(grouped$m), c("f", "x1", "f:x1"))
+})
+
+test_that("dummy_groups skips dropped reference levels (treatment coding)", {
+  task <- make_dummy_task(encoding = "treatment")
+  xg <- fit_xgb(task$x, task$y)
+  gl <- glex(xg, task$x)
+  d <- data.frame(f = task$f, x1 = task$x[, "x1"])
+
+  groups <- dummy_groups(gl, d)
+  expect_identical(groups, list(f = c("fb", "fc")))
+})
+
+test_that("dummy_groups supports custom naming functions", {
+  set.seed(1)
+  n <- 200
+  f <- factor(sample(c("a", "b", "c"), n, replace = TRUE))
+  x1 <- rnorm(n)
+  y <- c(a = 0, b = 2, c = -1)[f] + x1 + rnorm(n)
+  x <- cbind(model.matrix(~ f - 1), x1)
+  colnames(x) <- sub("^f", "f_", colnames(x))
+
+  xg <- fit_xgb(x, y)
+  gl <- glex(xg, x)
+
+  # default naming does not match the "_"-separated columns
+  expect_error(
+    suppressMessages(dummy_groups(gl, data.frame(f = f))),
+    "No factor levels matched"
+  )
+
+  groups <- dummy_groups(
+    gl,
+    data.frame(f = f),
+    naming = function(feature, levels) paste(feature, levels, sep = "_")
+  )
+  expect_identical(groups, list(f = c("f_a", "f_b", "f_c")))
+})
+
+test_that("dummy_groups messages on unmatched factors, errors without factors", {
+  task <- make_dummy_task(encoding = "one-hot")
+  xg <- fit_xgb(task$x, task$y)
+  gl <- glex(xg, task$x)
+
+  d <- data.frame(f = task$f, other = factor(c("p", "q"))[rep(1:2, 150)])
+  expect_message(groups <- dummy_groups(gl, d), "No encoded columns found for: other")
+  expect_named(groups, "f")
+
+  expect_error(
+    dummy_groups(gl, data.frame(x1 = task$x[, "x1"])),
+    "no factor columns"
+  )
+})

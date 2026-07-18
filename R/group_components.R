@@ -157,3 +157,92 @@ regroup_x <- function(x, groups, label) {
   names(res) <- unique(unname(label))
   data.table::setDT(res)
 }
+
+#' Derive feature groups from the factors behind a dummy encoding
+#'
+#' Builds the `groups` list for [group_components()] from the original,
+#' un-encoded data: every factor column of `data` whose encoded level columns
+#' are found in `object$x` becomes one group. By default, level columns are
+#' expected under the [model.matrix()] naming convention
+#' (`paste0(feature, levels)`, e.g. `season` with level `"Winter"` becomes
+#' `"seasonWinter"`), which covers both one-hot (`~ f - 1`) and treatment
+#' (`~ f`) coding -- levels without a matching column (such as a dropped
+#' reference level) are simply skipped.
+#'
+#' If the data was encoded with a different scheme, pass `naming`: a function
+#' of `(feature, levels)` returning the encoded column names, e.g.
+#' `function(feature, levels) paste(feature, levels, sep = "_")`. It must
+#' reproduce the column names the model was trained with, i.e. those found in
+#' `object$x`.
+#'
+#' @param object (`glex`) Object of class `glex`.
+#' @param data (`data.frame`) The data before dummy encoding; its factor
+#'   columns define the candidate groups. Non-factor columns are ignored.
+#' @param naming (`function(feature, levels)`) Maps a factor name and its
+#'   levels to the encoded column names. Defaults to the [model.matrix()]
+#'   convention `paste0(feature, levels)`.
+#'
+#' @returns Named list of encoded column names, one element per matched
+#'   factor, suitable as the `groups` argument of [group_components()].
+#' @export
+#'
+#' @examplesIf requireNamespace("xgboost", quietly = TRUE)
+#' library(xgboost)
+#' set.seed(1)
+#' n <- 200
+#' d <- data.frame(
+#'   f = factor(sample(c("a", "b", "c"), n, replace = TRUE)),
+#'   x1 = rnorm(n)
+#' )
+#' y <- c(a = 0, b = 2, c = -1)[d$f] + d$x1 + rnorm(n)
+#' x <- model.matrix(~ f + x1 - 1, d)
+#'
+#' xg <- xgboost(x, y, nrounds = 10, max_depth = 3, nthreads = 1)
+#' gl <- glex(xg, x)
+#'
+#' dummy_groups(gl, d)
+#' grouped <- group_components(gl, dummy_groups(gl, d))
+#' names(grouped$m)
+dummy_groups <- function(
+  object,
+  data,
+  naming = function(feature, levels) paste0(feature, levels)
+) {
+  checkmate::assert_data_frame(data)
+  checkmate::assert_function(naming)
+
+  encoded <- names(object$x)
+  factors <- names(data)[vapply(data, is.factor, logical(1))]
+  if (length(factors) == 0) {
+    stop("`data` contains no factor columns to derive groups from.")
+  }
+
+  groups <- list()
+  unmatched <- character(0)
+  for (feature in factors) {
+    candidates <- naming(feature, levels(data[[feature]]))
+    present <- intersect(candidates, encoded)
+    if (length(present) == 0) {
+      unmatched <- c(unmatched, feature)
+    } else {
+      groups[[feature]] <- present
+    }
+  }
+
+  if (length(unmatched) > 0) {
+    message(
+      "No encoded columns found for: ",
+      paste(unmatched, collapse = ", "),
+      ". If these were encoded, pass a `naming` function matching the ",
+      "column names in `object$x`."
+    )
+  }
+  if (length(groups) == 0) {
+    stop(
+      "No factor levels matched the columns of `object$x`. ",
+      "Pass a `naming` function matching your encoding."
+    )
+  }
+
+  groups
+}
