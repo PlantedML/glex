@@ -32,9 +32,9 @@
   response scale directly.
 * For `randomPlantedForest` classification models, `glex()` now confirms the constraint
   against `predict(type = "numeric")` rather than the default `type = "prob"`. rpf
-  decomposes the raw score, while `type = "prob"` applies rpf's response function --
-  a clamp to `[0, 1]` for `loss = "L2"`, the inverse link for `"logit"` and
-  `"exponential"` -- and for binary models returns the classes in an order whose first
+  decomposes the raw score, while `type = "prob"` applies rpf's response function
+  (a clamp to `[0, 1]` for `loss = "L2"`, the inverse link for `"logit"` and
+  `"exponential"`) and for binary models returns the classes in an order whose first
   column is not the one being decomposed. The components reconstruct the raw score
   exactly, so `$remainder` now measures only what the dropped terms are worth, instead of
   silently absorbing the back-transformation and the class mix-up.
@@ -44,10 +44,6 @@
   a value reconstructed from the constrained components, and for objects created by
   earlier versions of glex, which have no `$shap`.
 * `print()` on a `glex` object reports when the decomposition is constrained.
-* Tests that fit `randomPlantedForest` models remain skipped on Windows: an
-  out-of-bounds read in randomPlantedForest's purification crashes R there. Fixed
-  upstream in randomPlantedForest 0.3.0; the skips are lifted separately, once glex
-  requires that version.
 
 # glex 0.6.0
 
