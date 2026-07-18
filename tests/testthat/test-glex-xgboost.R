@@ -60,7 +60,8 @@ test_that("shap is NA when decomposition is constrained", {
     gl_mi <- glex(xg, x, max_interaction = 1),
     "efficiency property"
   )
-  expect_true(all(is.na(gl_mi$shap)))
+  expect_identical(gl_mi$constrained, "max_interaction")
+  expect_identical(gl_mi$shap, NA)
   expect_false(anyNA(gl_mi$m))
 
   # constrained via features
@@ -68,16 +69,93 @@ test_that("shap is NA when decomposition is constrained", {
     gl_ft <- glex(xg, x, features = c("cyl", "disp")),
     "efficiency property"
   )
-  expect_true(all(is.na(gl_ft$shap)))
+  expect_identical(gl_ft$constrained, "features")
+  expect_identical(gl_ft$shap, NA)
+
+  # both axes are reported
+  expect_warning(
+    gl_both <- glex(xg, x, features = c("cyl", "disp"), max_interaction = 1),
+    "efficiency property"
+  )
+  expect_identical(gl_both$constrained, c("max_interaction", "features"))
+  expect_identical(gl_both$shap, NA)
 
   # unconstrained: shap present and satisfies the efficiency property
   gl_full <- glex(xg, x)
+  expect_identical(gl_full$constrained, character(0))
   expect_false(anyNA(gl_full$shap))
   expect_equal(
     unname(gl_full$intercept + rowSums(gl_full$shap)),
     unname(predict(xg, x)),
     tolerance = 1e-5
   )
+})
+
+test_that("unconstrained calls never invalidate shap", {
+  set.seed(1)
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(
+    x,
+    mtcars$mpg,
+    nrounds = 10,
+    max_depth = 4,
+    verbosity = 0,
+    nthreads = 1
+  )
+
+  # Over-specifying max_interaction is not a constraint
+  expect_no_warning(gl_over <- glex(xg, x, max_interaction = 99))
+  expect_identical(gl_over$constrained, character(0))
+  expect_false(anyNA(gl_over$shap))
+
+  # Naming all features explicitly is not a constraint
+  expect_no_warning(gl_all <- glex(xg, x, features = colnames(x)))
+  expect_identical(gl_all$constrained, character(0))
+  expect_false(anyNA(gl_all$shap))
+
+  # A deeper model than it has features: tree depth exceeds the interaction order,
+  # so a depth-based bound would spuriously flag the default call as constrained.
+  x2 <- x[, c("cyl", "hp")]
+  xg2 <- xgboost(
+    x2,
+    mtcars$mpg,
+    nrounds = 10,
+    max_depth = 4,
+    verbosity = 0,
+    nthreads = 1
+  )
+  expect_no_warning(gl2 <- glex(xg2, x2))
+  expect_identical(gl2$constrained, character(0))
+  expect_false(anyNA(gl2$shap))
+  expect_equal(
+    unname(gl2$intercept + rowSums(gl2$shap)),
+    unname(predict(xg2, x2)),
+    tolerance = 1e-5
+  )
+
+  # max_interaction at exactly the model's interaction order is not a constraint
+  expect_no_warning(gl_at <- glex(xg2, x2, max_interaction = 2))
+  expect_identical(gl_at$constrained, character(0))
+})
+
+test_that("features the model never splits on do not count as a constraint", {
+  set.seed(1)
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(
+    x[, c("cyl", "hp")],
+    mtcars$mpg,
+    nrounds = 5,
+    max_depth = 2,
+    verbosity = 0,
+    nthreads = 1
+  )
+
+  # `x` carries a column the model never splits on: naming only the used features
+  # is still a complete decomposition
+  x_extra <- x[, c("cyl", "hp", "wt")]
+  expect_no_warning(gl <- glex(xg, x_extra, features = c("cyl", "hp")))
+  expect_identical(gl$constrained, character(0))
+  expect_false(anyNA(gl$shap))
 })
 
 x_train <- as.matrix(mtcars[1:26, -1])
