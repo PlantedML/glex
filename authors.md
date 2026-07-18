@@ -19,13 +19,13 @@ Source:
 [`DESCRIPTION`](https://github.com/PlantedML/glex/blob/master/DESCRIPTION)
 
 Wright MN, Meyer JT, Hiabu M, Burk L, Liu J (2026). *glex: Global
-Explanations for Tree-Based Models*. R package version 0.6.0,
+Explanations for Tree-Based Models*. R package version 0.6.0.9000,
 <https://github.com/PlantedML/glex>.
 
     @Manual{,
       title = {glex: Global Explanations for Tree-Based Models},
       author = {Marvin N. Wright and Joseph Theo Meyer and Munir Hiabu and Lukas Burk and Jinyang Liu},
       year = {2026},
-      note = {R package version 0.6.0},
+      note = {R package version 0.6.0.9000},
       url = {https://github.com/PlantedML/glex},
     }

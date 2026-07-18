@@ -98,18 +98,22 @@ purify(rp)
 #> 
 #> Called with parameters:
 #> 
-#>             loss: L2
-#>           ntrees: 50
-#>  max_interaction: 3
-#>           splits: 100
-#>        split_try: 5
-#>            t_try: 0.9
-#>            delta: 0
-#>          epsilon: 0.1
-#>    deterministic: FALSE
-#>         nthreads: 1
-#>           purify: FALSE
-#>               cv: FALSE
+#>              loss: L2
+#>            ntrees: 50
+#>   max_interaction: 3
+#>            splits: 100
+#>         split_try: 5
+#>             t_try: 0.9
+#>  split_decay_rate: 0.1
+#>    max_candidates: 50
+#>     delete_leaves: TRUE
+#>   split_structure: leaves
+#>             delta: 0.001
+#>           epsilon: 0.1
+#>     deterministic: FALSE
+#>          nthreads: 1
+#>            purify: FALSE
+#>                cv: FALSE
 ```
 
 We select the predictors of interest and use
@@ -127,21 +131,21 @@ components <- glex(rp, bike, predictors = vars)
 # There's a lot of components...
 str(components$m, list.len = 8)
 #> Classes 'data.table' and 'data.frame':   8644 obs. of  92 variables:
-#>  $ day                            : num  -40 -40 -40 -40 -40 ...
-#>  $ hr                             : num  -102 -118 -125 -133 -134 ...
-#>  $ temp                           : num  -40.2 -40.4 -40.4 -40.2 -40.2 ...
-#>  $ windspeed                      : num  1.85 1.85 1.85 1.85 1.85 ...
-#>  $ workingday                     : num  0.0162 0.0162 0.0162 0.0162 0.0162 ...
-#>  $ hum                            : num  -14.76 -13.84 -13.84 -5.05 -5.05 ...
-#>  $ weathersit                     : num  4.29 4.29 4.29 4.29 4.29 ...
-#>  $ season                         : num  -24 -24 -24 -24 -24 ...
+#>  $ day                            : num  -31.5 -31.5 -31.5 -31.5 -31.5 ...
+#>  $ hr                             : num  -88.7 -103.8 -115.1 -121.7 -122.5 ...
+#>  $ temp                           : num  -40.3 -41.3 -41.3 -40.3 -40.3 ...
+#>  $ windspeed                      : num  1.72 1.72 1.72 1.72 1.72 ...
+#>  $ workingday                     : num  0.306 0.306 0.306 0.306 0.306 ...
+#>  $ hum                            : num  -10.35 -9.77 -9.77 -4.24 -4.24 ...
+#>  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...
+#>  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<pointer: 0x55922d725ee0>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x560d608f1ee0>
 ```
 
 Please note that fitting the model, purification, and the extraction of
 the components may take some time, depending on available resources and
-the size of the data. For example, the above steps took around 300
+the size of the data. For example, the above steps took around 40
 seconds to complete on GitHub Actions.
 
 ## Main Effects

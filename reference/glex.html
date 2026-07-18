@@ -13,7 +13,7 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost."><
 
     <a class="navbar-brand me-2" href="../index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,12 +123,38 @@ If not set in <code>xgboost</code>, the default value of <code>6</code> is assum
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Decomposition of the regression or classification function.
-A <code>list</code> with elements:</p><ul><li><p><code>shap</code>: SHAP values (<code>xgboost</code> method only).</p></li>
+A <code>list</code> with elements:</p><ul><li><p><code>shap</code>: SHAP values, derived from the functional decomposition as
+\(\phi_j = \sum_{S \ni j} m_S / |S|\). This reconstruction is only valid if the
+decomposition is complete: if it is constrained (see <code>constrained</code>), the components
+no longer sum to the full model prediction and the SHAP efficiency property cannot
+hold, so <code>shap</code> is a scalar <code>NA</code> (with a warning) while <code>m</code> remains valid.
+For multiclass models, columns are class-specific like those of <code>m</code>. Note that
+<code>randomPlantedForest</code> models report a single <code>intercept</code> for all classes, so for
+multiclass models <code>intercept + rowSums(shap)</code> reconstructs the predicted class
+scores only approximately.</p></li>
 <li><p><code>m</code>: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by <code>max_interaction</code>.
 The variable names correspond to the original variable names,
 with <code>:</code> separating interaction terms as one would specify in a <code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula</a></code> interface.</p></li>
 <li><p><code>intercept</code>: Intercept term, the expected value of the prediction.</p></li>
+<li><p><code>constrained</code>: Character vector naming the arguments that constrained the
+decomposition (<code>"max_interaction"</code>, <code>"features"</code>), or <code>character(0)</code> if it is
+complete. Use <code>length(x$constrained) &gt; 0</code> to check whether <code>shap</code> is valid.
+A constraint that only drops terms whose value is zero leaves the decomposition
+unchanged; <code>glex()</code> confirms this against the model's predictions, reports it with
+a message, and treats the result as complete.</p></li>
+<li><p><code>remainder</code>: What the dropped terms are collectively worth, per observation:
+<code>prediction - (intercept + rowSums(m))</code>. Present exactly when the decomposition is
+constrained, and absent otherwise, so <code>intercept + rowSums(m) + remainder</code>
+reconstructs the prediction in either case. For multiclass <code>randomPlantedForest</code>
+models it is class-wise, mirroring <code>m</code>.</p>
+<p>Like <code>m</code> and <code>shap</code>, it is on the scale that the model is decomposed on, which for
+<code>xgboost</code> is the <strong>link</strong> scale and not the response: for a <code>binary:logistic</code> model
+the reconstruction gives the margin, and <code>plogis(intercept + rowSums(m) + remainder)</code>
+gives the predicted probability. <code>ranger</code> probability forests and
+<code>randomPlantedForest</code> are decomposed on the response scale, where no such
+back-transformation is needed. Adding <code>remainder</code> to a probability is therefore
+never correct for <code>xgboost</code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -155,24 +181,33 @@ arXiv preprint <a href="https://arxiv.org/abs/2410.13448" class="external-link">
 <span class="r-in"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu">glex</span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">glex_rpf</span>, list.len <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ m        :Classes ‘data.table’ and 'data.frame':	6 obs. of  55 variables:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.787 0.787 -0.581 -0.184 -0.581 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.547 1.803 -0.959 0.343 -0.62 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.839 0.181 -2.506 -0.618 -2.506 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 2.94 -0.503 2.94 -0.423 -0.423 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 1.621 1.569 0.465 0.814 -1.043 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> List of 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ m          :Classes ‘data.table’ and 'data.frame':	6 obs. of  55 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl      : num [1:6] 0.773 0.773 -0.352 0.245 -0.352 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp     : num [1:6] 0.695 1.276 -1.09 0.406 -0.94 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp       : num [1:6] 2.95 4.32e-05 -2.32 -1.02 -2.32 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat     : num [1:6] 1.516 -0.143 1.516 -0.37 -0.37 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt       : num [1:6] 1.62 1.763 0.593 0.567 -0.801 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56100fd75a10&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x        :Classes ‘data.table’ and 'data.frame':	6 obs. of  10 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56058db34a10&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept  : num 19.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x          :Classes ‘data.table’ and 'data.frame':	6 obs. of  10 variables:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl : num [1:6] 4 4 8 6 8 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp: num [1:6] 120.3 95.1 351 145 301 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp  : num [1:6] 91 113 264 175 335 109</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56100fd75a10&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56058db34a10&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ constrained: chr(0) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ shap       :Classes ‘data.table’ and 'data.frame':	6 obs. of  10 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ cyl : num [1:6] 0.767 0.719 -0.35 0.334 -0.356 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ disp: num [1:6] 0.715 1.293 -1.03 0.501 -0.879 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp  : num [1:6] 3.16 0.179 -2.187 -1.025 -2.175 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat: num [1:6] 1.656 -0.118 1.611 -0.384 -0.35 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt  : num [1:6] 1.751 1.966 0.656 0.545 -0.791 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56058db34a10&gt; </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"</span>
 <span class="r-in"><span><span class="co"># xgboost -----</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"xgboost"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>

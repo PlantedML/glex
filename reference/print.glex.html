@@ -11,7 +11,7 @@ This function wraps str() with a truncated output for a more compact representat
 
     <a class="navbar-brand me-2" href="../index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,21 +79,27 @@ This function wraps <code><a href="https://rdrr.io/r/utils/str.html" class="exte
 <span class="r-out co"><span class="r-pr">#&gt;</span> glex object of subclass rpf_components </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Explaining predictions of 6 observations with 6 terms of up to 2 degrees</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ m        :Classes ‘data.table’ and 'data.frame':	6 obs. of  6 variables:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp     : num [1:6] 4.573 0.317 -3.868 -0.902 -3.868 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt     : num [1:6] 4.501 4.27 0.966 0.988 -1.58 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat   : num [1:6] 2.909 -0.061 2.909 -0.144 -0.144 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp:wt  : num [1:6] 0.21143 0.00946 -0.00105 -0.29992 -0.16586 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat:hp: num [1:6] 0.2645 -0.0681 0.1689 0.0802 -0.0323 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> List of 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ m          :Classes ‘data.table’ and 'data.frame':	6 obs. of  6 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp     : num [1:6] 4.206 0.391 -3.793 -0.703 -3.793 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt     : num [1:6] 3.62 3.93 1.19 1.12 -1.76 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat   : num [1:6] 2.3367 -0.1929 2.3367 -0.0693 -0.0693 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp:wt  : num [1:6] -0.597 0.0628 0.1089 -0.2085 -0.0806 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat:hp: num [1:6] 0.16942 -0.00845 0.2715 0.03612 0.03014 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. [list output truncated]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56100fd75a10&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept: num 20.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x        :Classes ‘data.table’ and 'data.frame':	6 obs. of  3 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56058db34a10&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ intercept  : num 19.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x          :Classes ‘data.table’ and 'data.frame':	6 obs. of  3 variables:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp  : num [1:6] 91 113 264 175 335 109</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt  : num [1:6] 2.14 1.51 3.17 2.77 3.57 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat: num [1:6] 4.43 3.77 4.22 3.62 3.54 4.11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56100fd75a10&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56058db34a10&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ constrained: chr(0) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ shap       :Classes ‘data.table’ and 'data.frame':	6 obs. of  3 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ hp  : num [1:6] 3.993 0.418 -3.603 -0.789 -3.819 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wt  : num [1:6] 3.35 3.945 1.291 0.997 -1.791 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ drat: num [1:6] 2.4518 -0.2115 2.5208 -0.0748 -0.048 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, ".internal.selfref")=&lt;pointer: 0x56058db34a10&gt; </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"</span>
 </code></pre></div>
     </div>

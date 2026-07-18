@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -163,18 +163,22 @@ is implemented as a separate step.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Called with parameters:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;             loss: L2</span></span>
-<span><span class="co">#&gt;           ntrees: 50</span></span>
-<span><span class="co">#&gt;  max_interaction: 3</span></span>
-<span><span class="co">#&gt;           splits: 100</span></span>
-<span><span class="co">#&gt;        split_try: 5</span></span>
-<span><span class="co">#&gt;            t_try: 0.9</span></span>
-<span><span class="co">#&gt;            delta: 0</span></span>
-<span><span class="co">#&gt;          epsilon: 0.1</span></span>
-<span><span class="co">#&gt;    deterministic: FALSE</span></span>
-<span><span class="co">#&gt;         nthreads: 1</span></span>
-<span><span class="co">#&gt;           purify: FALSE</span></span>
-<span><span class="co">#&gt;               cv: FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt;              loss: L2</span></span>
+<span><span class="co">#&gt;            ntrees: 50</span></span>
+<span><span class="co">#&gt;   max_interaction: 3</span></span>
+<span><span class="co">#&gt;            splits: 100</span></span>
+<span><span class="co">#&gt;         split_try: 5</span></span>
+<span><span class="co">#&gt;             t_try: 0.9</span></span>
+<span><span class="co">#&gt;  split_decay_rate: 0.1</span></span>
+<span><span class="co">#&gt;    max_candidates: 50</span></span>
+<span><span class="co">#&gt;     delete_leaves: TRUE</span></span>
+<span><span class="co">#&gt;   split_structure: leaves</span></span>
+<span><span class="co">#&gt;             delta: 0.001</span></span>
+<span><span class="co">#&gt;           epsilon: 0.1</span></span>
+<span><span class="co">#&gt;     deterministic: FALSE</span></span>
+<span><span class="co">#&gt;          nthreads: 1</span></span>
+<span><span class="co">#&gt;            purify: FALSE</span></span>
+<span><span class="co">#&gt;                cv: FALSE</span></span></code></pre></div>
 <p>We select the predictors of interest and use <code><a href="../reference/glex.html">glex()</a></code> to
 retrieve all predictive components that include them, from main effects
 to 3rd degree interactions. The resulting object also contains the
@@ -188,19 +192,19 @@ visualization.</p>
 <span><span class="co"># There's a lot of components...</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">components</span><span class="op">$</span><span class="va">m</span>, list.len <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Classes 'data.table' and 'data.frame':   8644 obs. of  92 variables:</span></span>
-<span><span class="co">#&gt;  $ day                            : num  -40 -40 -40 -40 -40 ...</span></span>
-<span><span class="co">#&gt;  $ hr                             : num  -102 -118 -125 -133 -134 ...</span></span>
-<span><span class="co">#&gt;  $ temp                           : num  -40.2 -40.4 -40.4 -40.2 -40.2 ...</span></span>
-<span><span class="co">#&gt;  $ windspeed                      : num  1.85 1.85 1.85 1.85 1.85 ...</span></span>
-<span><span class="co">#&gt;  $ workingday                     : num  0.0162 0.0162 0.0162 0.0162 0.0162 ...</span></span>
-<span><span class="co">#&gt;  $ hum                            : num  -14.76 -13.84 -13.84 -5.05 -5.05 ...</span></span>
-<span><span class="co">#&gt;  $ weathersit                     : num  4.29 4.29 4.29 4.29 4.29 ...</span></span>
-<span><span class="co">#&gt;  $ season                         : num  -24 -24 -24 -24 -24 ...</span></span>
+<span><span class="co">#&gt;  $ day                            : num  -31.5 -31.5 -31.5 -31.5 -31.5 ...</span></span>
+<span><span class="co">#&gt;  $ hr                             : num  -88.7 -103.8 -115.1 -121.7 -122.5 ...</span></span>
+<span><span class="co">#&gt;  $ temp                           : num  -40.3 -41.3 -41.3 -40.3 -40.3 ...</span></span>
+<span><span class="co">#&gt;  $ windspeed                      : num  1.72 1.72 1.72 1.72 1.72 ...</span></span>
+<span><span class="co">#&gt;  $ workingday                     : num  0.306 0.306 0.306 0.306 0.306 ...</span></span>
+<span><span class="co">#&gt;  $ hum                            : num  -10.35 -9.77 -9.77 -4.24 -4.24 ...</span></span>
+<span><span class="co">#&gt;  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...</span></span>
+<span><span class="co">#&gt;  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...</span></span>
 <span><span class="co">#&gt;   [list output truncated]</span></span>
-<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;pointer: 0x55922d725ee0&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;pointer: 0x560d608f1ee0&gt;</span></span></code></pre></div>
 <p>Please note that fitting the model, purification, and the extraction
 of the components may take some time, depending on available resources
-and the size of the data. For example, the above steps took around 300
+and the size of the data. For example, the above steps took around 40
 seconds to complete on GitHub Actions.</p>
 </div>
 <div class="section level2">
