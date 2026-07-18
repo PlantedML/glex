@@ -1,6 +1,5 @@
 test_that("print.glex works", {
-  skip_if_not_installed("randomPlantedForest")
-  skip_on_os("windows") # rpf purify_3() OOB read, see test-rpf-sum-identity.R
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
   set.seed(2)
   rp <- rpf(mpg ~ cyl + hp, data = mtcars)
   gl <- glex(rp, mtcars)

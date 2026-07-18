@@ -44,7 +44,7 @@ recommended to use \code{predictors}, \code{max_interaction}, or \code{threshold
 elements in the plot.
 }
 \examples{
-\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 set.seed(1)
 # Random Planted Forest -----
 library(randomPlantedForest)

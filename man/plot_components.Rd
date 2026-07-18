@@ -35,7 +35,7 @@ Plotting the main effects among the prediction components is effectively
 identical to a partial dependence plot, centered to 0.
 }
 \examples{
-\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # introduce factor variables to show categorical feature handling
@@ -52,7 +52,7 @@ plot_main_effect(components, "wt")
 plot_main_effect(components, "cyl")
 \dontshow{\}) # examplesIf}
 # plot_threeway_effects(components, c("hr", "temp", "workingday"))
-\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # 2-degree interaction effects ----

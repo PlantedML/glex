@@ -30,7 +30,7 @@
 #' @export
 #' @family Visualization functions
 #'
-#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' set.seed(1)
 #' # Random Planted Forest -----
 #' library(randomPlantedForest)

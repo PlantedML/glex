@@ -24,7 +24,7 @@ subset_component_names(components, term)
 Subset components
 }
 \examples{
-\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
 
 # introduce factor variables to show categorical feature handling

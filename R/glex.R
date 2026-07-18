@@ -71,7 +71,7 @@ glex.default <- function(object, ...) {
 
 #' @rdname glex
 #' @export
-#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #'
 #' # Random Planted Forest -----
 #' library(randomPlantedForest)

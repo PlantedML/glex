@@ -8,7 +8,7 @@
 #'
 #' @export
 #' @importFrom utils str
-#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' # Random Planted Forest -----
 #' library(randomPlantedForest)
 #' rp <- rpf(mpg ~ hp + wt + drat, data = mtcars[1:26, ], max_interaction = 2)

@@ -106,7 +106,7 @@ The different weighting methods are described in detail in Liu et al. (2025). Th
 method is \code{"fastpd"} as it consistently estimates the correct partial dependence function.
 }
 \examples{
-\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 
 # Random Planted Forest -----
 library(randomPlantedForest)

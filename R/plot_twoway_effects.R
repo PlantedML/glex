@@ -1,6 +1,6 @@
 #' @rdname plot_components
 #' @export
-#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # 2-degree interaction effects ----

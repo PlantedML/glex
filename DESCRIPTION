@@ -38,7 +38,7 @@ Suggests:
     ISLR2,
     knitr,
     patchwork,
-    randomPlantedForest,
+    randomPlantedForest (>= 0.3.0),
     ranger,
     rmarkdown,
     testthat (>= 3.0.0),

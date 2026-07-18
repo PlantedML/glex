@@ -16,7 +16,7 @@
 #' @export
 #' @seealso [plot_pdp()]
 #'
-#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
@@ -49,7 +49,7 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' @export
 #' @seealso [plot_main_effect()]
 #' @family Visualization functions
-#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && .Platform$OS.type != "windows"
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # introduce factor variables to show categorical feature handling
