@@ -1,5 +1,12 @@
 # glex 0.6.0.9000 (development version)
 
+* New `group_components()` aggregates the terms of a decomposition so that a set of
+  features is treated as one feature (#26), e.g. re-assembling a dummy-encoded factor:
+  `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The regrouping is
+  exact (components still sum to the prediction, group SHAP values are sums of member
+  SHAP values), and `$x` gains a reconstructed factor for dummy-encoded groups so the
+  plot functions work on grouped objects.
+
 * `glex()` now warns when `x` contains missing values (#41): splits are evaluated
   without the model's learned missing-value direction, so the decomposition of rows
   with `NA`s is unreliable and does not sum to the model prediction. Proper missing
