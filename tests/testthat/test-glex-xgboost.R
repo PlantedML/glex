@@ -368,3 +368,15 @@ test_that("early-stopped models are decomposed up to best_iteration, like predic
     tolerance = 1e-5
   )
 })
+
+test_that("missing values in x trigger a warning", {
+  set.seed(1)
+  x <- as.matrix(mtcars[, -1])
+  xg <- xgboost(x, mtcars$mpg, nrounds = 5, max_depth = 2, verbosity = 0)
+
+  x_na <- x
+  x_na[1, "cyl"] <- NA
+  expect_warning(glex(xg, x_na), "missing values")
+
+  expect_no_warning(glex(xg, x))
+})
