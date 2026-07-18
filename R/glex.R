@@ -217,6 +217,19 @@ glex.xgb.Booster <- function(
   trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
   trees$Type <- "<"
 
+  # Early stopping stores the 0-based best round as a booster attribute and
+  # predict() defaults to using only trees up to it; decompose the same model
+  # predict() evaluates. A round is several trees for multiclass models and
+  # num_parallel_tree > 1, so translate rounds to trees via their ratio.
+  best_iteration <- xgboost::xgb.attributes(object)$best_iteration
+  if (!is.null(best_iteration)) {
+    n_rounds <- xgboost::xgb.get.num.boosted.rounds(object)
+    trees_per_round <- length(unique(trees$Tree)) / n_rounds
+    trees <- trees[
+      trees$Tree < (as.integer(best_iteration) + 1) * trees_per_round,
+    ]
+  }
+
   # Calculate components
   res <- calc_components(
     trees,

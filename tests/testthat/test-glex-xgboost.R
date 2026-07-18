@@ -330,3 +330,41 @@ test_that("xgboost reg:gamma (log link) is reconstructed on margin and response 
   expect_equal(response_from_shap, unname(pred_response), tolerance = 1e-5)
   expect_equal(response_from_m, unname(pred_response), tolerance = 1e-5)
 })
+
+test_that("early-stopped models are decomposed up to best_iteration, like predict()", {
+  set.seed(1)
+  n <- 200
+  x <- matrix(rnorm(n * 4), ncol = 4, dimnames = list(NULL, paste0("x", 1:4)))
+  y <- x[, 1] + rnorm(n, sd = 3)
+  dtrain <- xgboost::xgb.DMatrix(x[1:140, ], label = y[1:140], nthread = 1)
+  deval <- xgboost::xgb.DMatrix(x[141:200, ], label = y[141:200], nthread = 1)
+
+  bst <- xgboost::xgb.train(
+    params = xgboost::xgb.params(max_depth = 3, learning_rate = 0.5, nthread = 1),
+    data = dtrain,
+    nrounds = 500,
+    evals = list(eval = deval),
+    early_stopping_rounds = 3,
+    verbose = 0
+  )
+
+  # Premise: early stopping engaged and predict() defaults to best_iteration,
+  # which differs from the full model
+  best <- as.integer(xgboost::xgb.attributes(bst)$best_iteration)
+  expect_lt(best + 1, xgboost::xgb.get.num.boosted.rounds(bst))
+  p_default <- predict(bst, x, outputmargin = TRUE)
+  p_all <- predict(bst, x, outputmargin = TRUE, iterationrange = "all")
+  expect_false(isTRUE(all.equal(p_default, p_all)))
+
+  gl <- glex(bst, x)
+  expect_equal(
+    unname(gl$intercept + rowSums(gl$m)),
+    unname(p_default),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    unname(gl$intercept + rowSums(gl$shap)),
+    unname(p_default),
+    tolerance = 1e-5
+  )
+})
