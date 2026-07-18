@@ -2,6 +2,14 @@
 
 ## glex 0.6.0.9000 (development version)
 
+- [`glex()`](http://plantedml.com/glex/reference/glex.md) on `xgboost`
+  models fit with early stopping now decomposes only the trees up to
+  `best_iteration`, matching what
+  [`predict()`](https://rdrr.io/r/stats/predict.html) evaluates by
+  default. Previously all fitted trees were decomposed, so the
+  components did not sum to the prediction. Closes
+  [\#42](https://github.com/PlantedML/glex/issues/42).
+
 - `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it
   fixes an out-of-bounds read in `purify_3()` that crashed R on Windows
   (PlantedML/randomPlantedForest#61), so rpf tests and examples run on
