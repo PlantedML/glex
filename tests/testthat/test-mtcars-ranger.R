@@ -98,3 +98,32 @@ test_that("Path-dependent ranger prediction is approx. same as sum of decomposit
     tolerance = 1e-5
   )
 })
+
+
+test_that("ranger: constrained decomposition invalidates shap", {
+  skip_if_not_installed("ranger")
+
+  expect_warning(
+    gl_mi <- glex(rf, x_train, max_interaction = 1),
+    "efficiency property"
+  )
+  expect_identical(gl_mi$constrained, "max_interaction")
+  expect_identical(gl_mi$shap, NA)
+  expect_false(anyNA(gl_mi$m))
+
+  expect_warning(
+    gl_ft <- glex(rf, x_train, features = c("cyl", "disp")),
+    "efficiency property"
+  )
+  expect_identical(gl_ft$constrained, "features")
+  expect_identical(gl_ft$shap, NA)
+  expect_false(anyNA(gl_ft$m))
+})
+
+test_that("ranger: unconstrained decomposition keeps shap", {
+  skip_if_not_installed("ranger")
+
+  expect_no_warning(gl <- glex(rf, x_train))
+  expect_identical(gl$constrained, character(0))
+  expect_false(anyNA(gl$shap))
+})

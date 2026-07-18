@@ -64,7 +64,6 @@ autoplot.glex_vi <- function(
   by_what <- ifelse(by_degree, "Degree", "Term")
   score <- switch(scale, absolute = "m", relative = "m_rel")
 
-  # FIXME: data.table NSE stuff
   m <- m_rel <- degree <- NULL
 
   aggr_degree <- function(x) {
@@ -77,9 +76,7 @@ autoplot.glex_vi <- function(
   }
 
   # If max_interaction or threshold would select any observations, we summarize accordingly
-  if (
-    any(object$degree > max_interaction | abs(object[[score]]) <= threshold)
-  ) {
+  if (any(object$degree > max_interaction | abs(object[[score]]) <= threshold)) {
     # Sanity check that we're aggregating correctly by keeping track of the sums
     old_sum <- sum(object[[score]])
 

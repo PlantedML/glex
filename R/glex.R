@@ -20,12 +20,39 @@
 #'
 #' @return Decomposition of the regression or classification function.
 #' A `list` with elements:
-#' * `shap`: SHAP values (`xgboost` method only).
+#' * `shap`: SHAP values, derived from the functional decomposition as
+#'   \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
+#'   decomposition is complete: if it is constrained (see `constrained`), the components
+#'   no longer sum to the full model prediction and the SHAP efficiency property cannot
+#'   hold, so `shap` is a scalar `NA` (with a warning) while `m` remains valid.
+#'   For multiclass models, columns are class-specific like those of `m`. Note that
+#'   `randomPlantedForest` models report a single `intercept` for all classes, so for
+#'   multiclass models `intercept + rowSums(shap)` reconstructs the predicted class
+#'   scores only approximately.
 #' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
 #'   The variable names correspond to the original variable names,
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
 #' * `intercept`: Intercept term, the expected value of the prediction.
+#' * `constrained`: Character vector naming the arguments that constrained the
+#'   decomposition (`"max_interaction"`, `"features"`), or `character(0)` if it is
+#'   complete. Use `length(x$constrained) > 0` to check whether `shap` is valid.
+#'   A constraint that only drops terms whose value is zero leaves the decomposition
+#'   unchanged; `glex()` confirms this against the model's predictions, reports it with
+#'   a message, and treats the result as complete.
+#' * `remainder`: What the dropped terms are collectively worth, per observation:
+#'   `prediction - (intercept + rowSums(m))`. Present exactly when the decomposition is
+#'   constrained, and absent otherwise, so `intercept + rowSums(m) + remainder`
+#'   reconstructs the prediction in either case. For multiclass `randomPlantedForest`
+#'   models it is class-wise, mirroring `m`.
+#'
+#'   Like `m` and `shap`, it is on the scale that the model is decomposed on, which for
+#'   `xgboost` is the **link** scale and not the response: for a `binary:logistic` model
+#'   the reconstruction gives the margin, and `plogis(intercept + rowSums(m) + remainder)`
+#'   gives the predicted probability. `ranger` probability forests and
+#'   `randomPlantedForest` are decomposed on the response scale, where no such
+#'   back-transformation is needed. Adding `remainder` to a probability is therefore
+#'   never correct for `xgboost`.
 #' @export
 glex <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   UseMethod("glex")
@@ -69,6 +96,62 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
     max_interaction = max_interaction,
     predictors = features
   )
+
+  model_features <- names(object$blueprint$ptypes$predictors)
+  ret$constrained <- constrained_by(
+    max_interaction = max_interaction,
+    features = features,
+    # An rpf model cannot contain interactions of higher order than it was fit with
+    available_interaction = min(
+      object$params$max_interaction,
+      length(model_features)
+    ),
+    model_features = model_features
+  )
+
+  # SHAP values are derived from the components, like in the other methods.
+  # For multiclass models `$shap` mirrors the class-suffixed columns of `$m`.
+  if (is.null(ret$target_levels)) {
+    shap <- shap_from_components(ret$m, names(ret$x))
+  } else {
+    term_class <- split_names(names(ret$m), "__class:", target_index = 2)
+
+    shap <- do.call(
+      cbind,
+      lapply(ret$target_levels, function(level) {
+        m_class <- ret$m[, names(ret$m)[term_class == level], with = FALSE]
+        data.table::setnames(
+          m_class,
+          split_names(names(m_class), "__class:", target_index = 1)
+        )
+
+        shap_class <- shap_from_components(m_class, names(ret$x))
+        colnames(shap_class) <- paste0(
+          colnames(shap_class),
+          "__class:",
+          level
+        )
+        shap_class
+      })
+    )
+  }
+
+  ret$shap <- data.table::setDT(as.data.frame(shap))
+
+  # rpf decomposes the raw score, which is what `type = "numeric"` returns. The default
+  # for classification is `type = "prob"`, which applies rpf's response function: a clamp
+  # to [0, 1] for `loss = "L2"`, the inverse link for `"logit"` and `"exponential"`.
+  # Comparing against that would confound the dropped terms with the back-transformation
+  # (and, for binary models, silently compare against the wrong class).
+  #
+  # Multiclass rpf models report a single intercept for all classes, so the components
+  # only reconstruct the class scores approximately and the numeric confirmation is not
+  # reliable: the structural verdict is final there, and rpf supplies `$remainder` itself.
+  target <- if (is.null(ret$target_levels)) {
+    stats::predict(object, x, type = "numeric")[[1]]
+  }
+  ret <- confirm_constrained(ret, target = target)
+
   # class(ret) <- c("glex", "rpf_components", class(ret))
   ret
 }
@@ -147,6 +230,12 @@ glex.xgb.Booster <- function(
     max_background_sample_size
   )
   res$intercept <- res$intercept + get_xgb_base_score(object)
+
+  # glex decomposes the raw margin, so the constraint is confirmed against it
+  res <- confirm_constrained(
+    res,
+    target = stats::predict(object, x, outputmargin = TRUE)
+  )
 
   # Return components
   res
@@ -407,6 +496,13 @@ glex.ranger <- function(
   res$m <- res$m / object$num.trees
   res$intercept <- res$intercept / object$num.trees
 
+  ranger_pred <- stats::predict(object, x)$predictions
+  if (is.matrix(ranger_pred)) {
+    # Probability forests: glex decomposes the second class probability
+    ranger_pred <- ranger_pred[, 2L]
+  }
+  res <- confirm_constrained(res, target = ranger_pred)
+
   # Return components
   res
 }
@@ -553,6 +649,191 @@ tree_fun_emp_fastPD <- function(
 }
 
 
+#' Compute SHAP values from a functional decomposition
+#'
+#' Each interaction term is distributed equally across the features it involves:
+#' \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. Shared by all `glex()` methods so
+#' that `$shap` is derived from `$m` in exactly one place.
+#' @param m Component matrix or `data.table` (without the intercept column).
+#' @param features Character vector of feature names to compute SHAP values for.
+#' @keywords internal
+#' @noRd
+shap_from_components <- function(m, features) {
+  m <- as.matrix(m)
+  d <- get_degree(colnames(m))
+
+  # Interaction terms contribute m_S / |S| to each involved feature
+  interactions <- sweep(m, MARGIN = 2, d, "/")
+
+  vapply(
+    features,
+    function(col) {
+      idx <- find_term_matches(col, colnames(interactions))
+
+      if (length(idx) == 0) {
+        numeric(nrow(interactions))
+      } else {
+        rowSums(interactions[, idx, drop = FALSE])
+      }
+    },
+    FUN.VALUE = numeric(nrow(m))
+  )
+}
+
+#' Report which constraints were applied to a decomposition
+#'
+#' SHAP values can only be reconstructed from a complete decomposition: if terms
+#' are dropped, the components no longer sum to the full model prediction and the
+#' SHAP efficiency property cannot hold. Returns the names of the constrained
+#' arguments, or `character(0)` if the decomposition is complete.
+#' @param max_interaction,features As supplied to `glex()`.
+#' @param available_interaction Interaction order available in the model. Only
+#'   evaluated when `max_interaction` could bind at all (R's lazy argument
+#'   evaluation keeps a potentially expensive computation out of the default path).
+#' @param model_features Features the model actually uses.
+#' @keywords internal
+#' @noRd
+constrained_by <- function(
+  max_interaction,
+  features,
+  available_interaction,
+  model_features
+) {
+  constrained <- character(0)
+
+  # A model can never contain interactions of higher order than it has features,
+  # so this cheap check short-circuits the common unconstrained case.
+  if (
+    !is.null(max_interaction) &&
+      max_interaction < length(model_features) &&
+      max_interaction < available_interaction
+  ) {
+    constrained <- c(constrained, "max_interaction")
+  }
+  if (!is.null(features) && !all(model_features %in% features)) {
+    constrained <- c(constrained, "features")
+  }
+
+  constrained
+}
+
+#' Confirm a structural constraint numerically, and invalidate SHAP values if real
+#'
+#' The structural check (`constrained_by()`) only knows which terms were dropped, not
+#' what they were worth: a model can contain a high-order term whose value is exactly
+#' zero, in which case dropping it changes nothing and the SHAP values remain valid.
+#' This confirms the constraint against the model's own predictions before discarding
+#' anything: if the components still reconstruct the prediction, the dropped terms were
+#' inert and `$shap` is kept (with a message, since the user did ask for a constraint).
+#' Otherwise `$shap` is invalidated with a warning.
+#'
+#' The gap between the components and the prediction is what the dropped terms are
+#' collectively worth, and it is reported as `$remainder`. It is the quantitative form of
+#' `$constrained` and exists exactly when the decomposition is incomplete, so a complete
+#' one carries no remainder.
+#' @param res `glex` object with `$m`, `$shap`, `$intercept` and `$constrained`.
+#'   For `rpf` models `$remainder` may already be set by
+#'   `randomPlantedForest::predict_components()`; it is only overwritten where `target`
+#'   lets us compute it ourselves, which keeps the multiclass remainder rpf provides.
+#' @param target Model predictions on the scale of the decomposition, or `NULL` to skip
+#'   the numeric confirmation and treat the structural verdict as final.
+#' @keywords internal
+#' @noRd
+confirm_constrained <- function(res, target = NULL) {
+  if (length(res$constrained) == 0) {
+    res$remainder <- NULL
+    return(res)
+  }
+
+  constrained_labels <- paste0("`", res$constrained, "`", collapse = " and ")
+
+  if (!is.null(target)) {
+    reconstruction <- res$intercept + rowSums(res$m)
+    res$remainder <- unname(target - reconstruction)
+
+    # The dropped terms are inert only if they are *numerically zero*, which is what the
+    # remainder measures directly. Judge it elementwise: `all.equal()` reports the mean
+    # relative difference, which averages a discrepancy concentrated in a few observations
+    # away to nothing and lets a genuinely non-zero term pass as "all zero" -- and this
+    # verdict decides whether `$shap` is trustworthy or `NA`, so it must not be fuzzy.
+    inert <- max(abs(res$remainder)) <= 1e-8 * max(1, max(abs(unname(target))))
+
+    if (inert) {
+      message(
+        "The decomposition is constrained by ",
+        constrained_labels,
+        ", but the dropped terms are all zero: the components still sum to the model ",
+        "prediction, so SHAP values remain valid."
+      )
+      res$constrained <- character(0)
+      res$remainder <- NULL
+      return(res)
+    }
+  }
+
+  warning(
+    "SHAP values set to NA: the decomposition is constrained by ",
+    constrained_labels,
+    " and does not sum to the full model prediction, so SHAP values cannot be ",
+    "reconstructed from it (the efficiency property would be violated). ",
+    "The components in `$m` are unaffected."
+  )
+  # Scalar: there are no per-feature values to report, and code that consumes
+  # `$shap` numerically should fail loudly rather than propagate NAs.
+  res$shap <- NA
+
+  res
+}
+
+#' Maximum interaction order present in the model's decomposition.
+#'
+#' An interaction between features can only arise where they split on the same
+#' root-to-leaf path, so the order of a tree is the largest number of *distinct*
+#' features on any one of its paths, and the model's order is the maximum over
+#' trees. Tree depth alone is not a substitute: a path that splits repeatedly on
+#' the same feature is deeper than its interaction order, which would make a
+#' complete decomposition look constrained and needlessly invalidate `$shap`.
+#'
+#' Read from the trees table rather than model metadata because ranger has no
+#' usable depth field (`max.depth = 0` means unlimited) and xgboost's config
+#' parsing is version-fragile. Relies on child node ids being larger than their
+#' parent's, which holds for both `xgb.model.dt.tree(use_int_id = TRUE)` and
+#' `ranger::treeInfo()` numbering, so parents are processed before their children.
+#' @param trees data.table with columns Node, Yes, No, Feature_num, Tree;
+#'   leaves have `Yes = NA` and `Feature_num = 0`
+#' @keywords internal
+#' @noRd
+max_order <- function(trees) {
+  Tree <- Node <- NULL
+
+  max(vapply(
+    0:max(trees$Tree),
+    function(tree) {
+      tree_info <- trees[Tree == tree, ][order(Node)]
+
+      # Distinct features seen on the path from the root to each node
+      path_features <- vector("list", nrow(tree_info))
+      path_features[[1L]] <- integer(0)
+      order_tree <- 0L
+
+      for (i in seq_len(nrow(tree_info))) {
+        if (is.na(tree_info$Yes[i])) {
+          # Leaf: the path ends here
+          order_tree <- max(order_tree, length(path_features[[i]]))
+          next
+        }
+
+        features <- union(path_features[[i]], tree_info$Feature_num[i])
+        path_features[[tree_info$Yes[i] + 1L]] <- features
+        path_features[[tree_info$No[i] + 1L]] <- features
+      }
+
+      order_tree
+    },
+    integer(1)
+  ))
+}
+
 #' Internal tree function wrapper that returns the actual tree function
 #' @param trees data.table
 #' @param x observerations, matrix like data-structure
@@ -676,6 +957,17 @@ calc_components <- function(
       1L
     all_S <- get_all_subsets_cpp(sort(unique(features_num)), max_interaction)
   }
+  # Features the model actually splits on, for the constraint check below
+  model_features <- colnames(x)[
+    setdiff(sort(unique(trees$Feature_num)), 0L)
+  ]
+  constrained <- constrained_by(
+    max_interaction = max_interaction,
+    features = features,
+    available_interaction = max_order(trees),
+    model_features = model_features
+  )
+
   # Keep only those with not more than max_interaction involved features
   d <- lengths(all_S)
 
@@ -711,32 +1003,17 @@ calc_components <- function(
     }
   }
 
-  d <- get_degree(colnames(m_all))
+  shap <- shap_from_components(m_all[, -1, drop = FALSE], colnames(x))
 
-  # Overall feature effect is sum of all elements where feature is involved
-  interactions <- sweep(m_all[, -1, drop = FALSE], MARGIN = 2, d[-1], "/")
-
-  # SHAP values are the sum of the m's * 1/d
-  shap <- vapply(
-    colnames(x),
-    function(col) {
-      idx <- find_term_matches(col, colnames(interactions))
-
-      if (length(idx) == 0) {
-        numeric(nrow(interactions))
-      } else {
-        rowSums(interactions[, idx, drop = FALSE])
-      }
-    },
-    FUN.VALUE = numeric(nrow(x))
-  )
-
-  # Return shap values, decomposition and intercept
+  # Return shap values, decomposition and intercept. Whether a structural constraint
+  # actually invalidates `shap` is confirmed against the model's predictions by the
+  # calling method, which has the model object (see `confirm_constrained()`).
   ret <- list(
     shap = data.table::setDT(as.data.frame(shap)),
     m = data.table::setDT(as.data.frame(m_all[, -1])),
     intercept = unique(m_all[, 1]),
-    x = data.table::setDT(as.data.frame(x))
+    x = data.table::setDT(as.data.frame(x)),
+    constrained = constrained
   )
   class(ret) <- c("glex", "xgb_components", class(ret))
   ret

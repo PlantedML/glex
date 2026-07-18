@@ -57,12 +57,39 @@ If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 Decomposition of the regression or classification function.
 A \code{list} with elements:
 \itemize{
-\item \code{shap}: SHAP values (\code{xgboost} method only).
+\item \code{shap}: SHAP values, derived from the functional decomposition as
+\eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the
+decomposition is complete: if it is constrained (see \code{constrained}), the components
+no longer sum to the full model prediction and the SHAP efficiency property cannot
+hold, so \code{shap} is a scalar \code{NA} (with a warning) while \code{m} remains valid.
+For multiclass models, columns are class-specific like those of \code{m}. Note that
+\code{randomPlantedForest} models report a single \code{intercept} for all classes, so for
+multiclass models \code{intercept + rowSums(shap)} reconstructs the predicted class
+scores only approximately.
 \item \code{m}: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by \code{max_interaction}.
 The variable names correspond to the original variable names,
 with \code{:} separating interaction terms as one would specify in a \code{\link{formula}} interface.
 \item \code{intercept}: Intercept term, the expected value of the prediction.
+\item \code{constrained}: Character vector naming the arguments that constrained the
+decomposition (\code{"max_interaction"}, \code{"features"}), or \code{character(0)} if it is
+complete. Use \code{length(x$constrained) > 0} to check whether \code{shap} is valid.
+A constraint that only drops terms whose value is zero leaves the decomposition
+unchanged; \code{glex()} confirms this against the model's predictions, reports it with
+a message, and treats the result as complete.
+\item \code{remainder}: What the dropped terms are collectively worth, per observation:
+\code{prediction - (intercept + rowSums(m))}. Present exactly when the decomposition is
+constrained, and absent otherwise, so \code{intercept + rowSums(m) + remainder}
+reconstructs the prediction in either case. For multiclass \code{randomPlantedForest}
+models it is class-wise, mirroring \code{m}.
+
+Like \code{m} and \code{shap}, it is on the scale that the model is decomposed on, which for
+\code{xgboost} is the \strong{link} scale and not the response: for a \code{binary:logistic} model
+the reconstruction gives the margin, and \code{plogis(intercept + rowSums(m) + remainder)}
+gives the predicted probability. \code{ranger} probability forests and
+\code{randomPlantedForest} are decomposed on the response scale, where no such
+back-transformation is needed. Adding \code{remainder} to a probability is therefore
+never correct for \code{xgboost}.
 }
 }
 \description{

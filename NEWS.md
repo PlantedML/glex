@@ -1,3 +1,50 @@
+# glex 0.6.0.9000 (development version)
+
+* `$shap` is now a scalar `NA` (with a warning) when the decomposition is constrained via
+  `max_interaction` or `features`: a constrained decomposition does not sum to the
+  full model prediction, so SHAP values cannot be reconstructed from it without
+  violating the efficiency property. Previously, misleading values were returned.
+  `$m` is unaffected. Supersedes #18, closes #13.
+* `glex()` objects gain a `$constrained` field naming the arguments that constrained
+  the decomposition (`character(0)` if complete), so `length(x$constrained) > 0` tells
+  you whether `$shap` is usable.
+* A requested constraint only invalidates `$shap` if it actually drops something: a
+  model can contain a high-order term whose value is zero, in which case dropping it
+  leaves the decomposition (and the SHAP values) unchanged. `glex()` confirms the
+  constraint against the model's own predictions and, if the dropped terms were inert,
+  keeps `$shap` and emits a message instead of a warning.
+* `glex()` on `randomPlantedForest` models now returns `$shap` as well, computed from
+  the components like for the other model classes (for multiclass models, `$shap`
+  columns are class-specific like those of `$m`). Previously the field was absent.
+  Constraining the decomposition post-hoc via `max_interaction` or `features` is now
+  detected for `rpf` models too, where it previously passed silently.
+* `glex()` objects gain a `$remainder` field: what the constraint's dropped terms are
+  collectively worth, per observation, on the scale of `$m`. It is present exactly when
+  the decomposition is constrained, so `intercept + rowSums(m) + remainder` reconstructs
+  the model prediction whether or not a constraint was applied. `randomPlantedForest`
+  objects already carried a `$remainder` computed by `predict_components()`, but the
+  other model classes did not; the two are now one field with one definition, computed
+  in one place. Closes #11, supersedes #25.
+  Unlike #25, this covers classification and other non-identity links: the remainder is
+  taken on the scale the model is decomposed on, so for `xgboost` it is on the link scale
+  (`plogis(intercept + rowSums(m) + remainder)` recovers a `binary:logistic` probability),
+  while `ranger` probability forests and `randomPlantedForest` are decomposed on the
+  response scale directly.
+* For `randomPlantedForest` classification models, `glex()` now confirms the constraint
+  against `predict(type = "numeric")` rather than the default `type = "prob"`. rpf
+  decomposes the raw score, while `type = "prob"` applies rpf's response function
+  (a clamp to `[0, 1]` for `loss = "L2"`, the inverse link for `"logit"` and
+  `"exponential"`) and for binary models returns the classes in an order whose first
+  column is not the one being decomposed. The components reconstruct the raw score
+  exactly, so `$remainder` now measures only what the dropped terms are worth, instead of
+  silently absorbing the back-transformation and the class mix-up.
+* `glex_explain()` now reads SHAP values from `$shap` instead of recomputing them from
+  the components, so the `glex` object is the single source of truth. The SHAP
+  reference bar is omitted for constrained decompositions, where it previously showed
+  a value reconstructed from the constrained components, and for objects created by
+  earlier versions of glex, which have no `$shap`.
+* `print()` on a `glex` object reports when the decomposition is constrained.
+
 # glex 0.6.0
 
 * Extended compatibility with `xgboost`, now requiring `xgboost (>= 3.0.0)` in `Suggests:`
