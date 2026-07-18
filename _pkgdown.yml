@@ -4,6 +4,12 @@ template:
 
 
 articles:
+- title: Guides
+  navbar: ~
+  desc: |
+    Working with glex decompositions.
+  contents:
+  - feature-grouping
 - title: Showcases
   navbar: ~
   desc: |
@@ -30,6 +36,8 @@ reference:
 - title: Utility functions
   contents:
   - starts_with("subset_com")
+  - group_components
+  - dummy_groups
   - starts_with("print.")
   - theme_glex
   #- starts_with("str.")

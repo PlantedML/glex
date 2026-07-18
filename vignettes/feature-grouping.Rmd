@@ -1,0 +1,140 @@
+---
+title: "Grouping features: dummy-encoded factors and semantic groups"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Grouping features: dummy-encoded factors and semantic groups}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+has_deps <- requireNamespace("xgboost", quietly = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 7,
+  eval = has_deps
+)
+```
+
+```{r setup, message=FALSE}
+library(glex)
+library(xgboost)
+set.seed(1)
+```
+
+## The problem: dummy encoding fragments the decomposition
+
+`xgboost` only accepts numeric features, so categorical predictors are usually
+dummy-encoded with `model.matrix()` before fitting. The decomposition then
+treats every dummy column as a feature of its own: the effect of one factor is
+smeared across its dummies *and* their mutual "interactions", which are
+artifacts of the encoding rather than anything about the data.
+
+The built-in `bike` data has a four-level `season` factor:
+
+```{r data}
+data(bike, package = "glex")
+
+x <- cbind(
+  model.matrix(~ season - 1, bike),
+  as.matrix(bike[, c("hr", "temp", "hum")])
+)
+colnames(x)
+```
+
+```{r fit}
+xg <- xgb.train(
+  params = xgb.params(max_depth = 3, learning_rate = 0.1, nthread = 2),
+  data = xgb.DMatrix(x, label = bike$bikers, nthread = 2),
+  nrounds = 50
+)
+res <- glex(xg, x)
+ncol(res$m)
+```
+
+Among these terms are things like `seasonFall:seasonWinter` — an "interaction"
+between two levels of the same factor, which no one wants to interpret:
+
+```{r raw-terms}
+head(sort(colMeans(abs(as.matrix(res$m))), decreasing = TRUE), 10)
+```
+
+## Re-assembling the factor with `group_components()`
+
+`group_components()` aggregates all terms feature-wise: terms involving only
+`season` dummies become the `season` main effect, terms mixing a dummy with
+`hr` become the `season:hr` interaction, and so on. Because the decomposition
+is additive, this is exact — no approximation involved.
+
+`dummy_groups()` builds the required `groups` list from the *un-encoded* data,
+matching the `model.matrix()` naming convention by default. `bike` carries
+further factors (`mnth`, `workingday`, `weathersit`) that we did not encode
+into `x` — `dummy_groups()` reports them and moves on:
+
+```{r group}
+dummy_groups(res, bike)
+
+grouped <- group_components(res, dummy_groups(res, bike))
+ncol(grouped$m)
+head(sort(colMeans(abs(as.matrix(grouped$m))), decreasing = TRUE), 10)
+```
+
+The components still sum to the model prediction, and the SHAP value of
+`season` is the sum of its dummies' SHAP values, so the efficiency property is
+preserved:
+
+```{r exact}
+all.equal(rowSums(grouped$m), rowSums(res$m))
+all.equal(
+  grouped$shap$season,
+  rowSums(as.matrix(res$shap[, startsWith(names(res$shap), "season"), with = FALSE]))
+)
+```
+
+Since the grouped columns of `x` form a one-hot encoding, `group_components()`
+reconstructs the factor, so the plot functions work on the grouped object:
+
+```{r plots, fig.height=4}
+plot_main_effect(grouped, "season")
+plot_twoway_effects(grouped, c("season", "temp"))
+```
+
+## Other encoding schemes
+
+If the dummy columns are not named in `model.matrix()` style, pass a `naming`
+function of `(feature, levels)` that reproduces the column names the model was
+trained with:
+
+```{r naming, eval=FALSE}
+dummy_groups(
+  res,
+  bike,
+  naming = function(feature, levels) paste(feature, levels, sep = "_")
+)
+```
+
+`dummy_groups()` only returns columns that actually exist in `object$x`, so a
+dropped reference level (treatment coding via `~ season`) is skipped
+automatically — the reconstructed factor then shows a `"(base)"` level for
+observations of the reference category.
+
+## Semantic groups
+
+Grouping is not limited to dummy encodings. Any set of features can be treated
+as one, for example a "weather" block:
+
+```{r semantic}
+weather <- group_components(res, groups = list(weather = c("temp", "hum")))
+head(sort(colMeans(abs(as.matrix(weather$m))), decreasing = TRUE), 10)
+```
+
+For such groups no single x-value exists, so `weather$x$weather` is `NA` and
+the effect plots are not available for the group's main effect — but term
+importances and SHAP values aggregate as usual:
+
+```{r semantic-vi, fig.height=4}
+library(ggplot2)
+autoplot(glex_vi(weather), threshold = 0.5)
+```
