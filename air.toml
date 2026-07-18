@@ -6,3 +6,4 @@ line-ending = "lf"
 persistent-line-breaks = true # preserve existing line breaks when reformatting
 default-exclude = true        # use built-in default exclusions
 assignment-style = "arrow"
+exclude = ["attic/", ".git/"]
