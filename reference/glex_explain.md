@@ -77,7 +77,6 @@ Other Visualization functions:
 ``` r
 set.seed(1)
 # Random Planted Forest -----
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 
 rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
@@ -85,5 +84,4 @@ rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 glex_rpf <- glex(rp, mtcars[27:32, ])
 
 glex_explain(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
-}
 ```

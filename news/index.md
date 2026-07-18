@@ -2,6 +2,11 @@
 
 ## glex 0.6.0.9000 (development version)
 
+- `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it
+  fixes an out-of-bounds read in `purify_3()` that crashed R on Windows
+  (PlantedML/randomPlantedForest#61), so rpf tests and examples run on
+  all platforms.
+
 - `$shap` is now a scalar `NA` (with a warning) when the decomposition
   is constrained via `max_interaction` or `features`: a constrained
   decomposition does not sum to the full model prediction, so SHAP
@@ -10,10 +15,12 @@
   is unaffected. Supersedes
   [\#18](https://github.com/PlantedML/glex/issues/18), closes
   [\#13](https://github.com/PlantedML/glex/issues/13).
+
 - [`glex()`](http://plantedml.com/glex/reference/glex.md) objects gain a
   `$constrained` field naming the arguments that constrained the
   decomposition (`character(0)` if complete), so
   `length(x$constrained) > 0` tells you whether `$shap` is usable.
+
 - A requested constraint only invalidates `$shap` if it actually drops
   something: a model can contain a high-order term whose value is zero,
   in which case dropping it leaves the decomposition (and the SHAP
@@ -22,6 +29,7 @@
   constraint against the model’s own predictions and, if the dropped
   terms were inert, keeps `$shap` and emits a message instead of a
   warning.
+
 - [`glex()`](http://plantedml.com/glex/reference/glex.md) on
   `randomPlantedForest` models now returns `$shap` as well, computed
   from the components like for the other model classes (for multiclass
@@ -29,6 +37,7 @@
   Previously the field was absent. Constraining the decomposition
   post-hoc via `max_interaction` or `features` is now detected for `rpf`
   models too, where it previously passed silently.
+
 - [`glex()`](http://plantedml.com/glex/reference/glex.md) objects gain a
   `$remainder` field: what the constraint’s dropped terms are
   collectively worth, per observation, on the scale of `$m`. It is
@@ -47,6 +56,7 @@
   link scale (`plogis(intercept + rowSums(m) + remainder)` recovers a
   `binary:logistic` probability), while `ranger` probability forests and
   `randomPlantedForest` are decomposed on the response scale directly.
+
 - For `randomPlantedForest` classification models,
   [`glex()`](http://plantedml.com/glex/reference/glex.md) now confirms
   the constraint against `predict(type = "numeric")` rather than the
@@ -58,6 +68,7 @@
   raw score exactly, so `$remainder` now measures only what the dropped
   terms are worth, instead of silently absorbing the back-transformation
   and the class mix-up.
+
 - [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
   now reads SHAP values from `$shap` instead of recomputing them from
   the components, so the `glex` object is the single source of truth.
@@ -65,6 +76,7 @@
   where it previously showed a value reconstructed from the constrained
   components, and for objects created by earlier versions of glex, which
   have no `$shap`.
+
 - [`print()`](https://rdrr.io/r/base/print.html) on a `glex` object
   reports when the decomposition is constrained.
 

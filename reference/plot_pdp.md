@@ -49,7 +49,6 @@ Other Visualization functions:
 ## Examples
 
 ``` r
-if (requireNamespace("randomPlantedForest", quietly = TRUE)) {
 library(randomPlantedForest)
 
 # introduce factor variables to show categorical feature handling
@@ -62,6 +61,6 @@ rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_in
 components <- glex(rpfit, mtcars)
 
 plot_pdp(components, "wt")
+
 plot_pdp(components, "cyl")
-}
 ```

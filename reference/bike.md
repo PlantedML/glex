@@ -22,7 +22,7 @@ rows and 11 columns.
 
 ## Details
 
-- `hr` has been copnverted to a numeric
+- `hr` has been converted to a numeric
 
 - `workingday` was recoded to a binary `factor` with labels
   `c("No Workingday", "Workingday")`
