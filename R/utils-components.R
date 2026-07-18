@@ -3,9 +3,9 @@
 #' @param components An object of class `glex`.
 #' @param term (`character(1)`) A main term name to subset by, e.g. `"x1"`.
 #'
-#' @return
-#' - `subset_components`: An object of class `glex`.
-#' - `subset_component_names`: A character vector.
+#' @returns
+#' - `subset_components()`: An object of class `glex`.
+#' - `subset_component_names()`: A character vector.
 #'
 #' @rdname subset_components
 #' @export

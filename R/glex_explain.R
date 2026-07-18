@@ -18,7 +18,7 @@
 #' Preferred value may depend on the number of vertical elements, hence it may be necessary to adjust
 #' this value as needed.
 #'
-#' @return A [ggplot][ggplot2::ggplot] object.
+#' @returns A [ggplot][ggplot2::ggplot] object.
 # Invisibly: A `list` with elements
 # * `components`: A [`data.table`] of the prediction components scaled by their degree of interaction,
 #   grouped by their associated reference term.

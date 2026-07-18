@@ -11,7 +11,7 @@
 #' Default is `"b"` for both sides. Set to `"none"` to disable rug plot.
 #' @param ... Used for future expansion.
 #'
-#' @return A `ggplot2` object.
+#' @returns A `ggplot2` object.
 #' @import ggplot2
 #' @export
 #' @seealso [plot_pdp()]
@@ -44,7 +44,7 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' @param predictor `(character(1))` predictor names, e.g. `"x1"` to plot
 #'   main effect of `x1`.
 #'
-#' @return A `ggplot2` object.
+#' @returns A `ggplot2` object.
 #' @import ggplot2
 #' @export
 #' @seealso [plot_main_effect()]

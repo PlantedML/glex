@@ -18,7 +18,7 @@
 #' @param features Vector of column names in `x` to calculate components for. Default is `NULL`, i.e. all features are used.
 #' @param ... Further arguments passed to methods.
 #'
-#' @return Decomposition of the regression or classification function.
+#' @returns Decomposition of the regression or classification function.
 #' A `list` with elements:
 #' * `shap`: SHAP values, derived from the functional decomposition as
 #'   \eqn{\phi_j = \sum_{S \ni j} m_S / |S|}. This reconstruction is only valid if the

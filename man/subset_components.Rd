@@ -16,8 +16,8 @@ subset_component_names(components, term)
 }
 \value{
 \itemize{
-\item \code{subset_components}: An object of class \code{glex}.
-\item \code{subset_component_names}: A character vector.
+\item \code{subset_components()}: An object of class \code{glex}.
+\item \code{subset_component_names()}: A character vector.
 }
 }
 \description{
