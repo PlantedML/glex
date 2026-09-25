@@ -3,20 +3,27 @@
 #' @noRd
 #' @inheritParams plot_twoway_effects
 assemble_components <- function(object, predictors) {
+  term <- paste(sort(predictors), collapse = ":")
+  # Tree models only yield terms for feature subsets that co-occur on some path,
+  # so a requested term can be absent; `$m` then silently stays NULL
+  if (!(term %in% split_names(names(object$m), target_index = 1))) {
+    stop(sprintf(
+      "Term \"%s\" is not part of the decomposition. Only feature subsets that occur together in at least one tree have a component, see `names(object$m)`.",
+      term
+    ))
+  }
+
   xdf <- object$x[, predictors, with = FALSE]
   xdf[, ".id" := .I]
   setkey(xdf, ".id")
 
   if (!is.null(object$target_levels)) {
     mwide <- reshape_m_multiclass(object)
-    mwide <- mwide[,
-      c(".id", "class", paste(sort(predictors), collapse = ":")),
-      with = FALSE
-    ]
+    mwide <- mwide[, c(".id", "class", term), with = FALSE]
     setnames(mwide, c(".id", "class", "m"))
     xdf <- xdf[mwide, on = ".id"]
   } else {
-    xdf$m <- object$m[[paste(sort(predictors), collapse = ":")]]
+    xdf$m <- object$m[[term]]
   }
 
   xdf[, ".id" := NULL]
