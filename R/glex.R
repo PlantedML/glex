@@ -9,7 +9,12 @@
 #' `doParallel::registerDoParallel()`.
 #'
 #' @param object Model to be explained, either of class `xgb.Booster` or `rpf`.
-#' @param x Data to be explained.
+#' @param x Data to be explained. For [`xgboost`][xgboost::xgb.train] models with
+#'  categorical features (fit on a `data.frame` with factor columns), a `data.frame`
+#'  whose factor columns have the same levels in the same order as the training data:
+#'  the model stores category codes, not levels, so a mismatch cannot be detected
+#'  beyond a missing level (this is the same contract as `predict()`).
+#'  Otherwise a numeric `matrix` or `data.frame`.
 #' @param max_interaction (`integer(1): NULL`)\cr
 #'  Maximum interaction size to consider.
 #'  Defaults to using all possible interactions available in the model.\cr
@@ -192,6 +197,23 @@ glex.xgb.Booster <- function(
   weighting_method = "fastpd",
   ...
 ) {
+  if (!requireNamespace("xgboost", quietly = TRUE)) {
+    stop("xgboost needs to be installed: install.packages(\"xgboost\")")
+  }
+  parsed <- xgb_trees(object)
+  trees <- parsed$trees
+
+  # Categorical features are fed to the trees as 0-based level codes, the same
+  # encoding xgboost uses. The factor columns are kept for `$x` so plots and
+  # explanations see the levels rather than the codes.
+  x_original <- NULL
+  if (length(parsed$categorical) > 0) {
+    x <- check_xgb_categorical(x, parsed$categorical, trees)
+    x_original <- data.table::as.data.table(x)
+    x[parsed$categorical] <- lapply(x[parsed$categorical], function(f) {
+      as.integer(f) - 1L
+    })
+  }
   if (!is.matrix(x)) {
     if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
       stop(
@@ -199,9 +221,6 @@ glex.xgb.Booster <- function(
       )
     }
     x <- as.matrix(x)
-  }
-  if (!requireNamespace("xgboost", quietly = TRUE)) {
-    stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
 
   if (is.null(max_background_sample_size)) {
@@ -213,8 +232,6 @@ glex.xgb.Booster <- function(
 
   checkmate::assert_int(max_interaction, lower = 1, upper = Inf)
   checkmate::assert_int(max_background_sample_size, lower = 1, upper = Inf)
-  # Convert model
-  trees <- xgboost::xgb.model.dt.tree(model = object, use_int_id = TRUE)
   trees$Type <- "<"
 
   # Early stopping stores the 0-based best round as a booster attribute and
@@ -240,11 +257,18 @@ glex.xgb.Booster <- function(
     max_background_sample_size
   )
   res$intercept <- res$intercept + get_xgb_base_score(object)
+  if (!is.null(x_original)) {
+    res$x <- x_original
+  }
 
-  # glex decomposes the raw margin, so the constraint is confirmed against it
+  # glex decomposes the raw margin, so the constraint is confirmed against it.
+  # predict() needs the factor columns to encode categorical features itself.
   res <- confirm_constrained(
     res,
-    target = stats::predict(object, x, outputmargin = TRUE)
+    target = xgb_margin(
+      object,
+      if (is.null(x_original)) x else as.data.frame(x_original)
+    )
   )
 
   # Return components
@@ -538,6 +562,7 @@ tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   m_all <- explainTreePathDependent(
     x,
     tree_mat,
+    node_categories(tree_info),
     lapply(all_S, function(S) S - 1L),
     max_interaction,
     is_weak_inequality
@@ -654,6 +679,7 @@ tree_fun_emp_fastPD <- function(
     x,
     background_sample,
     tree_mat,
+    node_categories(tree_info),
     lapply(all_S, function(S) S - 1L),
     max_interaction,
     is_weak_inequality
@@ -872,6 +898,11 @@ tree_fun_wrapper <- function(
       tree_fun_path_dependent(tree, trees, x, all_S, max_interaction)
     })
   } else if (weighting_method == "empirical") {
+    if (any(lengths(trees[["Categories"]]) > 0)) {
+      stop(
+        "`weighting_method = 'empirical'` does not support categorical splits, use 'fastpd' or 'path-dependent'."
+      )
+    }
     if (trees$Type[1] != "<=") {
       warning(
         "Using `weighting_method = 'empirical'` with models that apply strict inequality (<) in the splitting rule may lead to inaccuracies. It is recommended to use the default setting (`weighting_method = 'fastpd'`) instead."

@@ -11,18 +11,19 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // explainTreeFastPDBitmask
-Rcpp::NumericMatrix explainTreeFastPDBitmask(Rcpp::NumericMatrix& x, Rcpp::NumericMatrix& x_background, NumericMatrix& tree, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
-RcppExport SEXP _glex_explainTreeFastPDBitmask(SEXP xSEXP, SEXP x_backgroundSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
+Rcpp::NumericMatrix explainTreeFastPDBitmask(Rcpp::NumericMatrix& x, Rcpp::NumericMatrix& x_background, NumericMatrix& tree, Rcpp::List& node_categories, Rcpp::List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
+RcppExport SEXP _glex_explainTreeFastPDBitmask(SEXP xSEXP, SEXP x_backgroundSEXP, SEXP treeSEXP, SEXP node_categoriesSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type x_background(x_backgroundSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type tree(treeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List& >::type node_categories(node_categoriesSEXP);
     Rcpp::traits::input_parameter< Rcpp::List& >::type to_explain_list(to_explain_listSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type max_interaction(max_interactionSEXP);
     Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
-    rcpp_result_gen = Rcpp::wrap(explainTreeFastPDBitmask(x, x_background, tree, to_explain_list, max_interaction, is_weak_inequality));
+    rcpp_result_gen = Rcpp::wrap(explainTreeFastPDBitmask(x, x_background, tree, node_categories, to_explain_list, max_interaction, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -101,29 +102,30 @@ BEGIN_RCPP
 END_RCPP
 }
 // explainTreePathDependent
-NumericMatrix explainTreePathDependent(NumericMatrix& x, const NumericMatrix& tree, List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
-RcppExport SEXP _glex_explainTreePathDependent(SEXP xSEXP, SEXP treeSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
+NumericMatrix explainTreePathDependent(NumericMatrix& x, const NumericMatrix& tree, List& node_categories, List& to_explain_list, unsigned int max_interaction, bool is_weak_inequality);
+RcppExport SEXP _glex_explainTreePathDependent(SEXP xSEXP, SEXP treeSEXP, SEXP node_categoriesSEXP, SEXP to_explain_listSEXP, SEXP max_interactionSEXP, SEXP is_weak_inequalitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type tree(treeSEXP);
+    Rcpp::traits::input_parameter< List& >::type node_categories(node_categoriesSEXP);
     Rcpp::traits::input_parameter< List& >::type to_explain_list(to_explain_listSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type max_interaction(max_interactionSEXP);
     Rcpp::traits::input_parameter< bool >::type is_weak_inequality(is_weak_inequalitySEXP);
-    rcpp_result_gen = Rcpp::wrap(explainTreePathDependent(x, tree, to_explain_list, max_interaction, is_weak_inequality));
+    rcpp_result_gen = Rcpp::wrap(explainTreePathDependent(x, tree, node_categories, to_explain_list, max_interaction, is_weak_inequality));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_glex_explainTreeFastPDBitmask", (DL_FUNC) &_glex_explainTreeFastPDBitmask, 6},
+    {"_glex_explainTreeFastPDBitmask", (DL_FUNC) &_glex_explainTreeFastPDBitmask, 7},
     {"_glex_find_term_matches", (DL_FUNC) &_glex_find_term_matches, 2},
     {"_glex_empProbFunction", (DL_FUNC) &_glex_empProbFunction, 4},
     {"_glex_recurseRcppEmpProbfunction", (DL_FUNC) &_glex_recurseRcppEmpProbfunction, 11},
     {"_glex_contribute", (DL_FUNC) &_glex_contribute, 6},
     {"_glex_get_all_subsets_cpp", (DL_FUNC) &_glex_get_all_subsets_cpp, 2},
-    {"_glex_explainTreePathDependent", (DL_FUNC) &_glex_explainTreePathDependent, 5},
+    {"_glex_explainTreePathDependent", (DL_FUNC) &_glex_explainTreePathDependent, 6},
     {NULL, NULL, 0}
 };
 
