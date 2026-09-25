@@ -2,6 +2,15 @@
 
 ## glex 0.6.0.9000 (development version)
 
+- Plotting a term that is not part of the decomposition now fails with
+  an informative error instead of
+  `non-numeric argument to mathematical function`. Tree models only
+  yield components for feature subsets that occur together in at least
+  one tree, so
+  e.g. [`plot_twoway_effects()`](http://plantedml.com/glex/reference/plot_components.md)
+  on two features never split on together (common with one-hot encoded
+  categoricals) has no `m` column to plot.
+
 - [`glex()`](http://plantedml.com/glex/reference/glex.md) now warns when
   `x` contains missing values
   ([\#41](https://github.com/PlantedML/glex/issues/41)): splits are
