@@ -36,3 +36,69 @@ test_that("JSON tree parser exposes categorical splits", {
   first <- parsed$trees[Feature == "cat"][1]
   expect_match(dump[grep(sprintf("^%d:\\[cat:", first$Node), dump)][1], sprintf("yes=%d,no=%d", first$Yes, first$No))
 })
+
+# xgb.dump() is the only xgboost tabulation that supports categorical splits:
+#   0:[cat:{1,3,4}] yes=2,no=1,missing=1,gain=5.3,cover=59.4
+#   1:[age<-0.0313] yes=3,no=4,missing=4,gain=18.6,cover=14.5
+#   3:leaf=-0.335,cover=44.9
+parse_xgb_dump <- function(model) {
+  lines <- xgboost::xgb.dump(model, with_stats = TRUE)
+  tree <- cumsum(grepl("^booster\\[", lines)) - 1L
+  lines <- trimws(lines)
+  keep <- !grepl("^booster\\[", lines)
+  lines <- lines[keep]
+  tree <- tree[keep]
+  field <- function(name) {
+    suppressWarnings(as.numeric(sub(sprintf(".*%s=([^,]+).*", name), "\\1", lines)))
+  }
+  leaf <- grepl(":leaf=", lines)
+  node <- as.integer(sub(":.*", "", lines))
+  feature <- ifelse(leaf, "Leaf", sub("^[0-9]+:\\[([^<:]+).*", "\\1", lines))
+  categorical <- grepl("\\{", lines)
+  categories <- lapply(seq_along(lines), function(i) {
+    if (!categorical[i]) {
+      return(integer(0))
+    }
+    as.integer(strsplit(sub(".*\\{([^}]*)\\}.*", "\\1", lines[i]), ",")[[1]])
+  })
+  data.table::data.table(
+    Tree = tree,
+    Node = node,
+    Feature = feature,
+    Split = ifelse(
+      leaf | categorical,
+      NA_real_,
+      suppressWarnings(as.numeric(sub("^[0-9]+:\\[[^<]+<([^]]+)\\].*", "\\1", lines)))
+    ),
+    Yes = ifelse(leaf, NA_integer_, as.integer(field("yes"))),
+    No = ifelse(leaf, NA_integer_, as.integer(field("no"))),
+    Missing = ifelse(leaf, NA_integer_, as.integer(field("missing"))),
+    Gain = ifelse(leaf, field("leaf"), field("gain")),
+    Cover = field("cover"),
+    Categories = categories
+  )
+}
+
+test_that("JSON tree parser matches the text dump for categorical models", {
+  set.seed(2)
+  n <- 300
+  df <- data.frame(
+    age = rnorm(n),
+    cat = factor(sample(LETTERS[1:6], n, TRUE)),
+    grp = factor(sample(c("a", "b"), n, TRUE))
+  )
+  y <- factor(df$age * (df$cat %in% c("B", "E")) + (df$grp == "b") > 0)
+  model <- xgboost(df, y, nrounds = 8, max_depth = 4, verbosity = 0)
+
+  reference <- parse_xgb_dump(model)
+  data.table::setorder(reference, Tree, Node)
+  parsed <- xgb_trees(model)$trees
+  expect_gt(sum(lengths(reference$Categories) > 1), 0)
+
+  for (col in c("Tree", "Node", "Feature", "Yes", "No", "Missing", "Categories")) {
+    expect_identical(parsed[[col]], reference[[col]], label = col)
+  }
+  for (col in c("Split", "Gain", "Cover")) {
+    expect_equal(parsed[[col]], reference[[col]], tolerance = 1e-5, label = col)
+  }
+})

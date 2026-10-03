@@ -59,7 +59,7 @@ xgb_tree_table <- function(tree, index, feature_names) {
     Tree = index,
     Node = seq_len(n) - 1L,
     Feature = ifelse(leaf, "Leaf", feature_names[unlist(tree$split_indices) + 1L]),
-    Split = ifelse(leaf, NA_real_, condition),
+    Split = ifelse(leaf | is_categorical, NA_real_, condition),
     Yes = ifelse(leaf, NA_integer_, yes),
     No = ifelse(leaf, NA_integer_, no),
     Missing = ifelse(leaf, NA_integer_, missing),
