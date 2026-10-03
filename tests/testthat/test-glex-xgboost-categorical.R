@@ -40,6 +40,28 @@ test_that("categorical xgb.train() model on a DMatrix from a data.frame decompos
   expect_sum_identity(model, x)
 })
 
+test_that("data.table and tibble inputs with factor columns work", {
+  df <- make_cat_data()
+  x <- df[, c("age", "bmi", "cat")]
+  model <- xgboost(x, factor(df$y), nrounds = 10, max_depth = 3, verbosity = 0)
+  reference <- suppressMessages(glex(model, x))
+  for (x_in in list(data.table::as.data.table(x), tibble::as_tibble(x))) {
+    gl <- suppressMessages(glex(model, x_in))
+    expect_equal(gl$m, reference$m)
+    expect_s3_class(gl$x$cat, "factor")
+  }
+})
+
+test_that("missing factor levels are routed like missing values, with the usual warning", {
+  df <- make_cat_data()
+  x <- df[, c("age", "bmi", "cat")]
+  model <- xgboost(x, factor(df$y), nrounds = 10, max_depth = 3, verbosity = 0)
+  x$cat[1:5] <- NA
+  expect_warning(gl <- suppressMessages(glex(model, x)), "missing values")
+  expect_false(anyNA(gl$m))
+  expect_true(all(is.finite(as.matrix(gl$m))))
+})
+
 test_that("factor columns plot as categorical", {
   df <- make_cat_data()
   x <- df[, c("age", "bmi", "cat")]

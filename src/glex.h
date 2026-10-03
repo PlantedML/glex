@@ -3,6 +3,7 @@
 
 #include <Rcpp.h>
 #include <algorithm>
+#include <cmath>
 #include <set>
 #include <map>
 #include <vector>
@@ -54,6 +55,11 @@ inline bool goesYes(double val, double split, const std::vector<int> &categories
   if (categories.empty())
   {
     return ComparisonPolicy::compare(val, split);
+  }
+  // NA levels take the `No` branch like NA values at numeric splits (casting NaN to int is undefined)
+  if (std::isnan(val))
+  {
+    return false;
   }
   return std::find(categories.begin(), categories.end(), static_cast<int>(val)) != categories.end();
 }

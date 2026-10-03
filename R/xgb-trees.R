@@ -96,6 +96,8 @@ check_xgb_categorical <- function(x, categorical, trees) {
       class(x)[1]
     ))
   }
+  # data.table and tibble differ in `[` and `[<-` semantics used below
+  x <- as.data.frame(x)
   missing <- setdiff(categorical, names(x))
   if (length(missing) > 0) {
     stop(sprintf(
