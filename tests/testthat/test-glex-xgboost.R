@@ -380,3 +380,18 @@ test_that("missing values in x trigger a warning", {
 
   expect_no_warning(glex(xg, x))
 })
+
+test_that("term names are sorted regardless of column order in x", {
+  # index order wt < hp < drat disagrees with alphabetical order
+  x <- as.matrix(mtcars[, c("wt", "hp", "drat")])
+  xg <- xgboost(x, mtcars$mpg, nrounds = 30, max_depth = 3, verbosity = 0)
+  for (method in c("fastpd", "path-dependent", "empirical")) {
+    gl <- suppressWarnings(glex(xg, x, weighting_method = method))
+    expect_true(all(c("hp:wt", "drat:hp:wt") %in% names(gl$m)), label = method)
+    split <- strsplit(names(gl$m), ":", fixed = TRUE)
+    expect_identical(split, lapply(split, sort), label = method)
+  }
+  gl <- glex(xg, x)
+  expect_s3_class(plot_twoway_effects(gl, c("hp", "wt")), "ggplot")
+  expect_setequal(subset_component_names(gl, "hp"), c("hp", "hp:wt", "drat:hp", "drat:hp:wt"))
+})
