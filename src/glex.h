@@ -1,6 +1,9 @@
 #ifndef GLEX_H_
 #define GLEX_H_
 
+#include <Rcpp.h>
+#include <algorithm>
+#include <cmath>
 #include <set>
 #include <map>
 #include <vector>
@@ -30,6 +33,36 @@ enum Index
   GAIN = 4,
   COVER = 5
 };
+
+// Category codes routed to `Yes` per node; empty for numeric splits and leaves
+using NodeCategories = std::vector<std::vector<int>>;
+
+inline NodeCategories toNodeCategories(const Rcpp::List &categories)
+{
+  NodeCategories out(categories.size());
+  for (R_xlen_t i = 0; i < categories.size(); ++i)
+  {
+    Rcpp::IntegerVector codes = categories[i];
+    out[i].assign(codes.begin(), codes.end());
+  }
+  return out;
+}
+
+// Categorical splits are set membership, numeric splits a threshold comparison
+template <typename ComparisonPolicy>
+inline bool goesYes(double val, double split, const std::vector<int> &categories)
+{
+  if (categories.empty())
+  {
+    return ComparisonPolicy::compare(val, split);
+  }
+  // NA levels take the `No` branch like NA values at numeric splits (casting NaN to int is undefined)
+  if (std::isnan(val))
+  {
+    return false;
+  }
+  return std::find(categories.begin(), categories.end(), static_cast<int>(val)) != categories.end();
+}
 
 // Define ExtendedMask as a vector of uint64_t chunks for unlimited features
 using ExtendedMask = std::vector<uint64_t>;

@@ -18,6 +18,7 @@ namespace
   std::vector<unsigned int> calculate_data_driven_covers(
       const NumericMatrix &x,
       const NumericMatrix &tree,
+      const NodeCategories &categories,
       bool is_weak_inequality)
   {
     unsigned int n_nodes = tree.nrow();
@@ -63,11 +64,11 @@ namespace
         bool goes_yes;
         if (is_weak_inequality)
         {
-          goes_yes = glex::WeakComparison::compare(obs_val, split_val);
+          goes_yes = goesYes<glex::WeakComparison>(obs_val, split_val, categories[current_node_idx]);
         }
         else
         {
-          goes_yes = glex::StrictComparison::compare(obs_val, split_val);
+          goes_yes = goesYes<glex::StrictComparison>(obs_val, split_val, categories[current_node_idx]);
         }
 
         if (goes_yes)
@@ -95,6 +96,7 @@ template <typename Comparison>
 NumericMatrix recursePathDependent(
     NumericMatrix &x,
     const NumericMatrix &tree,
+    const NodeCategories &categories,
     std::vector<FeatureMask> &U,
     unsigned int node,
     const std::vector<unsigned int> &node_covers) // Added node_covers
@@ -118,8 +120,8 @@ NumericMatrix recursePathDependent(
     const unsigned int no = current_node[Index::NO];
     const double split = current_node[Index::SPLIT];
 
-    NumericMatrix mat_yes = recursePathDependent<Comparison>(x, tree, U, yes, node_covers);
-    NumericMatrix mat_no = recursePathDependent<Comparison>(x, tree, U, no, node_covers);
+    NumericMatrix mat_yes = recursePathDependent<Comparison>(x, tree, categories, U, yes, node_covers);
+    NumericMatrix mat_no = recursePathDependent<Comparison>(x, tree, categories, U, no, node_covers);
 
     for (unsigned int j = 0; j < U.size(); ++j)
     {
@@ -161,7 +163,7 @@ NumericMatrix recursePathDependent(
       {
         for (unsigned int i = 0; i < n; ++i)
         {
-          if (Comparison::compare(x(i, current_feature), split))
+          if (goesYes<Comparison>(x(i, current_feature), split, categories[node]))
           {
             col_out[i] = col_yes[i];
           }
@@ -180,10 +182,12 @@ NumericMatrix recursePathDependent(
 NumericMatrix explainTreePathDependent(
     NumericMatrix &x,
     const NumericMatrix &tree,
+    List &node_categories,
     List &to_explain_list,
     unsigned int max_interaction,
     bool is_weak_inequality)
 {
+  const NodeCategories categories = toNodeCategories(node_categories);
   unsigned int n_features = x.ncol();
   unsigned int n_nodes = tree.nrow();
 
@@ -201,16 +205,16 @@ NumericMatrix explainTreePathDependent(
   std::vector<FeatureMask> U = get_all_subsets_of_mask(all_encountered, max_interaction);
 
   // Calculate data-driven covers based on input x and tree structure
-  std::vector<unsigned int> node_covers = calculate_data_driven_covers(x, tree, is_weak_inequality);
+  std::vector<unsigned int> node_covers = calculate_data_driven_covers(x, tree, categories, is_weak_inequality);
 
   NumericMatrix mat;
   if (is_weak_inequality)
   {
-    mat = recursePathDependent<glex::WeakComparison>(x, tree, U, 0, node_covers);
+    mat = recursePathDependent<glex::WeakComparison>(x, tree, categories, U, 0, node_covers);
   }
   else
   {
-    mat = recursePathDependent<glex::StrictComparison>(x, tree, U, 0, node_covers);
+    mat = recursePathDependent<glex::StrictComparison>(x, tree, categories, U, 0, node_covers);
   }
 
   std::vector<std::set<unsigned int>> to_explain;

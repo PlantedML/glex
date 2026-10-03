@@ -28,6 +28,7 @@ Imports:
     foreach,
     ggplot2,
     progress,
+    jsonlite,
     Rcpp (>= 1.0.8),
     scico,
     stats,
@@ -42,6 +43,7 @@ Suggests:
     ranger,
     rmarkdown,
     testthat (>= 3.0.0),
+    tibble,
     xgboost (>= 3.0.0)
 LinkingTo: 
     Rcpp

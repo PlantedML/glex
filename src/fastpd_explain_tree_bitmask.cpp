@@ -12,6 +12,7 @@ void augmentTreeRecurseStepBitmask(
     const AugmentedDataBitMask &passed_down,
     LeafDataBitMask &leaf_data,
     Rcpp::NumericMatrix &tree,
+    const NodeCategories &categories,
     Rcpp::NumericMatrix &dataset,
     unsigned int node)
 {
@@ -86,7 +87,7 @@ void augmentTreeRecurseStepBitmask(
       for (unsigned int row_id : row_inds)
       {
         double val = dataset(row_id, current_feature);
-        if (ComparisonPolicy::compare(val, split))
+        if (goesYes<ComparisonPolicy>(val, split, categories[node]))
         {
           yes_vec.push_back(row_id);
         }
@@ -126,12 +127,13 @@ void augmentTreeRecurseStepBitmask(
   }
 
   // Recurse
-  augmentTreeRecurseStepBitmask<ComparisonPolicy>(passed_down_yes, leaf_data, tree, dataset, yes_idx);
-  augmentTreeRecurseStepBitmask<ComparisonPolicy>(passed_down_no, leaf_data, tree, dataset, no_idx);
+  augmentTreeRecurseStepBitmask<ComparisonPolicy>(passed_down_yes, leaf_data, tree, categories, dataset, yes_idx);
+  augmentTreeRecurseStepBitmask<ComparisonPolicy>(passed_down_no, leaf_data, tree, categories, dataset, no_idx);
 }
 
 LeafDataBitMask augmentTreeBitmask(
     Rcpp::NumericMatrix &tree,
+    const NodeCategories &categories,
     Rcpp::NumericMatrix &x,
     bool is_weak_inequality)
 {
@@ -163,11 +165,11 @@ LeafDataBitMask augmentTreeBitmask(
   // Recurse from node=0 (root)
   if (is_weak_inequality)
   {
-    augmentTreeRecurseStepBitmask<glex::WeakComparison>(root, leaf_data, tree, x, /*node=*/0);
+    augmentTreeRecurseStepBitmask<glex::WeakComparison>(root, leaf_data, tree, categories, x, /*node=*/0);
   }
   else
   {
-    augmentTreeRecurseStepBitmask<glex::StrictComparison>(root, leaf_data, tree, x, /*node=*/0);
+    augmentTreeRecurseStepBitmask<glex::StrictComparison>(root, leaf_data, tree, categories, x, /*node=*/0);
   }
 
   return leaf_data;
@@ -177,6 +179,7 @@ template <typename ComparisonPolicy>
 Rcpp::NumericMatrix recurseMarginalizeSBitmask(
     const Rcpp::NumericMatrix &x,
     const Rcpp::NumericMatrix &tree,
+    const NodeCategories &categories,
     const std::vector<FeatureMask> &U,
     unsigned int node,
     const LeafDataBitMask &leaf_data)
@@ -229,8 +232,8 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   const double split = current_node[Index::SPLIT];
 
   // Recursively get partial dependence from children
-  NumericMatrix mat_yes = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, U, yes, leaf_data);
-  NumericMatrix mat_no = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, U, no, leaf_data);
+  NumericMatrix mat_yes = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, categories, U, yes, leaf_data);
+  NumericMatrix mat_no = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, categories, U, no, leaf_data);
 
   // Fill output
   for (unsigned int j = 0; j < n_subsets; ++j)
@@ -253,7 +256,7 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
       for (unsigned int i = 0; i < n; ++i)
       {
         double val = x(i, current_feature);
-        if (ComparisonPolicy::compare(val, split))
+        if (goesYes<ComparisonPolicy>(val, split, categories[node]))
         {
           col_out[i] = col_yes[i];
         }
@@ -322,14 +325,15 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
     Rcpp::NumericMatrix &x,
     Rcpp::NumericMatrix &x_background,
     NumericMatrix &tree,
+    Rcpp::List &node_categories,
     Rcpp::List &to_explain_list,
     unsigned int max_interaction,
     bool is_weak_inequality)
 {
-  // Get feature count for proper mask sizing
+  const NodeCategories categories = toNodeCategories(node_categories);
 
   // Augment step using bitmask implementation
-  LeafDataBitMask leaf_data = augmentTreeBitmask(tree, x_background, is_weak_inequality);
+  LeafDataBitMask leaf_data = augmentTreeBitmask(tree, categories, x_background, is_weak_inequality);
 
   // Convert all_encountered to extended bitmask subsets
   FeatureMask all_encountered = leaf_data.allEncounteredMask;
@@ -379,7 +383,7 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
   }
 
   // Compute expectation of all necessary subsets using bitmask implementation
-  NumericMatrix mat = is_weak_inequality ? recurseMarginalizeSBitmask<glex::WeakComparison>(x, tree, U, 0, leaf_data) : recurseMarginalizeSBitmask<glex::StrictComparison>(x, tree, U, 0, leaf_data);
+  NumericMatrix mat = is_weak_inequality ? recurseMarginalizeSBitmask<glex::WeakComparison>(x, tree, categories, U, 0, leaf_data) : recurseMarginalizeSBitmask<glex::StrictComparison>(x, tree, categories, U, 0, leaf_data);
 
   unsigned int t_size = countSetBits(all_encountered);
 

@@ -8,6 +8,26 @@
   plot functions work on grouped objects. The companion `dummy_groups()` derives the
   `groups` list from the original un-encoded data, matching `model.matrix()` column
   naming by default and taking a `naming` function for other encoding schemes.
+* Term names of `xgboost` and `ranger` decompositions no longer depend on the
+  column order of `x`: the default `fastpd` and `path-dependent` methods named
+  interaction terms in feature-index order (e.g. `wt:hp`), while the plotting
+  functions and `subset_components()` look up the sorted name (`hp:wt`), so
+  interaction plots failed for any model whose features are not in alphabetical
+  order. Terms are now always sorted, as for `weighting_method = "empirical"`.
+
+* `glex()` supports `xgboost` models with categorical features, i.e. models fit
+  on a `data.frame` with factor columns via `xgboost()` or `xgb.train()` on an
+  `xgb.DMatrix` built from one. Pass the same `data.frame` as `x`; the factor
+  columns are kept in `$x`, so plots treat them as categorical. Factor levels must
+  match the training data in order, as for `predict()`. Trees are now read from
+  the model's JSON representation instead of `xgb.model.dt.tree()`, which refuses
+  such models. `weighting_method = "empirical"` does not support categorical
+  splits and errors.
+
+* `glex()` now confirms the decomposition of binary models fit with `xgboost()`
+  (class `xgboost`) against the margin. Previously `predict()` silently returned
+  probabilities for those, as its method ignores `outputmargin`.
+
 * Plotting a term that is not part of the decomposition now fails with an informative
   error instead of `non-numeric argument to mathematical function`. Tree models only
   yield components for feature subsets that occur together in at least one tree, so
