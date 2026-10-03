@@ -1,5 +1,12 @@
 # glex 0.6.0.9000 (development version)
 
+* Term names of `xgboost` and `ranger` decompositions no longer depend on the
+  column order of `x`: the default `fastpd` and `path-dependent` methods named
+  interaction terms in feature-index order (e.g. `wt:hp`), while the plotting
+  functions and `subset_components()` look up the sorted name (`hp:wt`), so
+  interaction plots failed for any model whose features are not in alphabetical
+  order. Terms are now always sorted, as for `weighting_method = "empirical"`.
+
 * `glex()` supports `xgboost` models with categorical features, i.e. models fit
   on a `data.frame` with factor columns via `xgboost()` or `xgb.train()` on an
   `xgb.DMatrix` built from one. Pass the same `data.frame` as `x`; the factor
