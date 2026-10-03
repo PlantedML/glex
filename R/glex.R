@@ -1028,7 +1028,7 @@ calc_components <- function(
   }
 
   # The C++ explainers name terms in feature-index order, while plots and
-  # `subset_components()` look them up by their sorted names (#46)
+  # `subset_components()` look them up by their sorted names
   colnames(m_all) <- vapply(
     all_S,
     function(s) paste(sort(colnames(x)[s]), collapse = ":"),
