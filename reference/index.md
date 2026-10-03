@@ -32,6 +32,10 @@ Visualize main and interaction terms
 - [`subset_components()`](http://plantedml.com/glex/reference/subset_components.md)
   [`subset_component_names()`](http://plantedml.com/glex/reference/subset_components.md)
   : Subset components
+- [`group_components()`](http://plantedml.com/glex/reference/group_components.md)
+  : Group features of a decomposition
+- [`dummy_groups()`](http://plantedml.com/glex/reference/dummy_groups.md)
+  : Derive feature groups from the factors behind a dummy encoding
 - [`print(`*`<glex>`*`)`](http://plantedml.com/glex/reference/print.glex.md)
   : Print glex objects
 - [`theme_glex()`](http://plantedml.com/glex/reference/theme_glex.md) :

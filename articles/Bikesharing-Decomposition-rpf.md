@@ -140,12 +140,12 @@ str(components$m, list.len = 8)
 #>  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...
 #>  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<pointer: 0x556eefe7bf20>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x561a62306f20>
 ```
 
 Please note that fitting the model, purification, and the extraction of
 the components may take some time, depending on available resources and
-the size of the data. For example, the above steps took around 30
+the size of the data. For example, the above steps took around 40
 seconds to complete on GitHub Actions.
 
 ## Main Effects
