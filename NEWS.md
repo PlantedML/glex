@@ -1,19 +1,14 @@
 # glex 0.6.0.9000 (development version)
 
-* New `group_components()` aggregates the terms of a decomposition so that a set of
-  features is treated as one feature (#26), e.g. re-assembling a dummy-encoded factor:
-  `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The regrouping is
-  exact (components still sum to the prediction, group SHAP values are sums of member
-  SHAP values), and `$x` gains a reconstructed factor for dummy-encoded groups so the
-  plot functions work on grouped objects. The companion `dummy_groups()` derives the
-  `groups` list from the original un-encoded data, matching `model.matrix()` column
-  naming by default and taking a `naming` function for other encoding schemes.
-* Term names of `xgboost` and `ranger` decompositions no longer depend on the
-  column order of `x`: the default `fastpd` and `path-dependent` methods named
-  interaction terms in feature-index order (e.g. `wt:hp`), while the plotting
-  functions and `subset_components()` look up the sorted name (`hp:wt`), so
-  interaction plots failed for any model whose features are not in alphabetical
-  order. Terms are now always sorted, as for `weighting_method = "empirical"`.
+## Breaking changes
+
+* `$shap` is now a scalar `NA` (with a warning) when the decomposition is constrained via
+  `max_interaction` or `features`: a constrained decomposition does not sum to the
+  full model prediction, so SHAP values cannot be reconstructed from it without
+  violating the efficiency property. Previously, misleading values were returned.
+  `$m` is unaffected. Supersedes #18, closes #13.
+
+## New features
 
 * `glex()` supports `xgboost` models with categorical features, i.e. models fit
   on a `data.frame` with factor columns via `xgboost()` or `xgb.train()` on an
@@ -23,6 +18,57 @@
   the model's JSON representation instead of `xgb.model.dt.tree()`, which refuses
   such models. `weighting_method = "empirical"` does not support categorical
   splits and errors.
+
+* New `group_components()` aggregates the terms of a decomposition so that a set of
+  features is treated as one feature (#26), e.g. re-assembling a dummy-encoded factor:
+  `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The regrouping is
+  exact (components still sum to the prediction, group SHAP values are sums of member
+  SHAP values), and `$x` gains a reconstructed factor for dummy-encoded groups so the
+  plot functions work on grouped objects. The companion `dummy_groups()` derives the
+  `groups` list from the original un-encoded data, matching `model.matrix()` column
+  naming by default and taking a `naming` function for other encoding schemes. The
+  new vignette "Categorical features" walks through native factors, one-hot groups
+  and semantic groups.
+
+* `glex()` objects gain a `$constrained` field naming the arguments that constrained
+  the decomposition (`character(0)` if complete), so `length(x$constrained) > 0` tells
+  you whether `$shap` is usable.
+
+* A requested constraint only invalidates `$shap` if it actually drops something: a
+  model can contain a high-order term whose value is zero, in which case dropping it
+  leaves the decomposition (and the SHAP values) unchanged. `glex()` confirms the
+  constraint against the model's own predictions and, if the dropped terms were inert,
+  keeps `$shap` and emits a message instead of a warning.
+
+* `glex()` on `randomPlantedForest` models now returns `$shap` as well, computed from
+  the components like for the other model classes (for multiclass models, `$shap`
+  columns are class-specific like those of `$m`). Previously the field was absent.
+  Constraining the decomposition post-hoc via `max_interaction` or `features` is now
+  detected for `rpf` models too, where it previously passed silently.
+
+* `glex()` objects gain a `$remainder` field: what the constraint's dropped terms are
+  collectively worth, per observation, on the scale of `$m`. It is present exactly when
+  the decomposition is constrained, so `intercept + rowSums(m) + remainder` reconstructs
+  the model prediction whether or not a constraint was applied. `randomPlantedForest`
+  objects already carried a `$remainder` computed by `predict_components()`, but the
+  other model classes did not; the two are now one field with one definition, computed
+  in one place. Closes #11, supersedes #25.
+  Unlike #25, this covers classification and other non-identity links: the remainder is
+  taken on the scale the model is decomposed on, so for `xgboost` it is on the link scale
+  (`plogis(intercept + rowSums(m) + remainder)` recovers a `binary:logistic` probability),
+  while `ranger` probability forests and `randomPlantedForest` are decomposed on the
+  response scale directly.
+
+* `print()` on a `glex` object reports when the decomposition is constrained.
+
+## Bug fixes
+
+* Term names of `xgboost` and `ranger` decompositions no longer depend on the
+  column order of `x`: the default `fastpd` and `path-dependent` methods named
+  interaction terms in feature-index order (e.g. `wt:hp`), while the plotting
+  functions and `subset_components()` look up the sorted name (`hp:wt`), so
+  interaction plots failed for any model whose features are not in alphabetical
+  order. Terms are now always sorted, as for `weighting_method = "empirical"`.
 
 * `glex()` now confirms the decomposition of binary models fit with `xgboost()`
   (class `xgboost`) against the margin. Previously `predict()` silently returned
@@ -44,40 +90,6 @@
   all fitted trees were decomposed, so the components did not sum to the prediction.
   Closes #42.
 
-* `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it fixes an
-  out-of-bounds read in `purify_3()` that crashed R on Windows
-  (PlantedML/randomPlantedForest#61), so rpf tests and examples run on all platforms.
-
-* `$shap` is now a scalar `NA` (with a warning) when the decomposition is constrained via
-  `max_interaction` or `features`: a constrained decomposition does not sum to the
-  full model prediction, so SHAP values cannot be reconstructed from it without
-  violating the efficiency property. Previously, misleading values were returned.
-  `$m` is unaffected. Supersedes #18, closes #13.
-* `glex()` objects gain a `$constrained` field naming the arguments that constrained
-  the decomposition (`character(0)` if complete), so `length(x$constrained) > 0` tells
-  you whether `$shap` is usable.
-* A requested constraint only invalidates `$shap` if it actually drops something: a
-  model can contain a high-order term whose value is zero, in which case dropping it
-  leaves the decomposition (and the SHAP values) unchanged. `glex()` confirms the
-  constraint against the model's own predictions and, if the dropped terms were inert,
-  keeps `$shap` and emits a message instead of a warning.
-* `glex()` on `randomPlantedForest` models now returns `$shap` as well, computed from
-  the components like for the other model classes (for multiclass models, `$shap`
-  columns are class-specific like those of `$m`). Previously the field was absent.
-  Constraining the decomposition post-hoc via `max_interaction` or `features` is now
-  detected for `rpf` models too, where it previously passed silently.
-* `glex()` objects gain a `$remainder` field: what the constraint's dropped terms are
-  collectively worth, per observation, on the scale of `$m`. It is present exactly when
-  the decomposition is constrained, so `intercept + rowSums(m) + remainder` reconstructs
-  the model prediction whether or not a constraint was applied. `randomPlantedForest`
-  objects already carried a `$remainder` computed by `predict_components()`, but the
-  other model classes did not; the two are now one field with one definition, computed
-  in one place. Closes #11, supersedes #25.
-  Unlike #25, this covers classification and other non-identity links: the remainder is
-  taken on the scale the model is decomposed on, so for `xgboost` it is on the link scale
-  (`plogis(intercept + rowSums(m) + remainder)` recovers a `binary:logistic` probability),
-  while `ranger` probability forests and `randomPlantedForest` are decomposed on the
-  response scale directly.
 * For `randomPlantedForest` classification models, `glex()` now confirms the constraint
   against `predict(type = "numeric")` rather than the default `type = "prob"`. rpf
   decomposes the raw score, while `type = "prob"` applies rpf's response function
@@ -86,12 +98,21 @@
   column is not the one being decomposed. The components reconstruct the raw score
   exactly, so `$remainder` now measures only what the dropped terms are worth, instead of
   silently absorbing the back-transformation and the class mix-up.
+
+## Other
+
+* `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it fixes an
+  out-of-bounds read in `purify_3()` that crashed R on Windows
+  (PlantedML/randomPlantedForest#61), so rpf tests and examples run on all platforms.
+
 * `glex_explain()` now reads SHAP values from `$shap` instead of recomputing them from
   the components, so the `glex` object is the single source of truth. The SHAP
   reference bar is omitted for constrained decompositions, where it previously showed
   a value reconstructed from the constrained components, and for objects created by
   earlier versions of glex, which have no `$shap`.
-* `print()` on a `glex` object reports when the decomposition is constrained.
+
+* glex now declares `R (>= 4.1.0)`: the tests use the native pipe and lambda
+  shorthand, which the previous `R (>= 3.0)` did not reflect.
 
 # glex 0.6.0
 

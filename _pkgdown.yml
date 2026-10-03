@@ -1,4 +1,4 @@
-url: http://plantedml.com/glex/
+url: https://plantedml.com/glex/
 template:
   bootstrap: 5
 
@@ -40,7 +40,6 @@ reference:
   - dummy_groups
   - starts_with("print.")
   - theme_glex
-  #- starts_with("str.")
 
 - title: Data
   contents:
