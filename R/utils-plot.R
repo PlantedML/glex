@@ -46,6 +46,18 @@ get_m_limits <- function(xdf) {
 #' @keywords internal
 #' @noRd
 get_x_types <- function(components, predictors) {
+  # Groups without a dummy encoding get an all-NA column from group_components()
+  no_values <- predictors[vapply(
+    predictors,
+    function(p) all(is.na(components[["x"]][[p]])),
+    logical(1)
+  )]
+  if (length(no_values) > 0) {
+    stop(sprintf(
+      "No values in `x` for %s: a feature grouped by `group_components()` without a dummy encoding has no single x value to plot against.",
+      paste(sprintf("\"%s\"", no_values), collapse = ", ")
+    ))
+  }
   # Create look-up table for predictors and their types
   tp <- c(
     numeric = "continuous",

@@ -205,6 +205,57 @@ test_that("dummy_groups messages on unmatched factors, errors without factors", 
 
   expect_error(
     dummy_groups(gl, data.frame(x1 = task$x[, "x1"])),
-    "no factor columns"
+    "no factor or character columns"
   )
+})
+
+test_that("reconstructed factors plot, groups without x values error clearly", {
+  task <- make_dummy_task(encoding = "one-hot")
+  xg <- fit_xgb(task$x, task$y)
+  gl <- glex(xg, task$x)
+
+  grouped <- group_components(gl, groups = list(f = c("fa", "fb", "fc")))
+  expect_s3_class(plot_main_effect(grouped, "f"), "ggplot")
+  expect_s3_class(plot_twoway_effects(grouped, c("f", "x1")), "ggplot")
+
+  mixed <- group_components(gl, groups = list(g = c("fa", "x1")))
+  expect_true(all(is.na(mixed$x$g)))
+  expect_error(plot_main_effect(mixed, "g"), "No values in `x` for \"g\"")
+  expect_error(plot_twoway_effects(mixed, c("g", "fb")), "No values in `x` for \"g\"")
+})
+
+test_that("group names with ':' and non-glex objects are rejected", {
+  task <- make_dummy_task(encoding = "one-hot")
+  gl <- glex(fit_xgb(task$x, task$y), task$x)
+  expect_error(group_components(gl, groups = list(`a:b` = c("fa", "fb"))), "must not contain")
+  expect_error(group_components(gl$m, groups = list(f = c("fa", "fb"))), "glex")
+})
+
+test_that("grouping a factor column of x yields NA instead of crashing", {
+  skip_if_not_installed("xgboost", minimum_version = "3.0.0")
+  set.seed(2)
+  n <- 200
+  d <- data.frame(v = factor(sample(c("0", "1"), n, TRUE)), x1 = rnorm(n))
+  y <- (d$v == "1") * 2 + d$x1 + rnorm(n, sd = 0.3)
+  xg <- xgboost::xgboost(d, y, nrounds = 10, max_depth = 2, nthreads = 1)
+  gl <- glex(xg, d)
+  grouped <- group_components(gl, groups = list(vv = c("v", "x1")))
+  expect_true(all(is.na(grouped$x$vv)))
+  expect_equal(rowSums(grouped$m), rowSums(gl$m))
+})
+
+test_that("dummy_groups ignores non-dummy columns and accepts character columns", {
+  set.seed(3)
+  n <- 200
+  d <- data.frame(
+    x = sample(c("1", "2", "3"), n, TRUE),
+    x1 = rnorm(n),
+    stringsAsFactors = FALSE
+  )
+  y <- c(`1` = 0, `2` = 2, `3` = -1)[d$x] + d$x1 + rnorm(n, sd = 0.3)
+  # treatment-like coding drops the dummy for level "1", so the numeric column
+  # `x1` is what the naming convention would (wrongly) match for that level
+  x <- cbind(model.matrix(~ x - 1, d)[, c("x2", "x3")], x1 = d$x1)
+  gl <- glex(fit_xgb(x, y), x)
+  expect_identical(dummy_groups(gl, d), list(x = c("x2", "x3")))
 })
