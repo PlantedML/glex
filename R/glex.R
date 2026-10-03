@@ -1027,6 +1027,14 @@ calc_components <- function(
     }
   }
 
+  # The C++ explainers name terms in feature-index order, while plots and
+  # `subset_components()` look them up by their sorted names
+  colnames(m_all) <- vapply(
+    all_S,
+    function(s) paste(sort(colnames(x)[s]), collapse = ":"),
+    character(1)
+  )
+
   shap <- shap_from_components(m_all[, -1, drop = FALSE], colnames(x))
 
   # Return shap values, decomposition and intercept. Whether a structural constraint
