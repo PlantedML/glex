@@ -8,6 +8,11 @@
   plot functions work on grouped objects. The companion `dummy_groups()` derives the
   `groups` list from the original un-encoded data, matching `model.matrix()` column
   naming by default and taking a `naming` function for other encoding schemes.
+* Plotting a term that is not part of the decomposition now fails with an informative
+  error instead of `non-numeric argument to mathematical function`. Tree models only
+  yield components for feature subsets that occur together in at least one tree, so
+  e.g. `plot_twoway_effects()` on two features never split on together (common with
+  one-hot encoded categoricals) has no `m` column to plot.
 
 * `glex()` now warns when `x` contains missing values (#41): splits are evaluated
   without the model's learned missing-value direction, so the decomposition of rows
