@@ -1,0 +1,189 @@
+---
+title: "Categorical features: native factors, one-hot groups and semantic groups"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Categorical features: native factors, one-hot groups and semantic groups}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+has_deps <- requireNamespace("xgboost", quietly = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 7,
+  eval = has_deps
+)
+```
+
+```{r setup, message=FALSE}
+library(glex)
+library(xgboost)
+set.seed(1)
+```
+
+A categorical predictor can reach `xgboost` in two ways, and `glex` handles
+both:
+
+1. **Native factors** (`xgboost >= 3.0`): fit on a `data.frame` with factor
+   columns. The trees split on sets of levels, and the decomposition treats
+   the factor as one feature from the start.
+2. **Dummy encoding** via `model.matrix()`: the classic route, and the only one
+   for models fit before native support. The decomposition then sees one
+   feature per level, and `group_components()` re-assembles the factor
+   afterwards.
+
+`group_components()` also serves a third purpose: treating any set of features
+as one, e.g. a block of related measurements.
+
+The built-in `bike` data has a four-level `season` factor alongside numeric
+predictors:
+
+```{r data}
+data(bike, package = "glex")
+x_df <- as.data.frame(bike[, c("season", "hr", "temp", "hum")])
+str(x_df)
+```
+
+## Native factors
+
+With a `data.frame` input, `xgboost()` treats factor columns as categorical.
+Pass the same `data.frame` to `glex()`; the factor levels must match the
+training data in order, as for `predict()`.
+
+```{r native}
+xg_native <- xgboost(
+  x_df,
+  bike$bikers,
+  nrounds = 50,
+  max_depth = 3,
+  learning_rate = 0.1,
+  nthreads = 2
+)
+res_native <- glex(xg_native, x_df)
+names(res_native$m)
+```
+
+`season` is one feature: there is a single main effect and single interactions
+with the numeric predictors. The factor column is kept in `$x`, so plots treat
+it as categorical:
+
+```{r native-plots, fig.height=4}
+plot_main_effect(res_native, "season")
+plot_twoway_effects(res_native, c("season", "temp"))
+```
+
+## Dummy encoding fragments the decomposition
+
+Encoding `season` with `model.matrix()` gives one column per level. The
+decomposition then treats every dummy column as a feature of its own: the
+effect of the factor is smeared across its dummies *and* their mutual
+"interactions", which are artifacts of the encoding rather than anything about
+the data.
+
+```{r dummy}
+x <- cbind(
+  model.matrix(~ season - 1, bike),
+  as.matrix(bike[, c("hr", "temp", "hum")])
+)
+colnames(x)
+
+xg <- xgb.train(
+  params = xgb.params(max_depth = 3, learning_rate = 0.1, nthread = 2),
+  data = xgb.DMatrix(x, label = bike$bikers, nthread = 2),
+  nrounds = 50
+)
+res <- glex(xg, x)
+ncol(res$m)
+```
+
+Among these terms are things like `seasonFall:seasonWinter`, an "interaction"
+between two levels of the same factor:
+
+```{r raw-terms}
+head(sort(colMeans(abs(as.matrix(res$m))), decreasing = TRUE), 10)
+```
+
+### Re-assembling the factor with `group_components()`
+
+`group_components()` aggregates all terms feature-wise: terms involving only
+`season` dummies become the `season` main effect, terms mixing a dummy with
+`hr` become the `season:hr` interaction, and so on. Because the decomposition
+is additive, this is exact.
+
+`dummy_groups()` builds the required `groups` list from the *un-encoded* data,
+matching the `model.matrix()` naming convention by default. `bike` carries
+further factors (`mnth`, `workingday`, `weathersit`) that we did not encode
+into `x`; `dummy_groups()` reports them and moves on:
+
+```{r group}
+dummy_groups(res, bike)
+grouped <- group_components(res, dummy_groups(res, bike))
+names(grouped$m)
+```
+
+The components still sum to the model prediction, and the SHAP value of
+`season` is the sum of its dummies' SHAP values, so the efficiency property is
+preserved:
+
+```{r exact}
+all.equal(rowSums(grouped$m), rowSums(res$m))
+all.equal(
+  grouped$shap$season,
+  rowSums(as.matrix(res$shap[, startsWith(names(res$shap), "season"), with = FALSE]))
+)
+```
+
+Since the grouped columns of `x` form a one-hot encoding, `group_components()`
+reconstructs the factor, and the plot functions work as for the native model:
+
+```{r plots, fig.height=4}
+plot_main_effect(grouped, "season")
+plot_twoway_effects(grouped, c("season", "temp"))
+```
+
+Both routes end with `season` as one feature, but they explain different
+models: native categorical splits partition the levels freely, while a dummy
+split isolates one level at a time. Grouping is an exact regrouping of the
+dummy model's decomposition, not an approximation of the native one.
+
+### Other encoding schemes
+
+If the dummy columns are not named in `model.matrix()` style, pass a `naming`
+function of `(feature, levels)` that reproduces the column names the model was
+trained with:
+
+```{r naming, eval=FALSE}
+dummy_groups(
+  res,
+  bike,
+  naming = function(feature, levels) paste(feature, levels, sep = "_")
+)
+```
+
+`dummy_groups()` only returns columns that actually exist in `object$x`, so a
+dropped reference level (treatment coding via `~ season`) is skipped
+automatically; the reconstructed factor then shows a `"(base)"` level for
+observations of the reference category.
+
+## Semantic groups
+
+Grouping is not limited to dummy encodings. Any set of features can be treated
+as one, for example a "weather" block, which in higher-dimensional settings
+might be a group of anthropometrics, demographics or biomarkers:
+
+```{r semantic}
+weather <- group_components(res, groups = list(weather = c("temp", "hum")))
+head(sort(colMeans(abs(as.matrix(weather$m))), decreasing = TRUE), 10)
+```
+
+For such groups no single x value exists, so `weather$x$weather` is `NA` and
+the effect plots are not available for that group, but term importances and
+SHAP values aggregate as usual:
+
+```{r semantic-vi, fig.height=4}
+library(ggplot2)
+autoplot(glex_vi(weather), threshold = 0.5)
+```
