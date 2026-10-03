@@ -37,7 +37,12 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
 \arguments{
 \item{object}{Model to be explained, either of class \code{xgb.Booster} or \code{rpf}.}
 
-\item{x}{Data to be explained.}
+\item{x}{Data to be explained. For \code{\link[xgboost:xgb.train]{xgboost}} models with
+categorical features (fit on a \code{data.frame} with factor columns), a \code{data.frame}
+whose factor columns have the same levels in the same order as the training data:
+the model stores category codes, not levels, so a mismatch cannot be detected
+beyond a missing level (this is the same contract as \code{predict()}).
+Otherwise a numeric \code{matrix} or \code{data.frame}.}
 
 \item{max_interaction}{(\code{integer(1): NULL})\cr
 Maximum interaction size to consider.
