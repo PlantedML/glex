@@ -13,3 +13,4 @@
 ^data-raw$
 ^simulation$
 ^air\.toml$
+^Rplots\.pdf$

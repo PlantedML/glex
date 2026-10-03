@@ -48,12 +48,21 @@
 #' names(grouped$m)
 #' all.equal(rowSums(grouped$m), rowSums(gl$m))
 group_components <- function(object, groups) {
+  checkmate::assert_class(object, "glex")
   checkmate::assert_list(
     groups,
     types = "character",
     names = "unique",
     min.len = 1
   )
+  # ":" delimits interactions and "__class:" multiclass terms in term names
+  bad_names <- grep(":", names(groups), fixed = TRUE, value = TRUE)
+  if (length(bad_names) > 0) {
+    stop(
+      "Group names must not contain \":\": ",
+      paste(bad_names, collapse = ", ")
+    )
+  }
   features <- names(object$x)
 
   members <- unlist(groups, use.names = FALSE)
@@ -124,6 +133,9 @@ regroup_terms <- function(dt, label) {
 
   idx_by_term <- split(seq_along(new_names), new_names)[unique(new_names)]
   res <- lapply(idx_by_term, function(idx) {
+    if (length(idx) == 1) {
+      return(dt[[idx]])
+    }
     rowSums(as.matrix(dt[, idx, with = FALSE]))
   })
   data.table::setDT(res)
@@ -142,7 +154,10 @@ regroup_x <- function(x, groups, label) {
       return(x[[name]])
     }
     mat <- as.matrix(x[, groups[[name]], with = FALSE])
-    is_dummy <- all(mat %in% c(0, 1)) && all(rowSums(mat) <= 1)
+    # factor members (native categorical models) would coerce to character
+    is_dummy <- is.numeric(mat) &&
+      all(mat %in% c(0, 1)) &&
+      all(rowSums(mat) <= 1)
     if (!is_dummy) {
       return(rep(NA, nrow(x)))
     }
@@ -176,8 +191,8 @@ regroup_x <- function(x, groups, label) {
 #' `object$x`.
 #'
 #' @param object (`glex`) Object of class `glex`.
-#' @param data (`data.frame`) The data before dummy encoding; its factor
-#'   columns define the candidate groups. Non-factor columns are ignored.
+#' @param data (`data.frame`) The data before dummy encoding; its factor and
+#'   character columns define the candidate groups. Other columns are ignored.
 #' @param naming (`function(feature, levels)`) Maps a factor name and its
 #'   levels to the encoded column names. Defaults to the [model.matrix()]
 #'   convention `paste0(feature, levels)`.
@@ -211,16 +226,28 @@ dummy_groups <- function(
   checkmate::assert_data_frame(data)
   checkmate::assert_function(naming)
 
-  encoded <- names(object$x)
-  factors <- names(data)[vapply(data, is.factor, logical(1))]
+  # model.matrix() encodes character columns like factors
+  factors <- names(data)[vapply(
+    data,
+    function(col) is.factor(col) || is.character(col),
+    logical(1)
+  )]
   if (length(factors) == 0) {
-    stop("`data` contains no factor columns to derive groups from.")
+    stop("`data` contains no factor or character columns to derive groups from.")
   }
+  # Only 0/1 columns qualify: a factor name that prefixes an unrelated numeric
+  # column (factor `x`, level "1", column `x1`) must not capture it
+  is_dummy_column <- vapply(
+    object$x,
+    function(col) is.numeric(col) && all(col %in% c(0, 1)),
+    logical(1)
+  )
+  encoded <- names(object$x)[is_dummy_column]
 
   groups <- list()
   unmatched <- character(0)
   for (feature in factors) {
-    candidates <- naming(feature, levels(data[[feature]]))
+    candidates <- naming(feature, levels(factor(data[[feature]])))
     present <- intersect(candidates, encoded)
     if (length(present) == 0) {
       unmatched <- c(unmatched, feature)

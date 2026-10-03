@@ -13,8 +13,8 @@ dummy_groups(
 \arguments{
 \item{object}{(\code{glex}) Object of class \code{glex}.}
 
-\item{data}{(\code{data.frame}) The data before dummy encoding; its factor
-columns define the candidate groups. Non-factor columns are ignored.}
+\item{data}{(\code{data.frame}) The data before dummy encoding; its factor and
+character columns define the candidate groups. Other columns are ignored.}
 
 \item{naming}{(\verb{function(feature, levels)}) Maps a factor name and its
 levels to the encoded column names. Defaults to the \code{\link[=model.matrix]{model.matrix()}}
