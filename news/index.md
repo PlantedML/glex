@@ -2,6 +2,15 @@
 
 ## glex 0.6.0.9000 (development version)
 
+- Term names of `xgboost` and `ranger` decompositions no longer depend
+  on the column order of `x`: the default `fastpd` and `path-dependent`
+  methods named interaction terms in feature-index order (e.g. `wt:hp`),
+  while the plotting functions and
+  [`subset_components()`](http://plantedml.com/glex/reference/subset_components.md)
+  look up the sorted name (`hp:wt`), so interaction plots failed for any
+  model whose features are not in alphabetical order. Terms are now
+  always sorted, as for `weighting_method = "empirical"`.
+
 - Plotting a term that is not part of the decomposition now fails with
   an informative error instead of
   `non-numeric argument to mathematical function`. Tree models only
