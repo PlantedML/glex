@@ -1,5 +1,13 @@
 # glex 0.6.0.9000 (development version)
 
+* New `group_components()` aggregates the terms of a decomposition so that a set of
+  features is treated as one feature (#26), e.g. re-assembling a dummy-encoded factor:
+  `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The regrouping is
+  exact (components still sum to the prediction, group SHAP values are sums of member
+  SHAP values), and `$x` gains a reconstructed factor for dummy-encoded groups so the
+  plot functions work on grouped objects. The companion `dummy_groups()` derives the
+  `groups` list from the original un-encoded data, matching `model.matrix()` column
+  naming by default and taking a `naming` function for other encoding schemes.
 * Term names of `xgboost` and `ranger` decompositions no longer depend on the
   column order of `x`: the default `fastpd` and `path-dependent` methods named
   interaction terms in feature-index order (e.g. `wt:hp`), while the plotting
