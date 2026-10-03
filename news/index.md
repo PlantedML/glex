@@ -11,6 +11,27 @@
   model whose features are not in alphabetical order. Terms are now
   always sorted, as for `weighting_method = "empirical"`.
 
+- [`glex()`](http://plantedml.com/glex/reference/glex.md) supports
+  `xgboost` models with categorical features, i.e. models fit on a
+  `data.frame` with factor columns via
+  [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) or
+  [`xgb.train()`](https://rdrr.io/pkg/xgboost/man/xgb.train.html) on an
+  `xgb.DMatrix` built from one. Pass the same `data.frame` as `x`; the
+  factor columns are kept in `$x`, so plots treat them as categorical.
+  Factor levels must match the training data in order, as for
+  [`predict()`](https://rdrr.io/r/stats/predict.html). Trees are now
+  read from the model’s JSON representation instead of
+  [`xgb.model.dt.tree()`](https://rdrr.io/pkg/xgboost/man/xgb.model.dt.tree.html),
+  which refuses such models. `weighting_method = "empirical"` does not
+  support categorical splits and errors.
+
+- [`glex()`](http://plantedml.com/glex/reference/glex.md) now confirms
+  the decomposition of binary models fit with
+  [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) (class
+  `xgboost`) against the margin. Previously
+  [`predict()`](https://rdrr.io/r/stats/predict.html) silently returned
+  probabilities for those, as its method ignores `outputmargin`.
+
 - Plotting a term that is not part of the decomposition now fails with
   an informative error instead of
   `non-numeric argument to mathematical function`. Tree models only

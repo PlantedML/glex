@@ -61,7 +61,7 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 | Binary classification | Yes\* | Yes | Yes\* (probability forests) |
 | Multiclass classification | Not yet fully supported | Yes | Not yet supported |
 | Link function(s) | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | Not applicable | Not applicable |
-| Notes | \* `x` must be a numeric matrix. [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
+| Notes | \* `x` must be a numeric matrix, or a `data.frame` with factor columns for models fit on categorical features (factor levels must match the training data in order, as for [`predict()`](https://rdrr.io/r/stats/predict.html)). [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
@@ -154,9 +154,9 @@ cbind(pred_prob, prob_from_glex, pred_margin, margin_glex)
 #> Volvo 142E     0.90160328     0.90160331    2.215168    2.215167
 
 max(abs(pred_margin - margin_glex))
-#> [1] 1.323593e-07
+#> [1] 1.470493e-07
 max(abs(pred_prob - prob_from_glex))
-#> [1] 3.020367e-08
+#> [1] 3.042457e-08
 ```
 
 Binary logistic example (`objective = "binary:logistic"`):
@@ -233,8 +233,11 @@ theme_set(theme_glex())
 set.seed(21)
 ```
 
-Note that `xgboost` requires `matrix` input and does not support
-categorical predictors.
+Note that `xgboost` requires `matrix` input here. Models fit on a
+`data.frame` with factor columns (categorical splits) are supported as
+well: pass the same `data.frame` to
+[`glex()`](http://plantedml.com/glex/reference/glex.md), and the factor
+columns are treated as categorical in plots.
 
 ``` r
 

@@ -95,10 +95,10 @@
 <p><code>glex</code> currently provides methods for the model classes below.</p>
 <table class="table">
 <colgroup>
-<col width="5%">
-<col width="30%">
-<col width="16%">
+<col width="4%">
 <col width="46%">
+<col width="12%">
+<col width="36%">
 </colgroup>
 <thead><tr>
 <th></th>
@@ -139,7 +139,7 @@
 </tr>
 <tr>
 <td>Notes</td>
-<td>* <code>x</code> must be a numeric matrix. <code><a href="reference/glex.html">glex()</a></code> decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.</td>
+<td>* <code>x</code> must be a numeric matrix, or a <code>data.frame</code> with factor columns for models fit on categorical features (factor levels must match the training data in order, as for <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>). <code><a href="reference/glex.html">glex()</a></code> decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.</td>
 <td>Native support for multiclass terms in plotting and variable importance workflows.</td>
 <td>* Requires <code>node.stats = TRUE</code>. For classification, fit with <code>probability = TRUE</code>; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported.</td>
 </tr>
@@ -206,9 +206,9 @@ Predictions on response scale are obtained by applying the inverse link:</p>
 <span><span class="co">#&gt; Volvo 142E     0.90160328     0.90160331    2.215168    2.215167</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">pred_margin</span> <span class="op">-</span> <span class="va">margin_glex</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1.323593e-07</span></span>
+<span><span class="co">#&gt; [1] 1.470493e-07</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">pred_prob</span> <span class="op">-</span> <span class="va">prob_from_glex</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 3.020367e-08</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 3.042457e-08</span></span></code></pre></div>
 <p>Binary logistic example (<code>objective = "binary:logistic"</code>):</p>
 <p>In this case <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta(x)</annotation></semantics></math> is log-odds and the inverse link is the logistic map:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>b</mi><mo>+</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><msub><mi>f</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
@@ -252,7 +252,7 @@ F(x) = m_{\emptyset} + \sum_{j=1}^{p}\phi_j(x).
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/get_theme.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="reference/theme_glex.html">theme_glex</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">21</span><span class="op">)</span></span></code></pre></div>
-<p>Note that <code>xgboost</code> requires <code>matrix</code> input and does not support categorical predictors.</p>
+<p>Note that <code>xgboost</code> requires <code>matrix</code> input here. Models fit on a <code>data.frame</code> with factor columns (categorical splits) are supported as well: pass the same <code>data.frame</code> to <code><a href="reference/glex.html">glex()</a></code>, and the factor columns are treated as categorical in plots.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span></span>
