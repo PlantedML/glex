@@ -11,7 +11,7 @@ Global explanations for tree-based models by decomposing regression or classific
 Useful links:
 \itemize{
   \item \url{https://github.com/PlantedML/glex}
-  \item \url{http://plantedml.com/glex/}
+  \item \url{https://plantedml.com/glex/}
   \item Report bugs at \url{https://github.com/PlantedML/glex/issues}
 }
 

@@ -8,8 +8,8 @@
 [![R-CMD-check](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PlantedML/glex/actions/workflows/R-CMD-check.yaml)
 [![R-universe
 version](https://PlantedML.r-universe.dev/glex/badges/version)](https://PlantedML.r-universe.dev/glex)
-[![CRAN
-status](https://img.shields.io/cran/v/glex)](https://CRAN.R-project.org/package=glex)
+[![Codecov test
+coverage](https://codecov.io/gh/PlantedML/glex/graph/badge.svg)](https://app.codecov.io/gh/PlantedML/glex)
 <!-- badges: end -->
 
 # Overview

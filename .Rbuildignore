@@ -13,4 +13,7 @@
 ^data-raw$
 ^simulation$
 ^air\.toml$
+^Makefile$
+^README\.html$
+^\.DS_Store$
 ^Rplots\.pdf$
