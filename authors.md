@@ -16,7 +16,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/PlantedML/glex/blob/master/inst/CITATION)
+[`inst/CITATION`](https://github.com/PlantedML/glex/blob/v0.7.0/inst/CITATION)
 
 Hiabu M, Meyer JT, Wright MN (2023). “Unifying local and global model
 explanations by functional decomposition of low dimensional structures.”
