@@ -21,7 +21,7 @@ autoplot(
 - object:
 
   Object of class `glex_vi`, see
-  [`glex_vi()`](http://plantedml.com/glex/reference/glex_vi.md).
+  [`glex_vi()`](https://plantedml.com/glex/reference/glex_vi.md).
 
 - by_degree:
 
@@ -57,9 +57,9 @@ object.
 
 ## See also
 
-[glex_vi](http://plantedml.com/glex/reference/glex_vi.md)
+[glex_vi](https://plantedml.com/glex/reference/glex_vi.md)
 
 Other Visualization functions:
-[`autoplot.glex()`](http://plantedml.com/glex/reference/plot_components.md),
-[`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md),
-[`plot_pdp()`](http://plantedml.com/glex/reference/plot_pdp.md)
+[`autoplot.glex()`](https://plantedml.com/glex/reference/plot_components.md),
+[`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md),
+[`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md)

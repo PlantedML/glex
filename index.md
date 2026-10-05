@@ -61,7 +61,7 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 | Binary classification | Yes\* | Yes | Yes\* (probability forests) |
 | Multiclass classification | Not yet fully supported | Yes | Not yet supported |
 | Link function(s) | Built-in objectives define the link (e.g., identity, logistic/logit, log-link). | Not applicable | Not applicable |
-| Notes | \* `x` must be a numeric matrix, or a `data.frame` with factor columns for models fit on categorical features (factor levels must match the training data in order, as for [`predict()`](https://rdrr.io/r/stats/predict.html)). [`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
+| Notes | \* `x` must be a numeric matrix, or a `data.frame` with factor columns for models fit on categorical features (factor levels must match the training data in order, as for [`predict()`](https://rdrr.io/r/stats/predict.html)). [`glex()`](https://plantedml.com/glex/reference/glex.md) decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. | \* Requires `node.stats = TRUE`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
@@ -80,7 +80,7 @@ and each $`f_t`$ is the prediction function of tree $`t`$ (its leaf
 weight for input $`x`$). In other words, the XGBoost model output is
 $`\eta(x)`$ itself; response-scale prediction is obtained by applying
 the objective-specific inverse link $`g^{-1}`$ to that output.  
-[`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes
+[`glex()`](https://plantedml.com/glex/reference/glex.md) decomposes
 $`\eta(x)`$, not $`\mu(x)`$. The decomposition is
 
 ``` math
@@ -113,7 +113,7 @@ This yields the objective-specific identities:
 
 For custom objectives, XGBoost does not provide a built-in response
 transform. In that case, run
-[`glex()`](http://plantedml.com/glex/reference/glex.md) as usual to
+[`glex()`](https://plantedml.com/glex/reference/glex.md) as usual to
 decompose the raw margin, then apply your own inverse link
 **afterwards** to the reconstructed margin, e.g. to
 `gl$intercept + rowSums(gl$m)` (or equivalently
@@ -174,7 +174,7 @@ XGBoost optimizes logistic loss directly in this margin:
 \ell(y, F) = -\left[y \log \sigma(F) + (1-y)\log(1-\sigma(F))\right].
 ```
 
-[`glex()`](http://plantedml.com/glex/reference/glex.md) decomposes the
+[`glex()`](https://plantedml.com/glex/reference/glex.md) decomposes the
 margin additively into interaction components indexed by feature subsets
 $`S`$:
 
@@ -236,7 +236,7 @@ set.seed(21)
 Note that `xgboost` requires `matrix` input here. Models fit on a
 `data.frame` with factor columns (categorical splits) are supported as
 well: pass the same `data.frame` to
-[`glex()`](http://plantedml.com/glex/reference/glex.md), and the factor
+[`glex()`](https://plantedml.com/glex/reference/glex.md), and the factor
 columns are treated as categorical in plots.
 
 ``` r
@@ -290,7 +290,7 @@ cbind(pred_xgb, sum_m_xgb, sum_shap_xgb)
 Variable importance scores are calculated for each main and interaction
 term by calculating the average of the absolute prediction components
 (`m`) over the dataset supplied to
-[`glex()`](http://plantedml.com/glex/reference/glex.md).
+[`glex()`](https://plantedml.com/glex/reference/glex.md).
 
 ``` r
 

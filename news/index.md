@@ -1,34 +1,21 @@
 # Changelog
 
-## glex 0.6.0.9000 (development version)
+## glex 0.7.0
 
-- New
-  [`group_components()`](http://plantedml.com/glex/reference/group_components.md)
-  aggregates the terms of a decomposition so that a set of features is
-  treated as one feature
-  ([\#26](https://github.com/PlantedML/glex/issues/26)),
-  e.g. re-assembling a dummy-encoded factor:
-  `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The
-  regrouping is exact (components still sum to the prediction, group
-  SHAP values are sums of member SHAP values), and `$x` gains a
-  reconstructed factor for dummy-encoded groups so the plot functions
-  work on grouped objects. The companion
-  [`dummy_groups()`](http://plantedml.com/glex/reference/dummy_groups.md)
-  derives the `groups` list from the original un-encoded data, matching
-  [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html) column
-  naming by default and taking a `naming` function for other encoding
-  schemes.
+### Breaking changes
 
-- Term names of `xgboost` and `ranger` decompositions no longer depend
-  on the column order of `x`: the default `fastpd` and `path-dependent`
-  methods named interaction terms in feature-index order (e.g. `wt:hp`),
-  while the plotting functions and
-  [`subset_components()`](http://plantedml.com/glex/reference/subset_components.md)
-  look up the sorted name (`hp:wt`), so interaction plots failed for any
-  model whose features are not in alphabetical order. Terms are now
-  always sorted, as for `weighting_method = "empirical"`.
+- `$shap` is now a scalar `NA` (with a warning) when the decomposition
+  is constrained via `max_interaction` or `features`: a constrained
+  decomposition does not sum to the full model prediction, so SHAP
+  values cannot be reconstructed from it without violating the
+  efficiency property. Previously, misleading values were returned. `$m`
+  is unaffected. Supersedes
+  [\#18](https://github.com/PlantedML/glex/issues/18), closes
+  [\#13](https://github.com/PlantedML/glex/issues/13).
 
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) supports
+### New features
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
   `xgboost` models with categorical features, i.e. models fit on a
   `data.frame` with factor columns via
   [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) or
@@ -42,54 +29,26 @@
   which refuses such models. `weighting_method = "empirical"` does not
   support categorical splits and errors.
 
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) now confirms
-  the decomposition of binary models fit with
-  [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) (class
-  `xgboost`) against the margin. Previously
-  [`predict()`](https://rdrr.io/r/stats/predict.html) silently returned
-  probabilities for those, as its method ignores `outputmargin`.
+- New
+  [`group_components()`](https://plantedml.com/glex/reference/group_components.md)
+  aggregates the terms of a decomposition so that a set of features is
+  treated as one feature
+  ([\#26](https://github.com/PlantedML/glex/issues/26)),
+  e.g. re-assembling a dummy-encoded factor:
+  `group_components(gl, groups = list(f = c("fa", "fb", "fc")))`. The
+  regrouping is exact (components still sum to the prediction, group
+  SHAP values are sums of member SHAP values), and `$x` gains a
+  reconstructed factor for dummy-encoded groups so the plot functions
+  work on grouped objects. The companion
+  [`dummy_groups()`](https://plantedml.com/glex/reference/dummy_groups.md)
+  derives the `groups` list from the original un-encoded data, matching
+  [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html) column
+  naming by default and taking a `naming` function for other encoding
+  schemes. The new vignette “Categorical features” walks through native
+  factors, one-hot groups and semantic groups.
 
-- Plotting a term that is not part of the decomposition now fails with
-  an informative error instead of
-  `non-numeric argument to mathematical function`. Tree models only
-  yield components for feature subsets that occur together in at least
-  one tree, so
-  e.g. [`plot_twoway_effects()`](http://plantedml.com/glex/reference/plot_components.md)
-  on two features never split on together (common with one-hot encoded
-  categoricals) has no `m` column to plot.
-
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) now warns when
-  `x` contains missing values
-  ([\#41](https://github.com/PlantedML/glex/issues/41)): splits are
-  evaluated without the model’s learned missing-value direction, so the
-  decomposition of rows with `NA`s is unreliable and does not sum to the
-  model prediction. Proper missing value support needs more
-  investigation; previously such input passed silently.
-
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) on `xgboost`
-  models fit with early stopping now decomposes only the trees up to
-  `best_iteration`, matching what
-  [`predict()`](https://rdrr.io/r/stats/predict.html) evaluates by
-  default. Previously all fitted trees were decomposed, so the
-  components did not sum to the prediction. Closes
-  [\#42](https://github.com/PlantedML/glex/issues/42).
-
-- `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it
-  fixes an out-of-bounds read in `purify_3()` that crashed R on Windows
-  (PlantedML/randomPlantedForest#61), so rpf tests and examples run on
-  all platforms.
-
-- `$shap` is now a scalar `NA` (with a warning) when the decomposition
-  is constrained via `max_interaction` or `features`: a constrained
-  decomposition does not sum to the full model prediction, so SHAP
-  values cannot be reconstructed from it without violating the
-  efficiency property. Previously, misleading values were returned. `$m`
-  is unaffected. Supersedes
-  [\#18](https://github.com/PlantedML/glex/issues/18), closes
-  [\#13](https://github.com/PlantedML/glex/issues/13).
-
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) objects gain a
-  `$constrained` field naming the arguments that constrained the
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) objects gain
+  a `$constrained` field naming the arguments that constrained the
   decomposition (`character(0)` if complete), so
   `length(x$constrained) > 0` tells you whether `$shap` is usable.
 
@@ -97,12 +56,12 @@
   something: a model can contain a high-order term whose value is zero,
   in which case dropping it leaves the decomposition (and the SHAP
   values) unchanged.
-  [`glex()`](http://plantedml.com/glex/reference/glex.md) confirms the
+  [`glex()`](https://plantedml.com/glex/reference/glex.md) confirms the
   constraint against the model’s own predictions and, if the dropped
   terms were inert, keeps `$shap` and emits a message instead of a
   warning.
 
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) on
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) on
   `randomPlantedForest` models now returns `$shap` as well, computed
   from the components like for the other model classes (for multiclass
   models, `$shap` columns are class-specific like those of `$m`).
@@ -110,8 +69,8 @@
   post-hoc via `max_interaction` or `features` is now detected for `rpf`
   models too, where it previously passed silently.
 
-- [`glex()`](http://plantedml.com/glex/reference/glex.md) objects gain a
-  `$remainder` field: what the constraint’s dropped terms are
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) objects gain
+  a `$remainder` field: what the constraint’s dropped terms are
   collectively worth, per observation, on the scale of `$m`. It is
   present exactly when the decomposition is constrained, so
   `intercept + rowSums(m) + remainder` reconstructs the model prediction
@@ -129,8 +88,54 @@
   `binary:logistic` probability), while `ranger` probability forests and
   `randomPlantedForest` are decomposed on the response scale directly.
 
+- [`print()`](https://rdrr.io/r/base/print.html) on a `glex` object
+  reports when the decomposition is constrained.
+
+### Bug fixes
+
+- Term names of `xgboost` and `ranger` decompositions no longer depend
+  on the column order of `x`: the default `fastpd` and `path-dependent`
+  methods named interaction terms in feature-index order (e.g. `wt:hp`),
+  while the plotting functions and
+  [`subset_components()`](https://plantedml.com/glex/reference/subset_components.md)
+  look up the sorted name (`hp:wt`), so interaction plots failed for any
+  model whose features are not in alphabetical order. Terms are now
+  always sorted, as for `weighting_method = "empirical"`.
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) now confirms
+  the decomposition of binary models fit with
+  [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) (class
+  `xgboost`) against the margin. Previously
+  [`predict()`](https://rdrr.io/r/stats/predict.html) silently returned
+  probabilities for those, as its method ignores `outputmargin`.
+
+- Plotting a term that is not part of the decomposition now fails with
+  an informative error instead of
+  `non-numeric argument to mathematical function`. Tree models only
+  yield components for feature subsets that occur together in at least
+  one tree, so
+  e.g. [`plot_twoway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
+  on two features never split on together (common with one-hot encoded
+  categoricals) has no `m` column to plot.
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) now warns
+  when `x` contains missing values
+  ([\#41](https://github.com/PlantedML/glex/issues/41)): splits are
+  evaluated without the model’s learned missing-value direction, so the
+  decomposition of rows with `NA`s is unreliable and does not sum to the
+  model prediction. Proper missing value support needs more
+  investigation; previously such input passed silently.
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) on `xgboost`
+  models fit with early stopping now decomposes only the trees up to
+  `best_iteration`, matching what
+  [`predict()`](https://rdrr.io/r/stats/predict.html) evaluates by
+  default. Previously all fitted trees were decomposed, so the
+  components did not sum to the prediction. Closes
+  [\#42](https://github.com/PlantedML/glex/issues/42).
+
 - For `randomPlantedForest` classification models,
-  [`glex()`](http://plantedml.com/glex/reference/glex.md) now confirms
+  [`glex()`](https://plantedml.com/glex/reference/glex.md) now confirms
   the constraint against `predict(type = "numeric")` rather than the
   default `type = "prob"`. rpf decomposes the raw score, while
   `type = "prob"` applies rpf’s response function (a clamp to `[0, 1]`
@@ -141,7 +146,14 @@
   terms are worth, instead of silently absorbing the back-transformation
   and the class mix-up.
 
-- [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
+### Other
+
+- `randomPlantedForest (>= 0.3.0)` is now required (in `Suggests:`): it
+  fixes an out-of-bounds read in `purify_3()` that crashed R on Windows
+  (PlantedML/randomPlantedForest#61), so rpf tests and examples run on
+  all platforms.
+
+- [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
   now reads SHAP values from `$shap` instead of recomputing them from
   the components, so the `glex` object is the single source of truth.
   The SHAP reference bar is omitted for constrained decompositions,
@@ -149,8 +161,8 @@
   components, and for objects created by earlier versions of glex, which
   have no `$shap`.
 
-- [`print()`](https://rdrr.io/r/base/print.html) on a `glex` object
-  reports when the decomposition is constrained.
+- glex now declares `R (>= 4.1.0)`: the tests use the native pipe and
+  lambda shorthand, which the previous `R (>= 3.0)` did not reflect.
 
 ## glex 0.6.0
 
@@ -159,20 +171,20 @@
   - Updated tests and examples for the new API
 - Plot colors are now configurable via
   [`options()`](https://rdrr.io/r/base/options.html) and documented in
-  [`?glex_options`](http://plantedml.com/glex/reference/glex_options.md):
+  [`?glex_options`](https://plantedml.com/glex/reference/glex_options.md):
   `glex.palette` (diverging palette for continuous interaction effects;
   `NULL` for the default shap-style gradient, or the name of a scico
   palette), `glex.palette_discrete` (palette for categorical predictors:
   a color vector, `"okabe-ito"`, a scico palette name, or a brewer
   palette name), `glex.colors_sign` (negative/positive colors in
-  [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
   and gradient endpoints), and `glex.color_line` (main effect
   line/column color).
 - Default colors updated to follow the blue/red convention of the Python
   `shap`/`shapiq` packages: continuous interaction effects use a
   `#008BFB` → white → `#FF0051` gradient (previously the cyclic scico
   palette `"vikO"`), and
-  [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
   uses the same blue/red for negative/positive contributions.
 
 ## glex 0.5.2
@@ -196,7 +208,7 @@
 ## glex 0.5.1
 
 - Fix path-dependent algorithm by computing the proper covers manually
-- Allow [`glex()`](http://plantedml.com/glex/reference/glex.md) to
+- Allow [`glex()`](https://plantedml.com/glex/reference/glex.md) to
   accept data frames as input
 
 ## glex 0.5.0
@@ -204,10 +216,10 @@
 - Optimize FastPD to be able to handle more features using bitmask
   represenation ([\#29](https://github.com/PlantedML/glex/issues/29))
 - Remove old `probFuntion` parameter to
-  [`glex()`](http://plantedml.com/glex/reference/glex.md) in favor of
+  [`glex()`](https://plantedml.com/glex/reference/glex.md) in favor of
   `weighting_method`.
 - Add new progress bar when explaining many trees using
-  [`glex()`](http://plantedml.com/glex/reference/glex.md)
+  [`glex()`](https://plantedml.com/glex/reference/glex.md)
 
 ## glex 0.4.2
 
@@ -225,34 +237,34 @@
 ## glex 0.4.0
 
 - Add support for ranger objects to
-  [`glex()`](http://plantedml.com/glex/reference/glex.md)
+  [`glex()`](https://plantedml.com/glex/reference/glex.md)
   ([PR#17](https://github.com/PlantedML/glex/pull/17)).
 - Add new optional parameter `probFunction` to
-  [`glex()`](http://plantedml.com/glex/reference/glex.md) which
+  [`glex()`](https://plantedml.com/glex/reference/glex.md) which
   specifies the probability function for weighting/marginalization of
   the leaves ([PR#17](https://github.com/PlantedML/glex/pull/17)).  
-  By default, [`glex()`](http://plantedml.com/glex/reference/glex.md)
+  By default, [`glex()`](https://plantedml.com/glex/reference/glex.md)
   now uses the empirical marginal probabilities to perform the
   weighting. Previously, the weighting of the leaves was done based on a
   path-dependent method.
 - Add
-  [`theme_glex()`](http://plantedml.com/glex/reference/theme_glex.md) as
-  a default theme to all plots.  
+  [`theme_glex()`](https://plantedml.com/glex/reference/theme_glex.md)
+  as a default theme to all plots.  
   This is almost identical to
   \[[`ggplot2::theme_minimal()`](https://ggplot2.tidyverse.org/reference/ggtheme.html)\]
   aside from increased base font size and convenience flags to toggle
   vertical and horizontal grid lines.
 - Add
-  [`subset_components()`](http://plantedml.com/glex/reference/subset_components.md)
+  [`subset_components()`](https://plantedml.com/glex/reference/subset_components.md)
   and
-  [`subset_component_names()`](http://plantedml.com/glex/reference/subset_components.md)
+  [`subset_component_names()`](https://plantedml.com/glex/reference/subset_components.md)
   to make it easier to extract only components belonging to a given main
   term.
 - Add pre-processed version of `Bikeshare` data from `ISLR2` to
   streamlined examples.
-- Add [`plot_pdp()`](http://plantedml.com/glex/reference/plot_pdp.md), a
-  version of
-  [`plot_main_effect()`](http://plantedml.com/glex/reference/plot_components.md)
+- Add [`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md),
+  a version of
+  [`plot_main_effect()`](https://plantedml.com/glex/reference/plot_components.md)
   with the intercept added.
 - Limit `max_interaction` in `glex.xgb.Booster` to `max_depth` parameter
   of `xgboost` model. If `max_depth` is not set during model fit, the
@@ -277,18 +289,18 @@
   S3 method for `glex` objects.
 - Added `pkgdown` site
 - Added Bikesharing article
-- Added [`glex_vi()`](http://plantedml.com/glex/reference/glex_vi.md) to
-  compute variable importance scores including interaction terms,
+- Added [`glex_vi()`](https://plantedml.com/glex/reference/glex_vi.md)
+  to compute variable importance scores including interaction terms,
   including a corresponding
   [`ggplot2::autoplot`](https://ggplot2.tidyverse.org/reference/autoplot.html)
   method.
 - Added
-  [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
   to plot prediction components of a single observation.
 
 ## glex 0.2.0
 
-- Convert [`glex()`](http://plantedml.com/glex/reference/glex.md) to an
+- Convert [`glex()`](https://plantedml.com/glex/reference/glex.md) to an
   S3 generic function with methods for `xgboost` and
   `randomPlantedForest` models.
 - Fix bug in `xgboost` method that could lead to wrongly computed shap

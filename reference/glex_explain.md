@@ -2,7 +2,7 @@
 
 Plots the prediction components for a single observation, identified by
 the row number in the dataset used with
-[`glex()`](http://plantedml.com/glex/reference/glex.md). Since the
+[`glex()`](https://plantedml.com/glex/reference/glex.md). Since the
 resulting plot can be quite busy due to potentially large amounts of
 elements, it is highly recommended to use `predictors`,
 `max_interaction`, or `threshold` to restrict the number of elements in
@@ -26,7 +26,7 @@ glex_explain(
 
 - object:
 
-  Object of class [`glex`](http://plantedml.com/glex/reference/glex.md)
+  Object of class [`glex`](https://plantedml.com/glex/reference/glex.md)
   containing prediction components and data to be explained.
 
 - id:
@@ -68,9 +68,9 @@ A [ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html) object.
 ## See also
 
 Other Visualization functions:
-[`autoplot.glex()`](http://plantedml.com/glex/reference/plot_components.md),
-[`autoplot.glex_vi()`](http://plantedml.com/glex/reference/autoplot.glex_vi.md),
-[`plot_pdp()`](http://plantedml.com/glex/reference/plot_pdp.md)
+[`autoplot.glex()`](https://plantedml.com/glex/reference/plot_components.md),
+[`autoplot.glex_vi()`](https://plantedml.com/glex/reference/autoplot.glex_vi.md),
+[`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md)
 
 ## Examples
 

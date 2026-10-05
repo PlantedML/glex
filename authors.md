@@ -16,16 +16,41 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/PlantedML/glex/blob/master/DESCRIPTION)
+[`inst/CITATION`](https://github.com/PlantedML/glex/blob/master/inst/CITATION)
 
-Wright MN, Meyer JT, Hiabu M, Burk L, Liu J (2026). *glex: Global
-Explanations for Tree-Based Models*. R package version 0.6.0.9000,
-<https://github.com/PlantedML/glex>.
+Hiabu M, Meyer JT, Wright MN (2023). “Unifying local and global model
+explanations by functional decomposition of low dimensional structures.”
+In *Proceedings of The 26th International Conference on Artificial
+Intelligence and Statistics*, volume 206 series Proceedings of Machine
+Learning Research, 7040–7060.
+<https://proceedings.mlr.press/v206/hiabu23a.html>.
 
-    @Manual{,
-      title = {glex: Global Explanations for Tree-Based Models},
-      author = {Marvin N. Wright and Joseph Theo Meyer and Munir Hiabu and Lukas Burk and Jinyang Liu},
-      year = {2026},
-      note = {R package version 0.6.0.9000},
-      url = {https://github.com/PlantedML/glex},
+    @InProceedings{hiabu2023glex,
+      title = {Unifying local and global model explanations by functional decomposition of low dimensional structures},
+      author = {Munir Hiabu and Joseph T. Meyer and Marvin N. Wright},
+      booktitle = {Proceedings of The 26th International Conference on Artificial Intelligence and Statistics},
+      series = {Proceedings of Machine Learning Research},
+      volume = {206},
+      pages = {7040--7060},
+      year = {2023},
+      publisher = {PMLR},
+      url = {https://proceedings.mlr.press/v206/hiabu23a.html},
+    }
+
+Liu J, Steensgaard T, Wright MN, Pfister N, Hiabu M (2025). “Fast
+Estimation of Partial Dependence Functions using Trees.” In *Proceedings
+of the 42nd International Conference on Machine Learning*, volume 267
+series Proceedings of Machine Learning Research, 39496–39534.
+<https://proceedings.mlr.press/v267/liu25bm.html>.
+
+    @InProceedings{liu2025fastpd,
+      title = {Fast Estimation of Partial Dependence Functions using Trees},
+      author = {Jinyang Liu and Tessa Steensgaard and Marvin N. Wright and Niklas Pfister and Munir Hiabu},
+      booktitle = {Proceedings of the 42nd International Conference on Machine Learning},
+      series = {Proceedings of Machine Learning Research},
+      volume = {267},
+      pages = {39496--39534},
+      year = {2025},
+      publisher = {PMLR},
+      url = {https://proceedings.mlr.press/v267/liu25bm.html},
     }

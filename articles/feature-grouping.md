@@ -17,10 +17,10 @@ handles both:
     [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html): the
     classic route, and the only one for models fit before native
     support. The decomposition then sees one feature per level, and
-    [`group_components()`](http://plantedml.com/glex/reference/group_components.md)
+    [`group_components()`](https://plantedml.com/glex/reference/group_components.md)
     re-assembles the factor afterwards.
 
-[`group_components()`](http://plantedml.com/glex/reference/group_components.md)
+[`group_components()`](https://plantedml.com/glex/reference/group_components.md)
 also serves a third purpose: treating any set of features as one, e.g. a
 block of related measurements.
 
@@ -44,7 +44,7 @@ str(x_df)
 With a `data.frame` input,
 [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) treats
 factor columns as categorical. Pass the same `data.frame` to
-[`glex()`](http://plantedml.com/glex/reference/glex.md); the factor
+[`glex()`](https://plantedml.com/glex/reference/glex.md); the factor
 levels must match the training data in order, as for
 [`predict()`](https://rdrr.io/r/stats/predict.html).
 
@@ -128,18 +128,18 @@ head(sort(colMeans(abs(as.matrix(res$m))), decreasing = TRUE), 10)
 
 ### Re-assembling the factor with `group_components()`
 
-[`group_components()`](http://plantedml.com/glex/reference/group_components.md)
+[`group_components()`](https://plantedml.com/glex/reference/group_components.md)
 aggregates all terms feature-wise: terms involving only `season` dummies
 become the `season` main effect, terms mixing a dummy with `hr` become
 the `season:hr` interaction, and so on. Because the decomposition is
 additive, this is exact.
 
-[`dummy_groups()`](http://plantedml.com/glex/reference/dummy_groups.md)
+[`dummy_groups()`](https://plantedml.com/glex/reference/dummy_groups.md)
 builds the required `groups` list from the *un-encoded* data, matching
 the [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html) naming
 convention by default. `bike` carries further factors (`mnth`,
 `workingday`, `weathersit`) that we did not encode into `x`;
-[`dummy_groups()`](http://plantedml.com/glex/reference/dummy_groups.md)
+[`dummy_groups()`](https://plantedml.com/glex/reference/dummy_groups.md)
 reports them and moves on:
 
 ``` r
@@ -174,7 +174,7 @@ all.equal(
 ```
 
 Since the grouped columns of `x` form a one-hot encoding,
-[`group_components()`](http://plantedml.com/glex/reference/group_components.md)
+[`group_components()`](https://plantedml.com/glex/reference/group_components.md)
 reconstructs the factor, and the plot functions work as for the native
 model:
 
@@ -214,7 +214,7 @@ dummy_groups(
 )
 ```
 
-[`dummy_groups()`](http://plantedml.com/glex/reference/dummy_groups.md)
+[`dummy_groups()`](https://plantedml.com/glex/reference/dummy_groups.md)
 only returns columns that actually exist in `object$x`, so a dropped
 reference level (treatment coding via `~ season`) is skipped
 automatically; the reconstructed factor then shows a `"(base)"` level

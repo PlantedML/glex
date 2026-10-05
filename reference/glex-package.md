@@ -11,7 +11,7 @@ Useful links:
 
 - <https://github.com/PlantedML/glex>
 
-- <http://plantedml.com/glex/>
+- <https://plantedml.com/glex/>
 
 - Report bugs at <https://github.com/PlantedML/glex/issues>
 

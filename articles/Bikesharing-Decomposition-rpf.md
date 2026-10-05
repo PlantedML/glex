@@ -117,7 +117,7 @@ purify(rp)
 ```
 
 We select the predictors of interest and use
-[`glex()`](http://plantedml.com/glex/reference/glex.md) to retrieve all
+[`glex()`](https://plantedml.com/glex/reference/glex.md) to retrieve all
 predictive components that include them, from main effects to 3rd degree
 interactions. The resulting object also contains the original data as
 `x`, which we need for later visualization.
@@ -140,7 +140,7 @@ str(components$m, list.len = 8)
 #>  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...
 #>  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<pointer: 0x561a62306f20>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x560fa8604f20>
 ```
 
 Please note that fitting the model, purification, and the extraction of

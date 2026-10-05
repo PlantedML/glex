@@ -1,7 +1,7 @@
 # Partial Dependence Plot
 
 A version of
-[`plot_main_effect`](http://plantedml.com/glex/reference/plot_components.md)
+[`plot_main_effect`](https://plantedml.com/glex/reference/plot_components.md)
 with the intercept term (horizontal line) added, resulting in a partial
 dependence plot.
 
@@ -15,7 +15,8 @@ plot_pdp(object, predictor, rug_sides = "b", ...)
 
 - object:
 
-  Object of class [`glex`](http://plantedml.com/glex/reference/glex.md).
+  Object of class
+  [`glex`](https://plantedml.com/glex/reference/glex.md).
 
 - predictor:
 
@@ -39,12 +40,12 @@ A `ggplot2` object.
 
 ## See also
 
-[`plot_main_effect()`](http://plantedml.com/glex/reference/plot_components.md)
+[`plot_main_effect()`](https://plantedml.com/glex/reference/plot_components.md)
 
 Other Visualization functions:
-[`autoplot.glex()`](http://plantedml.com/glex/reference/plot_components.md),
-[`autoplot.glex_vi()`](http://plantedml.com/glex/reference/autoplot.glex_vi.md),
-[`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md)
+[`autoplot.glex()`](https://plantedml.com/glex/reference/plot_components.md),
+[`autoplot.glex_vi()`](https://plantedml.com/glex/reference/autoplot.glex_vi.md),
+[`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
 
 ## Examples
 

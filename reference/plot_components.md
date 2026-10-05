@@ -20,7 +20,8 @@ plot_twoway_effects(object, predictors, rug_sides = "b", ...)
 
 - object:
 
-  Object of class [`glex`](http://plantedml.com/glex/reference/glex.md).
+  Object of class
+  [`glex`](https://plantedml.com/glex/reference/glex.md).
 
 - ...:
 
@@ -45,12 +46,12 @@ A `ggplot2` object.
 
 ## See also
 
-[`plot_pdp()`](http://plantedml.com/glex/reference/plot_pdp.md)
+[`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md)
 
 Other Visualization functions:
-[`autoplot.glex_vi()`](http://plantedml.com/glex/reference/autoplot.glex_vi.md),
-[`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md),
-[`plot_pdp()`](http://plantedml.com/glex/reference/plot_pdp.md)
+[`autoplot.glex_vi()`](https://plantedml.com/glex/reference/autoplot.glex_vi.md),
+[`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md),
+[`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md)
 
 ## Examples
 

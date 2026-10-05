@@ -1,7 +1,7 @@
 # Derive feature groups from the factors behind a dummy encoding
 
 Builds the `groups` list for
-[`group_components()`](http://plantedml.com/glex/reference/group_components.md)
+[`group_components()`](https://plantedml.com/glex/reference/group_components.md)
 from the original, un-encoded data: every factor column of `data` whose
 encoded level columns are found in `object$x` becomes one group. By
 default, level columns are expected under the
@@ -44,7 +44,7 @@ dummy_groups(
 
 Named list of encoded column names, one element per matched factor,
 suitable as the `groups` argument of
-[`group_components()`](http://plantedml.com/glex/reference/group_components.md).
+[`group_components()`](https://plantedml.com/glex/reference/group_components.md).
 
 ## Details
 

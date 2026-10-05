@@ -38,25 +38,25 @@ with columns:
 
 - `m_rel` (`numeric`): `m` but relative to the average prediction
   (`intercept` in
-  [`glex()`](http://plantedml.com/glex/reference/glex.md) output).
+  [`glex()`](https://plantedml.com/glex/reference/glex.md) output).
 
 ## Details
 
 The `m` reported here is the average absolute value of `m` as reported
-by [`glex()`](http://plantedml.com/glex/reference/glex.md), aggregated
+by [`glex()`](https://plantedml.com/glex/reference/glex.md), aggregated
 by `term`:
 
 \$\$\mathtt{m} = \frac{1}{n} \sum\_{i = 1}^n \|m\| \$\$
 
 In turn, `m_rel` rescales `m` by the average prediction of the model
 (\\m_0\\, `intercept` as reported by
-[`glex()`](http://plantedml.com/glex/reference/glex.md)):
+[`glex()`](https://plantedml.com/glex/reference/glex.md)):
 
 \$\$\mathtt{m\\rel} = \frac{\mathtt{m}}{m_0}\$\$
 
 ## See also
 
-[autoplot.glex_vi](http://plantedml.com/glex/reference/autoplot.glex_vi.md)
+[autoplot.glex_vi](https://plantedml.com/glex/reference/autoplot.glex_vi.md)
 
 ## Examples
 

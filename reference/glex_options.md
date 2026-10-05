@@ -8,9 +8,9 @@ adjusted globally via
 
 - `glex.palette` (`NULL`): Diverging palette used to color continuous
   interaction effects in
-  [`plot_twoway_effects()`](http://plantedml.com/glex/reference/plot_components.md)
+  [`plot_twoway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
   and
-  [`plot_threeway_effects()`](http://plantedml.com/glex/reference/plot_components.md).
+  [`plot_threeway_effects()`](https://plantedml.com/glex/reference/plot_components.md).
   The default `NULL` uses a blue/red gradient built from
   `glex.colors_sign`, matching the look of the Python `shap` and
   `shapiq` packages. Set to the name of a diverging
@@ -30,7 +30,7 @@ adjusted globally via
 
 - `glex.colors_sign` (`c("#008BFB", "#FF0051")`): Two colors for
   negative and positive contributions in
-  [`glex_explain()`](http://plantedml.com/glex/reference/glex_explain.md),
+  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md),
   also used as the endpoints of the default continuous gradient. The
   defaults follow the blue/red convention familiar from the Python
   `shap` and `shapiq` packages.
@@ -38,7 +38,7 @@ adjusted globally via
 - `glex.color_line` (`"#194155"`): Color for main effect lines and
   columns drawn by
   [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
-  and [`plot_pdp()`](http://plantedml.com/glex/reference/plot_pdp.md).
+  and [`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md).
 
 ## Examples
 
