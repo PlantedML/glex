@@ -42,6 +42,9 @@ categorical features (fit on a \code{data.frame} with factor columns), a \code{d
 whose factor columns have the same levels in the same order as the training data:
 the model stores category codes, not levels, so a mismatch cannot be detected
 beyond a missing level (this is the same contract as \code{predict()}).
+For \code{\link[ranger:ranger]{ranger}} models, a \code{data.frame} with the same factor columns
+as the training data, encoded as \code{predict()} does under any
+\code{respect.unordered.factors} option.
 Otherwise a numeric \code{matrix} or \code{data.frame}.}
 
 \item{max_interaction}{(\code{integer(1): NULL})\cr

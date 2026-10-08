@@ -14,6 +14,9 @@
 #'  whose factor columns have the same levels in the same order as the training data:
 #'  the model stores category codes, not levels, so a mismatch cannot be detected
 #'  beyond a missing level (this is the same contract as `predict()`).
+#'  For [`ranger`][ranger::ranger] models, a `data.frame` with the same factor columns
+#'  as the training data, encoded as `predict()` does under any
+#'  `respect.unordered.factors` option.
 #'  Otherwise a numeric `matrix` or `data.frame`.
 #' @param max_interaction (`integer(1): NULL`)\cr
 #'  Maximum interaction size to consider.
@@ -434,19 +437,15 @@ glex.ranger <- function(
   weighting_method = "fastpd",
   ...
 ) {
-  if (!is.matrix(x)) {
-    if (is.data.frame(x) && any(!sapply(x, is.numeric))) {
-      stop(
-        "Input 'x' contains non-numeric columns. Please ensure all columns are numeric or convert them appropriately (e.g., using model.matrix) to match model training data before calling glex."
-      )
-    }
-    x <- as.matrix(x)
-  }
   # To avoid data.table check issues
   terminal <- NULL
   splitvarName <- NULL
+  splitval <- NULL
   splitStat <- NULL
   splitvarID <- NULL
+  leftChild <- NULL
+  rightChild <- NULL
+  Categories <- NULL
   tree <- NULL
 
   if (!requireNamespace("ranger", quietly = TRUE)) {
@@ -455,6 +454,15 @@ glex.ranger <- function(
 
   if (is.null(object$forest$num.samples.nodes)) {
     stop("ranger needs to be called with node.stats=TRUE for glex.")
+  }
+
+  # Factors are fed to the trees as the codes ranger uses; the original columns
+  # are kept for `$x` so plots and explanations see the levels.
+  x_input <- x
+  x_original <- NULL
+  if (is.data.frame(x)) {
+    x_original <- data.table::as.data.table(x)
+    x <- ranger_encode(object, x)
   }
   if (is.null(max_background_sample_size)) {
     max_background_sample_size <- nrow(x)
@@ -467,8 +475,27 @@ glex.ranger <- function(
   checkmate::assert_int(max_background_sample_size, lower = 1, upper = Inf)
 
   # Convert model into xgboost format
+  is_ordered <- stats::setNames(
+    object$forest$is.ordered,
+    object$forest$independent.variable.names
+  )
   trees <- rbindlist(lapply(seq_len(object$num.trees), function(i) {
-    as.data.table(ranger::treeInfo(object, tree = i))[, tree := i - 1]
+    info <- as.data.table(ranger::treeInfo(object, tree = i))
+    # treeInfo() renders partition splits as level strings; use the raw bitmask
+    info[, splitval := object$forest$split.values[[i]]]
+    info[terminal == TRUE, splitval := NA]
+    partition <- !info$terminal & !is_ordered[info$splitvarName]
+    # ranger sends the levels in the bitmask to the right child
+    info[,
+      Categories := lapply(seq_len(.N), function(k) {
+        if (partition[k]) bitmask_levels(splitval[k]) else integer(0)
+      })
+    ]
+    info[
+      partition,
+      c("leftChild", "rightChild", "splitval") := list(rightChild, leftChild, NA_real_)
+    ]
+    info[, tree := i - 1]
   }))
   prediction_cols <- grep("^pred\\.", colnames(trees), value = TRUE)
   prediction_col <- if ("prediction" %in% colnames(trees)) {
@@ -503,7 +530,8 @@ glex.ranger <- function(
       "splitval",
       "numSamples",
       "splitStat",
-      "tree"
+      "tree",
+      "Categories"
     )
   )
   colnames(trees) <- c(
@@ -514,7 +542,8 @@ glex.ranger <- function(
     "Split",
     "Cover",
     "Gain",
-    "Tree"
+    "Tree",
+    "Categories"
   )
   trees$Type <- "<="
 
@@ -533,7 +562,11 @@ glex.ranger <- function(
   res$m <- res$m / object$num.trees
   res$intercept <- res$intercept / object$num.trees
 
-  ranger_pred <- stats::predict(object, x)$predictions
+  if (!is.null(x_original)) {
+    res$x <- x_original
+  }
+
+  ranger_pred <- stats::predict(object, x_input)$predictions
   if (is.matrix(ranger_pred)) {
     # Probability forests: glex decomposes the second class probability
     ranger_pred <- ranger_pred[, 2L]
@@ -544,6 +577,38 @@ glex.ranger <- function(
   res
 }
 
+
+#' Encode a data.frame the way `predict.ranger()` does
+#'
+#' Factor columns get the levels stored in the forest (reordered by the response
+#' for `respect.unordered.factors = "order"`) with unseen levels appended, then
+#' `data.matrix()` replaces them by their 1-based codes.
+#' @keywords internal
+#' @noRd
+ranger_encode <- function(object, x) {
+  x <- as.data.frame(x)
+  chars <- vapply(x, is.character, logical(1))
+  x[chars] <- lapply(x[chars], factor)
+  covariate_levels <- object$forest$covariate.levels
+  for (j in intersect(names(covariate_levels), names(x))) {
+    lvls <- covariate_levels[[j]]
+    if (!is.null(lvls)) {
+      x[[j]] <- factor(
+        x[[j]],
+        levels = c(lvls, setdiff(levels(x[[j]]), lvls)),
+        exclude = NULL
+      )
+    }
+  }
+  data.matrix(x)
+}
+
+#' Factor codes (1-based) whose bits are set in a ranger partition split value
+#' @keywords internal
+#' @noRd
+bitmask_levels <- function(value) {
+  which(floor(value / 2^(0:52)) %% 2 == 1)
+}
 
 tree_fun_path_dependent <- function(tree, trees, x, all_S, max_interaction) {
   # Prepare tree_info for C++ function
