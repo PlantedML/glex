@@ -1,3 +1,9 @@
+# glex 0.7.0.9000 (development version
+
+* `glex()` supports `ranger` models with factor features under every `respect.unordered.factors` option.
+ Pass the training-style `data.frame` as `x`: factors are encoded as in `predict()`, including the    response-based level order of `"order"`, `"partition"` splits are evaluated as level sets, and `$x` keeps the factor columns. 
+ Previously, factor columns errored and `"partition"` models failed. `weighting_method = "empirical"` errors on `"partition"` splits.
+
 # glex 0.7.0
 
 ## Breaking changes
@@ -9,8 +15,6 @@
   `$m` is unaffected. Supersedes #18, closes #13.
 
 ## New features
-
-* `glex()` supports `ranger` models with factor features under every `respect.unordered.factors` option. Pass the training-style `data.frame` as `x`: factors are encoded as in `predict()`, including the response-based level order of `"order"`, `"partition"` splits are evaluated as level sets, and `$x` keeps the factor columns. Previously, factor columns errored and `"partition"` models failed. `weighting_method = "empirical"` errors on `"partition"` splits.
 
 * `glex()` supports `xgboost` models with categorical features, i.e. models fit
   on a `data.frame` with factor columns via `xgboost()` or `xgb.train()` on an
