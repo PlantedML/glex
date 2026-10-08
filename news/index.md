@@ -16,6 +16,16 @@
 ### New features
 
 - [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
+  `ranger` models with factor features under every
+  `respect.unordered.factors` option. Pass the training-style
+  `data.frame` as `x`: factors are encoded as in
+  [`predict()`](https://rdrr.io/r/stats/predict.html), including the
+  response-based level order of `"order"`, `"partition"` splits are
+  evaluated as level sets, and `$x` keeps the factor columns.
+  Previously, factor columns errored and `"partition"` models failed.
+  `weighting_method = "empirical"` errors on `"partition"` splits.
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
   `xgboost` models with categorical features, i.e. models fit on a
   `data.frame` with factor columns via
   [`xgboost()`](https://rdrr.io/pkg/xgboost/man/xgboost.html) or
@@ -76,7 +86,7 @@
   `intercept + rowSums(m) + remainder` reconstructs the model prediction
   whether or not a constraint was applied. `randomPlantedForest` objects
   already carried a `$remainder` computed by
-  [`predict_components()`](http://plantedml.com/randomPlantedForest/reference/predict_components.md),
+  [`predict_components()`](https://plantedml.com/randomPlantedForest/reference/predict_components.html),
   but the other model classes did not; the two are now one field with
   one definition, computed in one place. Closes
   [\#11](https://github.com/PlantedML/glex/issues/11), supersedes

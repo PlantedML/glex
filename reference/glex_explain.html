@@ -43,7 +43,7 @@ elements in the plot."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Explain a single prediction</h1>
-      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/v0.7.0/R/glex_explain.R" class="external-link"><code>R/glex_explain.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/master/R/glex_explain.R" class="external-link"><code>R/glex_explain.R</code></a></small>
       <div class="d-none name"><code>glex_explain.Rd</code></div>
     </div>
 
@@ -122,7 +122,7 @@ this value as needed.</p></dd>
 <span class="r-in"><span><span class="co"># Random Planted Forest -----</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PlantedML/randomPlantedForest" class="external-link">randomPlantedForest</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">26</span>, <span class="op">]</span>, max_interaction <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">glex_rpf</span> <span class="op">&lt;-</span> <span class="fu"><a href="glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">mtcars</span><span class="op">[</span><span class="fl">27</span><span class="op">:</span><span class="fl">32</span>, <span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

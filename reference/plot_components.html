@@ -37,7 +37,7 @@ identical to a partial dependence plot, centered to 0."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Plot Prediction Components</h1>
-      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/v0.7.0/R/autoplot.R" class="external-link"><code>R/autoplot.R</code></a>, <a href="https://github.com/PlantedML/glex/blob/v0.7.0/R/plot_main_effect.R" class="external-link"><code>R/plot_main_effect.R</code></a>, <a href="https://github.com/PlantedML/glex/blob/v0.7.0/R/plot_threeway_effects.R" class="external-link"><code>R/plot_threeway_effects.R</code></a>, and 1 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/master/R/autoplot.R" class="external-link"><code>R/autoplot.R</code></a>, <a href="https://github.com/PlantedML/glex/blob/master/R/plot_main_effect.R" class="external-link"><code>R/plot_main_effect.R</code></a>, <a href="https://github.com/PlantedML/glex/blob/master/R/plot_threeway_effects.R" class="external-link"><code>R/plot_threeway_effects.R</code></a>, and 1 more</small>
       <div class="d-none name"><code>plot_components.Rd</code></div>
     </div>
 
@@ -103,7 +103,7 @@ Default is <code>"b"</code> for both sides. Set to <code>"none"</code> to disabl
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Fit forest, get components</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rpfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">wt</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">drat</span> <span class="op">+</span> <span class="va">vs</span>, data <span class="op">=</span> <span class="va">mtcars</span>, ntrees <span class="op">=</span> <span class="fl">25</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rpfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">wt</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">drat</span> <span class="op">+</span> <span class="va">vs</span>, data <span class="op">=</span> <span class="va">mtcars</span>, ntrees <span class="op">=</span> <span class="fl">25</span>, max_interaction <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">components</span> <span class="op">&lt;-</span> <span class="fu"><a href="glex.html">glex</a></span><span class="op">(</span><span class="va">rpfit</span>, <span class="va">mtcars</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Main effects ----</span></span></span>

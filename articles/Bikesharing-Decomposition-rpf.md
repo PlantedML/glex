@@ -90,30 +90,6 @@ rp <- rpf(
 )
 
 purify(rp)
-#> -- Regression Random Planted Forest --
-#> 
-#> Formula: bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit +      season 
-#> Fit using 8 predictors and 3-degree interactions.
-#> Forest is purified!
-#> 
-#> Called with parameters:
-#> 
-#>              loss: L2
-#>            ntrees: 50
-#>   max_interaction: 3
-#>            splits: 100
-#>         split_try: 5
-#>             t_try: 0.9
-#>  split_decay_rate: 0.1
-#>    max_candidates: 50
-#>     delete_leaves: TRUE
-#>   split_structure: leaves
-#>             delta: 0.001
-#>           epsilon: 0.1
-#>     deterministic: FALSE
-#>          nthreads: 1
-#>            purify: FALSE
-#>                cv: FALSE
 ```
 
 We select the predictors of interest and use
@@ -140,12 +116,12 @@ str(components$m, list.len = 8)
 #>  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...
 #>  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<pointer: 0x5572c1705f20>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x55bf321cef20>
 ```
 
 Please note that fitting the model, purification, and the extraction of
 the components may take some time, depending on available resources and
-the size of the data. For example, the above steps took around 40
+the size of the data. For example, the above steps took around 10
 seconds to complete on GitHub Actions.
 
 ## Main Effects

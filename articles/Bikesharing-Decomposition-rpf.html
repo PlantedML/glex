@@ -61,7 +61,7 @@
       <h1>Bikesharing: Decomposition with Random Planted Forest</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/v0.7.0/vignettes/articles/Bikesharing-Decomposition-rpf.Rmd" class="external-link"><code>vignettes/articles/Bikesharing-Decomposition-rpf.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/PlantedML/glex/blob/master/vignettes/articles/Bikesharing-Decomposition-rpf.Rmd" class="external-link"><code>vignettes/articles/Bikesharing-Decomposition-rpf.Rmd</code></a></small>
       <div class="d-none name"><code>Bikesharing-Decomposition-rpf.Rmd</code></div>
     </div>
 
@@ -149,37 +149,13 @@ the forest to enable the desired decomposition. This step is not
 required for global predictions and may take some time, which is why it
 is implemented as a separate step.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">rp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://plantedml.com/randomPlantedForest/reference/rpf.html" class="external-link">rpf</a></span><span class="op">(</span></span>
 <span>  <span class="va">bikers</span> <span class="op">~</span> <span class="va">day</span> <span class="op">+</span> <span class="va">hr</span> <span class="op">+</span> <span class="va">temp</span> <span class="op">+</span> <span class="va">windspeed</span> <span class="op">+</span> <span class="va">workingday</span> <span class="op">+</span> <span class="va">hum</span> <span class="op">+</span> <span class="va">weathersit</span> <span class="op">+</span> <span class="va">season</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">bike</span>,</span>
 <span>  max_interaction <span class="op">=</span> <span class="fl">3</span>, ntrees <span class="op">=</span> <span class="fl">50</span>, splits <span class="op">=</span> <span class="fl">100</span>, t_try <span class="op">=</span> <span class="fl">0.9</span>, split_try <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="http://plantedml.com/randomPlantedForest/reference/purify.html" class="external-link">purify</a></span><span class="op">(</span><span class="va">rp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; -- Regression Random Planted Forest --</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Formula: bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit +      season </span></span>
-<span><span class="co">#&gt; Fit using 8 predictors and 3-degree interactions.</span></span>
-<span><span class="co">#&gt; Forest is purified!</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Called with parameters:</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;              loss: L2</span></span>
-<span><span class="co">#&gt;            ntrees: 50</span></span>
-<span><span class="co">#&gt;   max_interaction: 3</span></span>
-<span><span class="co">#&gt;            splits: 100</span></span>
-<span><span class="co">#&gt;         split_try: 5</span></span>
-<span><span class="co">#&gt;             t_try: 0.9</span></span>
-<span><span class="co">#&gt;  split_decay_rate: 0.1</span></span>
-<span><span class="co">#&gt;    max_candidates: 50</span></span>
-<span><span class="co">#&gt;     delete_leaves: TRUE</span></span>
-<span><span class="co">#&gt;   split_structure: leaves</span></span>
-<span><span class="co">#&gt;             delta: 0.001</span></span>
-<span><span class="co">#&gt;           epsilon: 0.1</span></span>
-<span><span class="co">#&gt;     deterministic: FALSE</span></span>
-<span><span class="co">#&gt;          nthreads: 1</span></span>
-<span><span class="co">#&gt;            purify: FALSE</span></span>
-<span><span class="co">#&gt;                cv: FALSE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://plantedml.com/randomPlantedForest/reference/purify.html" class="external-link">purify</a></span><span class="op">(</span><span class="va">rp</span><span class="op">)</span></span></code></pre></div>
 <p>We select the predictors of interest and use <code><a href="../reference/glex.html">glex()</a></code> to
 retrieve all predictive components that include them, from main effects
 to 3rd degree interactions. The resulting object also contains the
@@ -202,10 +178,10 @@ visualization.</p>
 <span><span class="co">#&gt;  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...</span></span>
 <span><span class="co">#&gt;  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...</span></span>
 <span><span class="co">#&gt;   [list output truncated]</span></span>
-<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;pointer: 0x5572c1705f20&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;pointer: 0x55bf321cef20&gt;</span></span></code></pre></div>
 <p>Please note that fitting the model, purification, and the extraction
 of the components may take some time, depending on available resources
-and the size of the data. For example, the above steps took around 40
+and the size of the data. For example, the above steps took around 10
 seconds to complete on GitHub Actions.</p>
 </div>
 <div class="section level2">
