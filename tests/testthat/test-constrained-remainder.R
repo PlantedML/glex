@@ -308,3 +308,32 @@ test_that("rpf multiclass: remainder is class-wise, mirroring m", {
   expect_false(is.null(glk$remainder))
   expect_identical(ncol(as.matrix(glk$remainder)), length(glk$target_levels))
 })
+
+test_that("an inert constraint on a multiclass rpf keeps SHAP values", {
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  # A constant predictor is never split on, so all its terms are zero
+  d <- transform(xdat, z = 1)
+  set.seed(1)
+  rp <- randomPlantedForest::rpf(yk ~ x1 + x2 + x3 + z, data = d, max_interaction = 2)
+  expect_message(
+    gl <- glex(rp, d, features = c("x1", "x2", "x3")),
+    "dropped terms are all zero"
+  )
+  expect_length(gl$constrained, 0)
+  expect_null(gl$remainder)
+  expect_false(anyNA(gl$shap))
+})
+
+test_that("a real constraint on a multiclass rpf reports an exact per-class remainder", {
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  set.seed(1)
+  rp <- randomPlantedForest::rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  pred <- predict(rp, xdat, type = "numeric")
+  expect_warning(gl <- glex(rp, xdat, max_interaction = 1), "SHAP values set to NA")
+  expect_identical(names(gl$remainder), gl$target_levels)
+  for (level in gl$target_levels) {
+    idx <- endsWith(names(gl$m), paste0("__class:", level))
+    reconstruction <- class_intercept(gl, level) + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
+    expect_equal(reconstruction + gl$remainder[[level]], pred[[paste0(".pred_", level)]], tolerance = 1e-8)
+  }
+})
