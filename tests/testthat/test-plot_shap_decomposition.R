@@ -96,3 +96,30 @@ test_that("the x axis is labeled as the prediction scale", {
   p <- plot_shap_decomposition(fake_glex(), id = 2)
   expect_match(p$labels$x, "^Prediction")
 })
+
+test_that("multiclass bars start at their class's intercept", {
+  gl <- fake_glex_multiclass()
+  gl$intercept <- c(a = 0.2, b = 0.7)
+  # hp:wt is split evenly between hp and wt
+  gl$shap <- data.table::data.table(
+    `hp__class:a` = c(0.425, -0.31),
+    `wt__class:a` = c(-0.075, 0.19),
+    `hp__class:b` = c(-0.425, 0.31),
+    `wt__class:b` = c(0.075, -0.19)
+  )
+  d <- plot_shap_decomposition(gl, id = 1)$data
+  shap <- d[d$kind == "shap", ]
+  expect_equal(shap$xleft, ifelse(shap$class == "a", 0.2, 0.7))
+  first <- d[d$pos == 1, ]
+  expect_equal(first$xleft, ifelse(first$class == "a", 0.2, 0.7))
+})
+
+test_that("the separator is drawn only in facets with rows above SHAP", {
+  gl <- fake_glex()
+  gl$x$z <- 1
+  gl$shap$z <- 0
+  p <- plot_shap_decomposition(gl, id = 2, predictors = c("hp", "z"))
+  hline <- p$layers[[which(vapply(p$layers, function(l) inherits(l$geom, "GeomHline"), logical(1)))]]
+  expect_identical(hline$data$reference_term, "hp")
+  expect_no_error(ggplot2::ggplot_build(p))
+})

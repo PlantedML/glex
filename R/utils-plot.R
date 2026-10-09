@@ -205,10 +205,8 @@ prediction_title <- function(id, et, class) {
 #' @noRd
 #' @keywords internal
 terms_subtitle <- function(et) {
-  sprintf(
-    "Starting from E[f] = %s; %d terms shown%s",
-    format(et$intercept, digits = 3),
-    sum(et$terms$type == "term"),
-    if (et$n_other > 0) sprintf(", %d aggregated", et$n_other) else ""
-  )
+  intercept <- format(et$intercept, digits = 3)
+  n_shown <- sum(et$terms$type == "term")
+  aggregated <- if (et$n_other > 0) sprintf(", %d aggregated", et$n_other) else ""
+  as.character(cli::pluralize("Starting from E[f] = {intercept}; {n_shown} term{?s} shown{aggregated}"))
 }

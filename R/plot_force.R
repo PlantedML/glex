@@ -77,11 +77,7 @@ plot_force <- function(
       title = prediction_title(id, et, class),
       subtitle = terms_subtitle(et),
       caption = if (n_unlabelled > 0) {
-        sprintf(
-          "%d %s too narrow to label",
-          n_unlabelled,
-          if (n_unlabelled == 1) "term" else "terms"
-        )
+        as.character(cli::pluralize("{n_unlabelled} term{?s} too narrow to label"))
       },
       x = "Prediction",
       y = NULL

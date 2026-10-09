@@ -61,7 +61,10 @@ glex_vi <- function(object, ...) {
   # Only return non-zero scores
   m_aggr <- m_aggr[m_aggr[["m"]] > 0]
   m_aggr[, degree := get_degree(term)]
-  m_aggr[, m_rel := (m / object[["intercept"]])]
+  m_aggr[,
+    m_rel := m /
+      class_intercept(object, if (is.null(object$target_levels)) NULL else as.character(class))
+  ]
 
   data.table::setorder(m_aggr, -m)
   data.table::setcolorder(m_aggr, neworder = vars_out)

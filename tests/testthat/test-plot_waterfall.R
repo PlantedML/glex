@@ -49,3 +49,10 @@ test_that("an all-zero observation shows one combined reference label", {
   built <- ggplot2::ggplot_build(plot_waterfall(gl, id = 3))
   expect_identical(built$layout$panel_params[[1]]$x.sec$get_labels(), "E[f] = 19.6, f(x) = 19.6")
 })
+
+test_that("the subtitle pluralizes term counts", {
+  et <- explain_terms(fake_glex(), id = 2, max_terms = 1)
+  expect_identical(terms_subtitle(et), "Starting from E[f] = 19.6; 1 term shown, 6 aggregated")
+  et <- explain_terms(fake_glex(), id = 2, threshold = 10)
+  expect_identical(terms_subtitle(et), "Starting from E[f] = 19.6; 0 terms shown, 7 aggregated")
+})

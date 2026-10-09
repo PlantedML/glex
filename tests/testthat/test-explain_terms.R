@@ -128,3 +128,17 @@ test_that("explain_terms reaches the model prediction for real models", {
   gc <- suppressWarnings(glex(rp, mtcars, max_interaction = 1))
   expect_equal(explain_terms(gc, 4)$prediction, target, tolerance = 1e-8)
 })
+
+test_that("class_intercept is vectorized over classes", {
+  gl <- fake_glex_multiclass()
+  gl$intercept <- c(a = 0.2, b = 0.7)
+  expect_equal(class_intercept(gl, c("b", "a", "b")), c(0.7, 0.2, 0.7))
+  gl$intercept <- 0.5
+  expect_equal(class_intercept(gl, c("b", "a")), 0.5)
+})
+
+test_that("missing components give an informative error", {
+  gl <- fake_glex()
+  gl$m[2, hp := NA]
+  expect_error(explain_terms(gl, id = 2), "`object\\$m` contains missing values for observation 2")
+})

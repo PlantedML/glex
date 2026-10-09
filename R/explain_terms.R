@@ -30,6 +30,9 @@ explain_terms <- function(
     m <- m[endsWith(names(m), suffix)]
     names(m) <- substr(names(m), 1L, nchar(names(m)) - nchar(suffix))
   }
+  if (anyNA(m)) {
+    stop(sprintf("`object$m` contains missing values for observation %d.", id), call. = FALSE)
+  }
   m <- m[m != 0]
   degree <- get_degree(names(m))
 
@@ -55,7 +58,7 @@ explain_terms <- function(
     terms <- rbind(
       terms,
       data.table::data.table(
-        term = sprintf("%d other %s", n_other, if (n_other == 1) "term" else "terms"),
+        term = as.character(cli::pluralize("{n_other} other term{?s}")),
         m = sum(m[drop]),
         degree = NA_integer_,
         type = "other"
@@ -145,7 +148,7 @@ check_class_arg <- function(object, class) {
 # rpf currently stores one intercept for all classes; use per-class values when present
 class_intercept <- function(object, class) {
   if (!is.null(class) && length(object$intercept) == length(object$target_levels)) {
-    return(unname(object$intercept[[match(class, object$target_levels)]]))
+    return(unname(object$intercept[match(class, object$target_levels)]))
   }
   unname(object$intercept[[1]])
 }

@@ -52,20 +52,23 @@ plot_shap_decomposition <- function(
   # data.table NSE
   .id <- m <- predsum <- term <- degree <- m_scaled <- NULL
   xleft <- xright <- reference_term <- kind <- pos <- NULL
-  ykey <- value <- xlab <- hjust <- ynext <- NULL
+  ykey <- value <- xlab <- hjust <- ynext <- n <- NULL
 
   m_long <- melt_m(object$m, object$target_levels)
   mlong_id <- m_long[m_long[[".id"]] == id, ]
   mlong_id[, .id := NULL]
   mlong_id <- mlong_id[abs(mlong_id[["m"]]) > 0, ]
-  avgpred <- object$intercept
+  # Intercept per row's class; the "1" dummy class of non-multiclass objects maps to the scalar
+  intercept_of <- function(cls) {
+    class_intercept(object, if (is.null(object$target_levels)) NULL else cls)
+  }
 
   if (is.null(object$target_levels)) {
-    pred <- format(sum(mlong_id[["m"]]) + avgpred, digits = 3)
+    pred <- format(sum(mlong_id[["m"]]) + intercept_of(NULL), digits = 3)
     # dummy class so the grouped operations below need no branching
     mlong_id[, class := "1"]
   } else {
-    pred <- mlong_id[, list(predsum = sum(m) + avgpred), by = "class"]
+    pred <- mlong_id[, list(predsum = sum(m) + intercept_of(as.character(class[1]))), by = "class"]
     pred <- as.character(pred[which.max(predsum), "class"][[1]])
     mlong_id[, class := as.character(class)]
   }
@@ -100,7 +103,7 @@ plot_shap_decomposition <- function(
     }),
     use.names = TRUE
   )
-  xdf[, xright := avgpred + cumsum(m_scaled), by = c("reference_term", "class")]
+  xdf[, xright := intercept_of(class) + cumsum(m_scaled), by = c("reference_term", "class")]
   xdf[, xleft := xright - m_scaled]
 
   # Objects from earlier glex versions have no `$shap`; constrained ones hold NA
@@ -114,8 +117,8 @@ plot_shap_decomposition <- function(
       term = "SHAP",
       m_scaled = m,
       kind = "shap",
-      xleft = avgpred,
-      xright = avgpred + m
+      xleft = intercept_of(class),
+      xright = intercept_of(class) + m
     )]
     xdf <- rbind(xdf, shap_id, use.names = TRUE)
   }
@@ -159,7 +162,12 @@ plot_shap_decomposition <- function(
   }
 
   p <- p +
-    geom_vline(xintercept = avgpred, linetype = "dashed", colour = "grey40") +
+    geom_vline(
+      data = unique(xdf[, list(reference_term, class, base = intercept_of(class))]),
+      aes(xintercept = .data$base),
+      linetype = "dashed",
+      colour = "grey40"
+    ) +
     geom_segment(
       data = connectors,
       aes(x = .data$xright, xend = .data$xright, y = .data$ykey, yend = .data$ynext),
@@ -181,7 +189,9 @@ plot_shap_decomposition <- function(
       size = 3.3
     )
   if (shap_valid) {
-    p <- p + geom_hline(yintercept = 1.5, colour = "grey60", linewidth = 0.3)
+    # A facet holding only its SHAP row has nothing to separate
+    separated <- xdf[, list(n = .N), by = c("reference_term", "class")][n > 1]
+    p <- p + geom_hline(data = separated, aes(yintercept = 1.5), colour = "grey60", linewidth = 0.3)
   }
 
   p +
@@ -199,7 +209,7 @@ plot_shap_decomposition <- function(
       title = sprintf("SHAP decomposition for observation %d, predicted value %s", id, pred),
       subtitle = sprintf(
         "Bars show m_S / |S|: interaction terms are split evenly among their features.\nStarting at E[f] = %s%s",
-        format(avgpred, digits = 3),
+        paste(format(unique(intercept_of(unique(xdf$class))), digits = 3), collapse = ", "),
         if (shap_valid) {
           ""
         } else {
