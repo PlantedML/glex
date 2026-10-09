@@ -12,7 +12,7 @@
 # pass "fastpd" and "path-dependent" and assert the same thing twice.
 
 test_that("rpf binary: sum identity matches the predicted raw score", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     y ~ x1 + x2 + x3,
@@ -29,7 +29,7 @@ test_that("rpf binary: sum identity matches the predicted raw score", {
 })
 
 test_that("rpf multiclass: classwise sum identity holds exactly", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     yk ~ x1 + x2 + x3,
@@ -51,7 +51,7 @@ test_that("rpf multiclass: classwise sum identity holds exactly", {
 })
 
 test_that("rpf: shap is derived from components and satisfies efficiency", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -70,7 +70,7 @@ test_that("rpf: shap is derived from components and satisfies efficiency", {
 })
 
 test_that("rpf: constrained decompositions invalidate shap", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -96,7 +96,7 @@ test_that("rpf: constrained decompositions invalidate shap", {
 })
 
 test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
@@ -131,7 +131,7 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
 })
 
 test_that("rpf: constraints that drop only zero terms keep shap valid", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   # The inert term has to be zero *by construction*, not by luck of the fit. An earlier
   # version of this test fit at the maximum order and assumed the top-order term came out

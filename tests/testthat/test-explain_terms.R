@@ -120,7 +120,7 @@ test_that("explain_terms reaches the model prediction for real models", {
     tolerance = 1e-10
   )
 
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
   rp <- rpf(mpg ~ ., data = mtcars, max_interaction = 2)
   target <- predict(rp, mtcars[4, ])$.pred

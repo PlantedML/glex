@@ -1,6 +1,6 @@
 # Regression / rpf ------------------------------------------------------------------------------------------------
 test_that("regression, binary and multiclass rpf", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
   gl <- glex(rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3), mtcars)
   expect_no_error(ggplot2::ggplot_build(plot_shap_decomposition(gl, 2)))

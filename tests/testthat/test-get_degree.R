@@ -6,7 +6,7 @@ test_that("get_degree ignores the multiclass suffix", {
 })
 
 test_that("multiclass rpf objects print their actual degree", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
   rp <- rpf(cyl ~ mpg + hp, data = transform(mtcars, cyl = factor(cyl)), max_interaction = 1)
   out <- capture.output(glex(rp, mtcars))

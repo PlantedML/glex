@@ -1,5 +1,5 @@
 test_that("print.glex works", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(2)
   rp <- rpf(mpg ~ cyl + hp, data = mtcars, max_interaction = 1)
   gl <- glex(rp, mtcars)

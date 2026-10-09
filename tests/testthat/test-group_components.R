@@ -94,7 +94,7 @@ test_that("non-dummy groups aggregate terms but yield NA in x", {
 })
 
 test_that("multiclass class suffixes are preserved", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
