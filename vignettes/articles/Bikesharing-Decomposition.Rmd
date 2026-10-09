@@ -1,0 +1,219 @@
+---
+title: "Bikesharing: One Decomposition, Two Model Types"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 9
+)
+
+# Adapted from https://github.com/PlantedML/shap_decomposition/blob/master/bike_example/bike_example.R
+```
+
+`glex()` decomposes the predictions of a tree ensemble into main effects and interaction terms of any order, and it does so for Random Planted Forests and `xgboost` alike.
+This article walks through the same analysis of the bikesharing data with both, so you can see where the models agree, where they do not, and what each of them needs from you before `glex()` is happy.
+
+The model-specific parts live in tabs. Everything downstream of `glex()` is identical.
+
+```{r setup, message=FALSE}
+library(glex)
+library(data.table)
+library(ggplot2)
+library(patchwork) # To arrange plots
+set.seed(2023)
+```
+
+## Preparing the Data
+
+The `bike` data shipped with `glex` is a lightly recoded version of the `Bikeshare` data in the `ISLR2` package, which provides the dataset published at the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset).
+
+> This data set contains the hourly and daily count of rental bikes between years 2011 and 2012 in Capital bikeshare system, along with weather and seasonal information.
+
+The outcome is `bikers`, the total number of bikers in the system.
+The predictors of interest are
+
+- `hr`: Hour of day, 0 to 23 hours.
+- `temp`: Normalized temperature in Celsius.
+- `workingday`: Whether it is a work day or not.
+- `hum`: Normalized humidity.
+- `weathersit`: Weather situation, from `clear` to `light rain/snow`.
+- `season`: Winter, Spring, Summer, Fall.
+
+```{r data-prep}
+data(bike, package = "glex")
+
+# Only one observation with this condition, removing it to make space.
+bike <- bike[weathersit != "heavy rain/snow", ]
+bike[, weathersit := droplevels(weathersit)]
+
+vars <- c("hr", "temp", "workingday", "hum", "weathersit", "season")
+x <- as.data.frame(bike[, ..vars])
+
+str(x)
+```
+
+`workingday`, `weathersit` and `season` are factors, which both model types take as they are.
+
+## Fitting the Models {.tabset}
+
+Each tab fits one model, hands it to `glex()` and stores the result in `components`.
+With the settings below, fitting and decomposing both takes about a minute in total.
+
+```{r components-init}
+components <- list()
+labels <- c(rpf = "Random Planted Forest", xgboost = "xgboost")
+```
+
+### Random Planted Forest
+
+We limit the model's complexity with `max_interaction = 3`, as we are only going to visualize interactions up to the third degree, and a higher value would only marginally improve predictive performance at the cost of a longer runtime.
+A model with 50 trees suffices here.
+We also `purify()` the forest, which the decomposition requires.
+Purification is not needed for predictions and may take some time, which is why it is a separate step.
+
+```{r fit-rpf, message=FALSE}
+library(randomPlantedForest)
+
+rp <- rpf(
+  bikers ~ hr + temp + workingday + hum + weathersit + season,
+  data = bike,
+  max_interaction = 3,
+  ntrees = 50,
+  splits = 100,
+  t_try = 0.9,
+  split_try = 5
+)
+purify(rp)
+
+components$rpf <- glex(rp, bike, features = vars)
+```
+
+### xgboost
+
+Since `xgboost` 3.0, a `data.frame` with factor columns is accepted directly and the trees split on sets of levels, so no dummy encoding is needed.
+`glex()` reads those categorical splits and keeps the factors for plotting; pass the same `data.frame` to both.
+The interaction order is determined by `max_depth`.
+
+The parameters below are placeholders. Replace them with tuned values.
+
+```{r fit-xgboost, message=FALSE}
+library(xgboost)
+
+xg <- xgboost(
+  x,
+  bike$bikers,
+  nrounds = 100,
+  max_depth = 4,
+  learning_rate = 0.1,
+  nthreads = 2,
+  verbosity = 0
+)
+
+components$xgboost <- glex(xg, x)
+```
+
+## What `glex()` Returns
+
+Every `glex` object holds the decomposition `m` (one column per term), the SHAP values derived from it and the data `x` used for plotting.
+The number of terms differs by model, since a term exists only for feature subsets the model actually splits on together:
+
+```{r term-counts}
+sapply(components, function(gl) ncol(gl$m))
+```
+
+Variable importances summarize the average absolute contribution of each term. Here are the top terms per model:
+
+```{r vi}
+lapply(components, function(gl) head(glex_vi(gl), 6))
+```
+
+From here on, every section applies the same code to each model. The helper below prints one tab per model.
+
+```{r tabs-helper}
+tabs <- function(plot_fun) {
+  for (model in names(components)) {
+    cat("\n\n### ", labels[[model]], "\n\n", sep = "")
+    print(plot_fun(components[[model]]))
+    cat("\n\n")
+  }
+}
+```
+
+## Main Effects {.tabset}
+
+```{r main-effects, results="asis", fig.height=4}
+tabs(function(gl) {
+  plot_main_effect(gl, "temp") +
+    plot_main_effect(gl, "hr") +
+    plot_main_effect(gl, "workingday") +
+    plot_layout(widths = c(.3, .3, .4))
+})
+```
+
+## 2-Way Interactions {.tabset}
+
+```{r twoway-effects, results="asis", fig.height=6}
+tabs(function(gl) {
+  p_2way1 <- plot_twoway_effects(gl, c("workingday", "temp"))
+  p_2way2 <- plot_twoway_effects(gl, c("hr", "workingday"))
+  p_2way3 <- plot_twoway_effects(gl, c("hr", "temp"))
+
+  p_2way <- (p_2way1 / p_2way2 + plot_layout(guides = "collect") & theme(legend.position = "bottom")) | p_2way3
+
+  p_2way +
+    plot_annotation(tag_levels = list(c("1,2", "3,1", "3,3")), tag_prefix = "m(", tag_suffix = ")")
+})
+```
+
+## 3-Way Interaction {.tabset}
+
+```{r threeway-effects, results="asis", fig.height=4}
+tabs(function(gl) plot_threeway_effects(gl, c("hr", "temp", "workingday")))
+```
+
+## Side by Side
+
+The tabs make it easy to inspect one model at a time. To compare them, the same term from both models goes into one figure.
+The `hr` by `workingday` interaction is the most striking one in this data: on working days the commuting peaks appear, on other days the afternoon dominates.
+
+```{r compare-twoway, fig.height=4}
+wrap_plots(
+  lapply(names(components), function(model) {
+    plot_twoway_effects(components[[model]], c("hr", "workingday")) +
+      ggtitle(labels[[model]])
+  }),
+  guides = "collect"
+) & theme(legend.position = "bottom")
+```
+
+The same for the `temp` main effect, where the smoothness of the two model types differs the most:
+
+```{r compare-main, fig.height=3.5}
+wrap_plots(lapply(names(components), function(model) {
+  plot_main_effect(components[[model]], "temp") + ggtitle(labels[[model]])
+}))
+```
+
+## Additional Effects {.tabset}
+
+All main effects, by iterating over `vars` (`r paste0(vars, collapse = ", ")`) and collecting the plots with `patchwork::wrap_plots()`:
+
+```{r all-main-effects, results="asis", fig.width=10, fig.height=6}
+tabs(function(gl) wrap_plots(lapply(vars, plot_main_effect, object = gl)))
+```
+
+## More Interactions {.tabset}
+
+`autoplot()` passes its arguments on to the specialized `plot_*` functions, depending on the number of predictors supplied.
+Third degree interactions can be tricky to interpret, if they have any effect at all.
+
+```{r more-interactions, results="asis", fig.height=4}
+tabs(function(gl) {
+  (autoplot(gl, c("season", "workingday")) | autoplot(gl, c("season", "hr"))) /
+    (autoplot(gl, c("weathersit", "temp")) | autoplot(gl, c("hum", "temp"))) /
+    autoplot(gl, c("workingday", "hr", "season"))
+})
+```
