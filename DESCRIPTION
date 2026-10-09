@@ -44,6 +44,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tibble,
+    vdiffr,
     xgboost (>= 3.0.0)
 LinkingTo: 
     Rcpp
