@@ -141,3 +141,69 @@ sign_colors <- function() {
 main_effect_color <- function() {
   getOption("glex.color_line", "#194155")
 }
+
+#' Fill alpha by interaction degree: main effects opaque, aggregates at 0.5
+#' @noRd
+#' @keywords internal
+degree_alpha <- function(degree) {
+  ifelse(is.na(degree), 0.5, 1 / sqrt(degree))
+}
+
+#' Signed contribution label, e.g. "+0.21"
+#' @noRd
+#' @keywords internal
+format_contribution <- function(m) {
+  sprintf("%+.3g", m)
+}
+
+#' X expansion leaving room for value labels placed outside bar ends
+#' @noRd
+#' @keywords internal
+label_expansion <- function(labels) {
+  ggplot2::expansion(mult = min(0.5, 0.05 + 0.015 * max(nchar(labels), 0)))
+}
+
+#' Secondary x axis marking E[f] and f(x)
+#'
+#' Close values would overlap, so they share one label.
+#' @param et Result of `explain_terms()`.
+#' @param xrange Width of the plotted x range.
+#' @noRd
+#' @keywords internal
+reference_axis <- function(et, xrange) {
+  fmt <- function(v) format(v, digits = 3)
+  if (abs(et$prediction - et$intercept) < 0.1 * xrange) {
+    return(ggplot2::dup_axis(
+      name = NULL,
+      breaks = (et$intercept + et$prediction) / 2,
+      labels = sprintf("E[f] = %s, f(x) = %s", fmt(et$intercept), fmt(et$prediction))
+    ))
+  }
+  ggplot2::dup_axis(
+    name = NULL,
+    breaks = c(et$intercept, et$prediction),
+    labels = c(sprintf("E[f] = %s", fmt(et$intercept)), sprintf("f(x) = %s", fmt(et$prediction)))
+  )
+}
+
+#' @noRd
+#' @keywords internal
+prediction_title <- function(id, et, class) {
+  sprintf(
+    "Prediction for observation %d%s: f(x) = %s",
+    id,
+    if (is.null(class)) "" else sprintf(" (class %s)", class),
+    format(et$prediction, digits = 3)
+  )
+}
+
+#' @noRd
+#' @keywords internal
+terms_subtitle <- function(et) {
+  sprintf(
+    "Starting from E[f] = %s; %d terms shown%s",
+    format(et$intercept, digits = 3),
+    sum(et$terms$type == "term"),
+    if (et$n_other > 0) sprintf(", %d aggregated", et$n_other) else ""
+  )
+}
