@@ -47,6 +47,7 @@ plot_pdp(components, "cyl")
 Other Visualization functions:
 \code{\link[=autoplot.glex]{autoplot.glex()}},
 \code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
-\code{\link[=glex_explain]{glex_explain()}}
+\code{\link[=glex_explain]{glex_explain()}},
+\code{\link[=plot_waterfall]{plot_waterfall()}}
 }
 \concept{Visualization functions}
