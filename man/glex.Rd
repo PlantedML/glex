@@ -55,7 +55,7 @@ If not set in \code{xgboost}, the default value of \code{6} is assumed.}
 
 \item{features}{Vector of column names in \code{x} to calculate components for. Default is \code{NULL}, i.e. all features are used.}
 
-\item{...}{Further arguments passed to methods.}
+\item{...}{Further arguments passed to methods. Arguments a method does not use are disregarded with a warning.}
 
 \item{max_background_sample_size}{The maximum number of background samples used for the FastPD algorithm, only used when \code{weighting_method = "fastpd"}. Defaults to \code{nrow(x)}.}
 
