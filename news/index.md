@@ -1,5 +1,17 @@
 # Changelog
 
+## glex 0.7.0.9000 (development version
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
+  `ranger` models with factor features under every
+  `respect.unordered.factors` option. Pass the training-style
+  `data.frame` as `x`: factors are encoded as in
+  [`predict()`](https://rdrr.io/r/stats/predict.html), including the
+  response-based level order of `"order"`, `"partition"` splits are
+  evaluated as level sets, and `$x` keeps the factor columns.
+  Previously, factor columns errored and `"partition"` models failed.
+  `weighting_method = "empirical"` errors on `"partition"` splits.
+
 ## glex 0.7.0
 
 ### Breaking changes
@@ -14,16 +26,6 @@
   [\#13](https://github.com/PlantedML/glex/issues/13).
 
 ### New features
-
-- [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
-  `ranger` models with factor features under every
-  `respect.unordered.factors` option. Pass the training-style
-  `data.frame` as `x`: factors are encoded as in
-  [`predict()`](https://rdrr.io/r/stats/predict.html), including the
-  response-based level order of `"order"`, `"partition"` splits are
-  evaluated as level sets, and `$x` keeps the factor columns.
-  Previously, factor columns errored and `"partition"` models failed.
-  `weighting_method = "empirical"` errors on `"partition"` splits.
 
 - [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
   `xgboost` models with categorical features, i.e. models fit on a
