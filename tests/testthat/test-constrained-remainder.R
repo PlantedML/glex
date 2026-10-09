@@ -149,7 +149,7 @@ test_that("ranger probability forest: remainder lives on the response scale", {
 # that default would fold the back-transformation into the remainder, and for binary
 # models compare against the wrong class entirely.
 test_that("rpf binary: remainder is on the raw score scale, for every loss", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   for (loss in c("L2", "logit", "exponential")) {
     set.seed(1)
@@ -184,7 +184,7 @@ test_that("rpf binary: remainder is on the raw score scale, for every loss", {
 })
 
 test_that("rpf binary: remainder does not target the response scale", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
   rp <- randomPlantedForest::rpf(
     y ~ x1 + x2 + x3,
@@ -231,7 +231,7 @@ test_that("ranger: remainder completes a constrained decomposition", {
 })
 
 test_that("rpf: remainder completes a constrained decomposition", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -256,7 +256,7 @@ test_that("rpf: remainder completes a constrained decomposition", {
 })
 
 test_that("an inert constraint leaves no remainder", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   # A constant predictor cannot be split on, so every term involving it is exactly zero --
   # on every platform, unlike a high-order term that merely happens to come out zero for a
@@ -289,7 +289,7 @@ test_that("an inert constraint leaves no remainder", {
 })
 
 test_that("rpf multiclass: remainder is class-wise, mirroring m", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
@@ -307,4 +307,33 @@ test_that("rpf multiclass: remainder is class-wise, mirroring m", {
   # rpf computes the multiclass remainder itself, one column per class
   expect_false(is.null(glk$remainder))
   expect_identical(ncol(as.matrix(glk$remainder)), length(glk$target_levels))
+})
+
+test_that("an inert constraint on a multiclass rpf keeps SHAP values", {
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
+  # A constant predictor is never split on, so all its terms are zero
+  d <- transform(xdat, z = 1)
+  set.seed(1)
+  rp <- randomPlantedForest::rpf(yk ~ x1 + x2 + x3 + z, data = d, max_interaction = 2)
+  expect_message(
+    gl <- glex(rp, d, features = c("x1", "x2", "x3")),
+    "dropped terms are all zero"
+  )
+  expect_length(gl$constrained, 0)
+  expect_null(gl$remainder)
+  expect_false(anyNA(gl$shap))
+})
+
+test_that("a real constraint on a multiclass rpf reports an exact per-class remainder", {
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
+  set.seed(1)
+  rp <- randomPlantedForest::rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  pred <- predict(rp, xdat, type = "numeric")
+  expect_warning(gl <- glex(rp, xdat, max_interaction = 1), "SHAP values set to NA")
+  expect_identical(names(gl$remainder), gl$target_levels)
+  for (level in gl$target_levels) {
+    idx <- endsWith(names(gl$m), paste0("__class:", level))
+    reconstruction <- class_intercept(gl, level) + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
+    expect_equal(reconstruction + gl$remainder[[level]], pred[[paste0(".pred_", level)]], tolerance = 1e-8)
+  }
 })

@@ -281,11 +281,22 @@ plot_pdp(glex_xgb, "hp")
 
 ### Decomposition of Individual Predictions
 
-Finally, we can explore the prediction for a single observation by displaying its individual prediction components. The SHAP value is the sum of all of these components and serves as a reference value. 
-For compactness, we only plot one feature and collapse all interaction terms above the second degree into one as their combined effect is very small.
+Finally, we can explore the prediction for a single observation. A waterfall plot builds it up from the average prediction E[f], one bar per main or interaction term, aggregating the smaller terms:
 
-```{r glex_explain}
-glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2)
+```{r plot_waterfall}
+plot_waterfall(glex_xgb, id = 2, max_terms = 8)
+```
+
+A force plot shows the same terms more compactly, pushing the prediction up from one side and down from the other:
+
+```{r plot_force}
+plot_force(glex_xgb, id = 2, max_terms = 8)
+```
+
+To see how a single feature's SHAP value is assembled, `plot_shap_decomposition()` shows the components involving that feature, with interaction terms split evenly among their features. Here we plot only `hp` and collapse interaction terms above the second degree, whose combined effect is small:
+
+```{r plot_shap_decomposition}
+plot_shap_decomposition(glex_xgb, id = 2, predictors = "hp", max_interaction = 2)
 ```
 
 [xgb]: https://cran.r-project.org/package=xgboost

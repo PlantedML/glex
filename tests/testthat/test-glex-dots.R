@@ -11,7 +11,7 @@ test_that("glex methods warn about arguments they do not use", {
   )
   expect_warning(glex(xg, x, weighting_methd = "fastpd"), "weighting_methd")
 
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   rp <- rpf(mpg ~ cyl + hp, data = mtcars, max_interaction = 1)
   expect_warning(glex(rp, mtcars, weighting_method = "fastpd"), "weighting_method")
 })

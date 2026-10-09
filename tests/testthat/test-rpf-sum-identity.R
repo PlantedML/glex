@@ -12,7 +12,7 @@
 # pass "fastpd" and "path-dependent" and assert the same thing twice.
 
 test_that("rpf binary: sum identity matches the predicted raw score", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     y ~ x1 + x2 + x3,
@@ -28,8 +28,8 @@ test_that("rpf binary: sum identity matches the predicted raw score", {
   )
 })
 
-test_that("rpf multiclass: classwise sum identity holds up to the class intercept", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+test_that("rpf multiclass: classwise sum identity holds exactly", {
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     yk ~ x1 + x2 + x3,
@@ -39,29 +39,19 @@ test_that("rpf multiclass: classwise sum identity holds up to the class intercep
   gl <- glex::glex(rp, xdat)
   pred <- predict(rp, xdat, type = "numeric")
 
-  # Each class has its own decomposition terms ending in "__class:<level>", but rpf
-  # reports a single intercept for all classes rather than one per class. The class terms
-  # therefore reconstruct that class's raw score exactly up to an additive constant -- the
-  # class intercept we never receive. Assert exactly that: the per-observation residual is
-  # constant within a class, which is much stronger than bounding its magnitude.
+  # Each class has its own terms ending in "__class:<level>" and its own intercept
+  expect_length(gl$intercept, length(gl$target_levels))
   for (level in gl$target_levels) {
     idx <- grepl(paste0("__class:", level), names(gl$m), fixed = TRUE)
     score <- unname(
-      gl$intercept + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
+      class_intercept(gl, level) + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
     )
-    residual <- score - pred[[paste0(".pred_", level)]]
-
-    expect_equal(
-      max(residual) - min(residual),
-      0,
-      tolerance = 1e-8,
-      info = paste("class", level)
-    )
+    expect_equal(score, pred[[paste0(".pred_", level)]], tolerance = 1e-8, info = paste("class", level))
   }
 })
 
 test_that("rpf: shap is derived from components and satisfies efficiency", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -80,7 +70,7 @@ test_that("rpf: shap is derived from components and satisfies efficiency", {
 })
 
 test_that("rpf: constrained decompositions invalidate shap", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   rp <- randomPlantedForest::rpf(
     mpg ~ cyl + hp + wt,
@@ -106,7 +96,7 @@ test_that("rpf: constrained decompositions invalidate shap", {
 })
 
 test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
@@ -141,7 +131,7 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
 })
 
 test_that("rpf: constraints that drop only zero terms keep shap valid", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
 
   # The inert term has to be zero *by construction*, not by luck of the fit. An earlier
   # version of this test fit at the maximum order and assumed the top-order term came out

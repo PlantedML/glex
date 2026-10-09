@@ -74,7 +74,9 @@ plot_twoway_effects(components, c("cyl", "vs"))
 
 Other Visualization functions:
 \code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
-\code{\link[=glex_explain]{glex_explain()}},
-\code{\link[=plot_pdp]{plot_pdp()}}
+\code{\link[=plot_force]{plot_force()}},
+\code{\link[=plot_pdp]{plot_pdp()}},
+\code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}},
+\code{\link[=plot_waterfall]{plot_waterfall()}}
 }
 \concept{Visualization functions}

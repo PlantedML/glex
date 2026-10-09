@@ -33,15 +33,13 @@
 #'   decomposition is complete: if it is constrained (see `constrained`), the components
 #'   no longer sum to the full model prediction and the SHAP efficiency property cannot
 #'   hold, so `shap` is a scalar `NA` (with a warning) while `m` remains valid.
-#'   For multiclass models, columns are class-specific like those of `m`. Note that
-#'   `randomPlantedForest` models report a single `intercept` for all classes, so for
-#'   multiclass models `intercept + rowSums(shap)` reconstructs the predicted class
-#'   scores only approximately.
+#'   For multiclass models, columns are class-specific like those of `m`.
 #' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
 #'   The variable names correspond to the original variable names,
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
-#' * `intercept`: Intercept term, the expected value of the prediction.
+#' * `intercept`: Intercept term, the expected value of the prediction. For multiclass
+#'   models a named vector with one value per class.
 #' * `constrained`: Character vector naming the arguments that constrained the
 #'   decomposition (`"max_interaction"`, `"features"`), or `character(0)` if it is
 #'   complete. Use `length(x$constrained) > 0` to check whether `shap` is valid.
@@ -150,12 +148,15 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
   # to [0, 1] for `loss = "L2"`, the inverse link for `"logit"` and `"exponential"`.
   # Comparing against that would confound the dropped terms with the back-transformation
   # (and, for binary models, silently compare against the wrong class).
-  #
-  # Multiclass rpf models report a single intercept for all classes, so the components
-  # only reconstruct the class scores approximately and the numeric confirmation is not
-  # reliable: the structural verdict is final there, and rpf supplies `$remainder` itself.
+  pred <- stats::predict(object, x, type = "numeric")
   target <- if (is.null(ret$target_levels)) {
-    stats::predict(object, x, type = "numeric")[[1]]
+    pred[[1]]
+  } else {
+    # One score per class, named by level to match the `__class:<level>` terms
+    stats::setNames(
+      as.list(pred[paste0(".pred_", ret$target_levels)]),
+      ret$target_levels
+    )
   }
   ret <- confirm_constrained(ret, target = target)
 
@@ -840,10 +841,12 @@ constrained_by <- function(
 #' one carries no remainder.
 #' @param res `glex` object with `$m`, `$shap`, `$intercept` and `$constrained`.
 #'   For `rpf` models `$remainder` may already be set by
-#'   `randomPlantedForest::predict_components()`; it is only overwritten where `target`
-#'   lets us compute it ourselves, which keeps the multiclass remainder rpf provides.
+#'   `randomPlantedForest::predict_components()`; it is overwritten wherever `target` is
+#'   given.
 #' @param target Model predictions on the scale of the decomposition, or `NULL` to skip
-#'   the numeric confirmation and treat the structural verdict as final.
+#'   the numeric confirmation and treat the structural verdict as final. For multiclass
+#'   objects a list with one prediction vector per class, named by target level; the
+#'   remainder is then a `data.table` with one column per class.
 #' @keywords internal
 #' @noRd
 confirm_constrained <- function(res, target = NULL) {
@@ -855,15 +858,25 @@ confirm_constrained <- function(res, target = NULL) {
   constrained_labels <- paste0("`", res$constrained, "`", collapse = " and ")
 
   if (!is.null(target)) {
-    reconstruction <- res$intercept + rowSums(res$m)
-    res$remainder <- unname(target - reconstruction)
+    res$remainder <- if (is.null(res$target_levels)) {
+      unname(target - (res$intercept + rowSums(res$m)))
+    } else {
+      term_class <- split_names(names(res$m), "__class:", target_index = 2)
+      data.table::as.data.table(stats::setNames(
+        lapply(res$target_levels, function(level) {
+          m_class <- as.matrix(res$m[, term_class == level, with = FALSE])
+          unname(target[[level]] - (class_intercept(res, level) + rowSums(m_class)))
+        }),
+        res$target_levels
+      ))
+    }
 
     # The dropped terms are inert only if they are *numerically zero*, which is what the
     # remainder measures directly. Judge it elementwise: `all.equal()` reports the mean
     # relative difference, which averages a discrepancy concentrated in a few observations
     # away to nothing and lets a genuinely non-zero term pass as "all zero" -- and this
     # verdict decides whether `$shap` is trustworthy or `NA`, so it must not be fuzzy.
-    inert <- max(abs(res$remainder)) <= 1e-8 * max(1, max(abs(unname(target))))
+    inert <- max(abs(unlist(res$remainder))) <= 1e-8 * max(1, max(abs(unlist(target))))
 
     if (inert) {
       message(

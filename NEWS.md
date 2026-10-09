@@ -8,6 +8,12 @@
 
 * Multiclass terms such as `mpg__class:4` no longer count the class suffix as an interaction, so `print()` reports the correct maximum degree for multiclass `rpf` models.
 
+* New `plot_waterfall()` and `plot_force()` show how a single prediction is built from the components of the decomposition, one bar or segment per main or interaction term, from E[f] to f(x). Small terms are aggregated via `max_terms`, `threshold` and `max_interaction`; constrained decompositions end with a remainder bar (#49).
+
+* `glex_explain()` is renamed to `plot_shap_decomposition()`, which says what it shows: how each feature's SHAP value is assembled from the components it is part of. `glex_explain()` still works but is deprecated. The plot no longer clips labels, places values beside the bars and the SHAP value in its own bottom row, drops empty rows in facets, and keeps "Remaining terms" directly above the SHAP value.
+
+* Multiclass `rpf` models now carry one intercept per class (fixed upstream in randomPlantedForest), and `glex_vi()`, `plot_shap_decomposition()`, `plot_waterfall()` and `plot_force()` use each class's intercept. Constraints on multiclass `rpf` decompositions are now confirmed against the model's predictions like for other models, so a constraint that only drops zero terms keeps the SHAP values, and `$remainder` is computed by glex for each class. `print()` and the plot captions now use singular forms where appropriate ("1 observation", "1 term").
+
 # glex 0.7.0
 
 ## Breaking changes

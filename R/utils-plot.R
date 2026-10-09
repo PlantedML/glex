@@ -76,7 +76,7 @@ diverging_palette <- function(...) {
 
   if (is.null(pal)) {
     # Default: shap/shapiq-style gradient built from the same endpoints
-    # as the sign colors used in glex_explain()
+    # as the sign colors used in plot_shap_decomposition()
     cols <- sign_colors()
     ggplot2::scale_color_gradient2(
       low = cols[["-1"]],
@@ -125,7 +125,7 @@ discrete_palette <- function(...) {
   ggplot2::scale_color_brewer(palette = pal, ...)
 }
 
-#' Colors for negative/zero/positive contributions in glex_explain()
+#' Colors for negative/zero/positive contributions in the prediction plots
 #' Defaults follow the blue/red convention of shap/shapiq.
 #' @noRd
 #' @keywords internal
@@ -140,4 +140,73 @@ sign_colors <- function() {
 #' @keywords internal
 main_effect_color <- function() {
   getOption("glex.color_line", "#194155")
+}
+
+#' Fill alpha by interaction degree: main effects opaque, aggregates at 0.5
+#' @noRd
+#' @keywords internal
+degree_alpha <- function(degree) {
+  ifelse(is.na(degree), 0.5, 1 / sqrt(degree))
+}
+
+#' Signed contribution label, e.g. "+0.21"
+#' @noRd
+#' @keywords internal
+format_contribution <- function(m) {
+  sprintf("%+.3g", m)
+}
+
+#' X expansion leaving room for value labels placed outside bar ends
+#'
+#' Panels get narrower with more facet columns (laid out as by `facet_wrap()`),
+#' so labels need proportionally more room.
+#' @param n_panels Number of facets.
+#' @noRd
+#' @keywords internal
+label_expansion <- function(labels, n_panels = 1) {
+  n_cols <- grDevices::n2mfrow(n_panels)[1]
+  ggplot2::expansion(mult = min(0.8, 0.05 + 0.02 * max(nchar(labels), 0) * n_cols))
+}
+
+#' Secondary x axis marking E\[f\] and f(x)
+#'
+#' Close values would overlap, so they share one label.
+#' @param et Result of `explain_terms()`.
+#' @param xrange Width of the plotted x range.
+#' @noRd
+#' @keywords internal
+reference_axis <- function(et, xrange) {
+  fmt <- function(v) format(v, digits = 3)
+  if (abs(et$prediction - et$intercept) <= 0.1 * xrange) {
+    return(ggplot2::dup_axis(
+      name = NULL,
+      breaks = (et$intercept + et$prediction) / 2,
+      labels = sprintf("E[f] = %s, f(x) = %s", fmt(et$intercept), fmt(et$prediction))
+    ))
+  }
+  ggplot2::dup_axis(
+    name = NULL,
+    breaks = c(et$intercept, et$prediction),
+    labels = c(sprintf("E[f] = %s", fmt(et$intercept)), sprintf("f(x) = %s", fmt(et$prediction)))
+  )
+}
+
+#' @noRd
+#' @keywords internal
+prediction_title <- function(id, et, class) {
+  sprintf(
+    "Prediction for observation %d%s: f(x) = %s",
+    id,
+    if (is.null(class)) "" else sprintf(" (class %s)", class),
+    format(et$prediction, digits = 3)
+  )
+}
+
+#' @noRd
+#' @keywords internal
+terms_subtitle <- function(et) {
+  intercept <- format(et$intercept, digits = 3)
+  n_shown <- sum(et$terms$type == "term")
+  aggregated <- if (et$n_other > 0) sprintf(", %d aggregated", et$n_other) else ""
+  as.character(cli::pluralize("Starting from E[f] = {intercept}; {n_shown} term{?s} shown{aggregated}"))
 }
