@@ -157,13 +157,18 @@ format_contribution <- function(m) {
 }
 
 #' X expansion leaving room for value labels placed outside bar ends
+#'
+#' Panels get narrower with more facet columns (laid out as by `facet_wrap()`),
+#' so labels need proportionally more room.
+#' @param n_panels Number of facets.
 #' @noRd
 #' @keywords internal
-label_expansion <- function(labels) {
-  ggplot2::expansion(mult = min(0.5, 0.05 + 0.015 * max(nchar(labels), 0)))
+label_expansion <- function(labels, n_panels = 1) {
+  n_cols <- grDevices::n2mfrow(n_panels)[1]
+  ggplot2::expansion(mult = min(0.8, 0.05 + 0.02 * max(nchar(labels), 0) * n_cols))
 }
 
-#' Secondary x axis marking E[f] and f(x)
+#' Secondary x axis marking E\[f\] and f(x)
 #'
 #' Close values would overlap, so they share one label.
 #' @param et Result of `explain_terms()`.

@@ -61,8 +61,8 @@ plot_waterfall(gl, id = 3, max_terms = 5)
 Other Visualization functions:
 \code{\link[=autoplot.glex]{autoplot.glex()}},
 \code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
-\code{\link[=glex_explain]{glex_explain()}},
 \code{\link[=plot_force]{plot_force()}},
-\code{\link[=plot_pdp]{plot_pdp()}}
+\code{\link[=plot_pdp]{plot_pdp()}},
+\code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}}
 }
 \concept{Visualization functions}

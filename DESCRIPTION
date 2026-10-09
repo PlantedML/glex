@@ -28,6 +28,7 @@ Imports:
     foreach,
     ggplot2,
     jsonlite,
+    lifecycle,
     progress,
     Rcpp (>= 1.0.8),
     scico,

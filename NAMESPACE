@@ -15,6 +15,7 @@ export(group_components)
 export(plot_force)
 export(plot_main_effect)
 export(plot_pdp)
+export(plot_shap_decomposition)
 export(plot_threeway_effects)
 export(plot_twoway_effects)
 export(plot_waterfall)
@@ -41,7 +42,6 @@ importFrom(scico,scale_color_scico)
 importFrom(stats,predict)
 importFrom(utils,
   combn,
-  head,
   str
 )
 useDynLib(glex, .registration = TRUE)
