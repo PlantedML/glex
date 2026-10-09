@@ -142,7 +142,7 @@
 <td>Notes</td>
 <td>* <code>x</code> must be a numeric matrix, or a <code>data.frame</code> with factor columns for models fit on categorical features (factor levels must match the training data in order, as for <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>). <code><a href="reference/glex.html">glex()</a></code> decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions.</td>
 <td>Native support for multiclass terms in plotting and variable importance workflows.</td>
-<td>* Requires <code>node.stats = TRUE</code>. For classification, fit with <code>probability = TRUE</code>; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported.</td>
+<td>* Requires <code>node.stats = TRUE</code>. Factor features work under any <code>respect.unordered.factors</code> option; pass <code>x</code> as a <code>data.frame</code>, as for <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>. For classification, fit with <code>probability = TRUE</code>; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported.</td>
 </tr>
 </tbody>
 </table>

@@ -103,6 +103,8 @@ interactions. The resulting object also contains the original data as
 vars <- c("hr", "temp", "workingday", "hum", "weathersit", "season")
 
 components <- glex(rp, bike, predictors = vars)
+#> Warning: In glex.rpf(rp, bike, predictors = vars) :
+#>  extra argument 'predictors' will be disregarded
 
 # There's a lot of components...
 str(components$m, list.len = 8)
@@ -116,7 +118,7 @@ str(components$m, list.len = 8)
 #>  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...
 #>  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...
 #>   [list output truncated]
-#>  - attr(*, ".internal.selfref")=<pointer: 0x56315df99f20>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x559250da5f20>
 ```
 
 Please note that fitting the model, purification, and the extraction of

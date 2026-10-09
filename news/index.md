@@ -12,6 +12,17 @@
   Previously, factor columns errored and `"partition"` models failed.
   `weighting_method = "empirical"` errors on `"partition"` splits.
 
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) methods warn
+  about arguments they do not use instead of silently ignoring them,
+  e.g. `glex(rp, x, weighting_method = "fastpd")` for an `rpf` model,
+  which has no weighting method, or a misspelled `weighting_methd` for
+  `xgboost` and `ranger`.
+
+- Multiclass terms such as `mpg__class:4` no longer count the class
+  suffix as an interaction, so
+  [`print()`](https://rdrr.io/r/base/print.html) reports the correct
+  maximum degree for multiclass `rpf` models.
+
 ## glex 0.7.0
 
 ### Breaking changes

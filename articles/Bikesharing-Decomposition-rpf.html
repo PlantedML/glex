@@ -165,6 +165,8 @@ visualization.</p>
 <code class="sourceCode R"><span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hr"</span>, <span class="st">"temp"</span>, <span class="st">"workingday"</span>, <span class="st">"hum"</span>, <span class="st">"weathersit"</span>, <span class="st">"season"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">components</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/glex.html">glex</a></span><span class="op">(</span><span class="va">rp</span>, <span class="va">bike</span>, predictors <span class="op">=</span> <span class="va">vars</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: In glex.rpf(rp, bike, predictors = vars) :</span></span>
+<span><span class="co">#&gt;  extra argument 'predictors' will be disregarded</span></span>
 <span></span>
 <span><span class="co"># There's a lot of components...</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">components</span><span class="op">$</span><span class="va">m</span>, list.len <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
@@ -178,7 +180,7 @@ visualization.</p>
 <span><span class="co">#&gt;  $ weathersit                     : num  4.8 4.8 4.8 4.8 4.8 ...</span></span>
 <span><span class="co">#&gt;  $ season                         : num  -25.4 -25.4 -25.4 -25.4 -25.4 ...</span></span>
 <span><span class="co">#&gt;   [list output truncated]</span></span>
-<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;pointer: 0x56315df99f20&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;pointer: 0x559250da5f20&gt;</span></span></code></pre></div>
 <p>Please note that fitting the model, purification, and the extraction
 of the components may take some time, depending on available resources
 and the size of the data. For example, the above steps took around 10
