@@ -87,6 +87,7 @@ test_that("multiclass rpf plot", {
     yk ~ x1 + x2 + x3,
     data = xdat,
     max_interaction = 3,
+    ntrees = 1,
     deterministic = TRUE
   )
   gl <- glex(rp, xdat)

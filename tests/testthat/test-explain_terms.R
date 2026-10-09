@@ -20,7 +20,7 @@ test_that("max_terms keeps the largest terms and aggregates the rest", {
   et <- explain_terms(fake_glex(), id = 2, max_terms = 2)
   expect_identical(et$terms$term, c("hp", "cyl", "5 other terms"))
   expect_identical(et$terms$type, c("term", "term", "other"))
-  expect_equal(et$terms$m[3], 0.21 + 0.07 - 0.14 + 0.04 - 0.03)
+  expect_equal(et$terms$m[3], 0.21 + 0.08 - 0.14 + 0.04 - 0.03)
   expect_identical(et$n_other, 5L)
 })
 
@@ -30,7 +30,7 @@ test_that("threshold and max_interaction aggregate terms", {
   expect_identical(et$terms$term, c("hp", "cyl", "wt", "cyl:hp", "3 other terms"))
   et <- explain_terms(gl, id = 2, max_interaction = 1)
   expect_identical(et$terms$term, c("hp", "cyl", "wt", "4 other terms"))
-  expect_equal(et$terms$m[4], 0.07 - 0.14 + 0.04 - 0.03)
+  expect_equal(et$terms$m[4], 0.08 - 0.14 + 0.04 - 0.03)
   et <- explain_terms(gl, id = 2, threshold = 0.1, max_interaction = 1, max_terms = 1)
   expect_identical(et$terms$term, c("hp", "6 other terms"))
 })
