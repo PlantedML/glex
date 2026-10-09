@@ -91,3 +91,8 @@ test_that("plot_shap_decomposition appearance", {
     plot_shap_decomposition(fake_glex(), id = 2, threshold = 0.05, predictors = c("hp", "wt"))
   )
 })
+
+test_that("the x axis is labeled as the prediction scale", {
+  p <- plot_shap_decomposition(fake_glex(), id = 2)
+  expect_match(p$labels$x, "^Prediction")
+})

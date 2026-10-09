@@ -213,7 +213,7 @@ plot_shap_decomposition <- function(
           )
         }
       ),
-      x = "Contribution (m_S / |S|)",
+      x = "Prediction (bars: m_S / |S|)",
       y = NULL
     ) +
     theme_glex(grid_x = FALSE, grid_y = TRUE) +

@@ -177,7 +177,7 @@ label_expansion <- function(labels, n_panels = 1) {
 #' @keywords internal
 reference_axis <- function(et, xrange) {
   fmt <- function(v) format(v, digits = 3)
-  if (abs(et$prediction - et$intercept) < 0.1 * xrange) {
+  if (abs(et$prediction - et$intercept) <= 0.1 * xrange) {
     return(ggplot2::dup_axis(
       name = NULL,
       breaks = (et$intercept + et$prediction) / 2,

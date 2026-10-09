@@ -42,3 +42,10 @@ test_that("plot_waterfall appearance", {
     plot_waterfall(fake_glex_multiclass(), id = 2, class = "a")
   )
 })
+
+test_that("an all-zero observation shows one combined reference label", {
+  gl <- fake_glex()
+  gl$m[3, (names(gl$m)) := 0]
+  built <- ggplot2::ggplot_build(plot_waterfall(gl, id = 3))
+  expect_identical(built$layout$panel_params[[1]]$x.sec$get_labels(), "E[f] = 19.6, f(x) = 19.6")
+})

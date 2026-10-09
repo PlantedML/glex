@@ -37,18 +37,11 @@ plot_force <- function(
     xrange <- 1
   }
 
-  d$labelled <- abs(d$m) >= 0.05 * xrange
   d$mid <- (d$start + d$end) / 2
-  # Neighboring labels on the same side alternate between two rows to avoid overlap
-  d$tier <- 0
-  for (side in c(1, -1)) {
-    idx <- which(d$labelled & d$dir == side)
-    idx <- idx[order(d$mid[idx])]
-    d$tier[idx] <- (seq_along(idx) - 1) %% 2
-  }
-  d$y <- d$dir * (0.55 + 0.55 * d$tier)
-  d$vjust <- ifelse(d$dir == 1, 0, 1)
   d$text <- paste0(d$label, "\n", format_contribution(d$m))
+  d <- place_force_labels(d, xrange)
+  d$y <- d$dir * (0.55 + 0.8 * d$tier)
+  d$vjust <- ifelse(d$dir == 1, 0, 1)
   n_unlabelled <- sum(!d$labelled)
 
   ggplot() +
@@ -70,13 +63,15 @@ plot_force <- function(
       size = 3.2,
       lineheight = 0.9
     ) +
+    # Trains the x scale when no segments exist, so E[f] and f(x) are still marked
+    expand_limits(x = c(et$intercept, et$prediction)) +
     scale_fill_manual(values = sign_colors(), guide = "none") +
     scale_alpha_identity() +
     scale_x_continuous(
       expand = expansion(mult = 0.05),
       sec.axis = reference_axis(et, xrange)
     ) +
-    scale_y_continuous(limits = c(-2.2, 2.2), breaks = NULL) +
+    scale_y_continuous(limits = c(-2.6, 2.6), breaks = NULL) +
     coord_cartesian(clip = "off") +
     labs(
       title = prediction_title(id, et, class),
@@ -92,6 +87,39 @@ plot_force <- function(
       y = NULL
     ) +
     theme_glex(grid_x = FALSE, grid_y = TRUE)
+}
+
+#' Assign force plot labels to one of two rows per side without overlap
+#'
+#' Largest terms are placed first; a label goes into the first row on its side
+#' where it does not overlap an already placed label, and is dropped otherwise.
+#' Segments narrower than 5% of the x range are never labeled.
+#' @param d Output of `force_layout()` with columns `mid` and `text`.
+#' @param xrange Width of the plotted x range.
+#' @returns `d` with columns `halfwidth`, `labelled` and `tier` (0 or 1).
+#' @keywords internal
+#' @noRd
+place_force_labels <- function(d, xrange) {
+  # ponytail: label width estimated from character count at ~9in plot width; ggrepel would measure it
+  char_width <- 0.012 * xrange
+  widest_line <- vapply(strsplit(d$text, "\n", fixed = TRUE), function(l) max(nchar(l)), integer(1))
+  d$halfwidth <- widest_line * char_width / 2
+  d$labelled <- rep(FALSE, nrow(d))
+  d$tier <- rep(0, nrow(d))
+  for (i in order(abs(d$m), decreasing = TRUE)) {
+    if (abs(d$m[i]) < 0.05 * xrange) {
+      next
+    }
+    for (tier in 0:1) {
+      taken <- which(d$labelled & d$dir == d$dir[i] & d$tier == tier)
+      if (all(abs(d$mid[taken] - d$mid[i]) >= d$halfwidth[taken] + d$halfwidth[i])) {
+        d$labelled[i] <- TRUE
+        d$tier[i] <- tier
+        break
+      }
+    }
+  }
+  d
 }
 
 #' Place force plot segments: positives end at f(x), negatives start there

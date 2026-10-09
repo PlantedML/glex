@@ -143,7 +143,7 @@
 <text x='46.94' y='315.04' text-anchor='end' style='font-size: 10.40px; fill: #4D4D4D; font-family: sans;' textLength='26.01px' lengthAdjust='spacingAndGlyphs'>cyl:wt</text>
 <text x='46.94' y='226.10' text-anchor='end' style='font-size: 10.40px; fill: #4D4D4D; font-family: sans;' textLength='27.18px' lengthAdjust='spacingAndGlyphs'>cyl:hp</text>
 <text x='46.94' y='137.15' text-anchor='end' style='font-size: 10.40px; fill: #4D4D4D; font-family: sans;' textLength='12.72px' lengthAdjust='spacingAndGlyphs'>cyl</text>
-<text x='381.53' y='566.83' text-anchor='middle' style='font-size: 13.00px; font-family: sans;' textLength='135.37px' lengthAdjust='spacingAndGlyphs'>Contribution (m_S / |S|)</text>
+<text x='381.53' y='566.83' text-anchor='middle' style='font-size: 13.00px; font-family: sans;' textLength='155.60px' lengthAdjust='spacingAndGlyphs'>Prediction (bars: m_S / |S|)</text>
 <text x='49.53' y='35.87' style='font-size: 13.00px; font-family: sans;' textLength='437.45px' lengthAdjust='spacingAndGlyphs'>Bars show m_S / |S|: interaction terms are split evenly among their features.</text>
 <text x='49.53' y='49.91' style='font-size: 13.00px; font-family: sans;' textLength='122.50px' lengthAdjust='spacingAndGlyphs'>Starting at E[f] = 19.6</text>
 <text x='49.53' y='17.21' style='font-size: 15.60px; font-family: sans;' textLength='417.17px' lengthAdjust='spacingAndGlyphs'>SHAP decomposition for observation 2, predicted value 17.5</text>

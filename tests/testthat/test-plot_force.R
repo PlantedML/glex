@@ -55,13 +55,38 @@ test_that("segments meeting at f(x) have flat fronts, so colors do not blend the
   expect_equal(min(neg_front$x), et$prediction)
 })
 
-test_that("labels of neighboring segments alternate between two rows", {
+test_that("an all-zero observation still marks E[f] and f(x)", {
+  gl <- fake_glex()
+  gl$m[3, (names(gl$m)) := 0]
+  built <- ggplot2::ggplot_build(plot_force(gl, id = 3))
+  expect_identical(built$layout$panel_params[[1]]$x.sec$get_labels(), "E[f] = 19.6, f(x) = 19.6")
+})
+
+test_that("the two label rows are far enough apart for two-line labels", {
   p <- plot_force(fake_glex_many(), id = 1, max_terms = 8)
+  rows <- sort(unique(abs(p$layers[[2]]$data$y)))
+  expect_length(rows, 2)
+  expect_gte(diff(rows), 0.75)
+})
+
+test_that("labels sharing a row do not overlap at their estimated width", {
+  feats <- sprintf("feature_%02d", 1:12)
+  m <- data.table::as.data.table(matrix(0.1, nrow = 1, ncol = 12, dimnames = list(NULL, feats)))
+  x <- data.table::as.data.table(matrix(0.52, nrow = 1, ncol = 12, dimnames = list(NULL, feats)))
+  gl <- structure(
+    list(m = m, intercept = 0, x = x, constrained = character(0)),
+    class = c("glex", "xgb_components", "list")
+  )
+  p <- plot_force(gl, id = 1, max_terms = 12)
   labels <- p$layers[[2]]$data
-  for (side in c(1, -1)) {
-    same_side <- labels[labels$dir == side, ][order(labels$mid[labels$dir == side]), ]
-    if (nrow(same_side) > 1) {
-      expect_true(all(diff(abs(same_side$y)) != 0))
+  expect_true(is.numeric(labels$halfwidth) && all(labels$halfwidth > 0))
+  for (row in unique(labels$y)) {
+    same <- labels[labels$y == row, ]
+    same <- same[order(same$mid), ]
+    if (nrow(same) > 1) {
+      gaps <- diff(same$mid) - (same$halfwidth[-1] + same$halfwidth[-nrow(same)])
+      expect_true(all(gaps >= 0))
     }
   }
+  expect_match(p$labels$caption, "too narrow to label")
 })
