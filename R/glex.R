@@ -24,7 +24,7 @@
 #'  For [`xgboost`][xgboost::xgb.train], this defaults to the `max_depth` parameter of the model fit.\cr
 #'  If not set in `xgboost`, the default value of `6` is assumed.
 #' @param features Vector of column names in `x` to calculate components for. Default is `NULL`, i.e. all features are used.
-#' @param ... Further arguments passed to methods.
+#' @param ... Further arguments passed to methods. Arguments a method does not use are disregarded with a warning.
 #'
 #' @returns Decomposition of the regression or classification function.
 #' A `list` with elements:
@@ -89,6 +89,7 @@ glex.default <- function(object, ...) {
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #' str(glex_rpf, list.len = 5)
 glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
+  chkDots(...)
   if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
     stop(paste0(
       "randomPlantedForest needs to be installed: ",
@@ -200,6 +201,7 @@ glex.xgb.Booster <- function(
   weighting_method = "fastpd",
   ...
 ) {
+  chkDots(...)
   if (!requireNamespace("xgboost", quietly = TRUE)) {
     stop("xgboost needs to be installed: install.packages(\"xgboost\")")
   }
@@ -437,6 +439,7 @@ glex.ranger <- function(
   weighting_method = "fastpd",
   ...
 ) {
+  chkDots(...)
   # To avoid data.table check issues
   terminal <- NULL
   splitvarName <- NULL

@@ -49,12 +49,12 @@ subset_component_names <- function(components, term) {
 #' Get the degree of interaction from vector of terms
 #'
 #' Terms of the form `"x1", "x2", "x1:x2"` have degrees 1, 1, 2, respectively.
-#' This utility function exists mainly for code deduplication and consistency.
-#' It is also a lot faster than using regex-approaches, yet it still makes the strong assumption
-#' of `:` _only_ occuring as an interaction delimiter.
+#' The `__class:<level>` suffix of multiclass terms is not part of the term.
+#' Otherwise `:` is assumed to occur only as the interaction delimiter.
 #'
 #' @noRd
 #' @keywords internal
 get_degree <- function(x, pattern = ":") {
+  x <- sub("__class:.*$", "", x)
   lengths(strsplit(x, split = pattern, fixed = TRUE))
 }

@@ -4,6 +4,10 @@
  Pass the training-style `data.frame` as `x`: factors are encoded as in `predict()`, including the    response-based level order of `"order"`, `"partition"` splits are evaluated as level sets, and `$x` keeps the factor columns. 
  Previously, factor columns errored and `"partition"` models failed. `weighting_method = "empirical"` errors on `"partition"` splits.
 
+* `glex()` methods warn about arguments they do not use instead of silently ignoring them, e.g. `glex(rp, x, weighting_method = "fastpd")` for an `rpf` model, which has no weighting method, or a misspelled `weighting_methd` for `xgboost` and `ranger`.
+
+* Multiclass terms such as `mpg__class:4` no longer count the class suffix as an interaction, so `print()` reports the correct maximum degree for multiclass `rpf` models.
+
 # glex 0.7.0
 
 ## Breaking changes
