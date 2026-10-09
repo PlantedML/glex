@@ -17,7 +17,8 @@
 #'   the name of a [scico][scico::scico] palette, or the name of an
 #'   [RColorBrewer][ggplot2::scale_color_brewer] palette.
 #' * `glex.colors_sign` (`c("#008BFB", "#FF0051")`): Two colors for
-#'   negative and positive contributions in [glex_explain()], also used as
+#'   negative and positive contributions in [plot_waterfall()], [plot_force()]
+#'   and [plot_shap_decomposition()], also used as
 #'   the endpoints of the default continuous gradient. The defaults
 #'   follow the blue/red convention familiar from the Python `shap` and
 #'   `shapiq` packages.

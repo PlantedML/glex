@@ -30,7 +30,6 @@ reference:
   - starts_with("plot_")
   - autoplot.glex
   - autoplot.glex_vi
-  - glex_explain
   - glex_options
 - text: -------
 - title: Utility functions

@@ -76,7 +76,7 @@ diverging_palette <- function(...) {
 
   if (is.null(pal)) {
     # Default: shap/shapiq-style gradient built from the same endpoints
-    # as the sign colors used in glex_explain()
+    # as the sign colors used in plot_shap_decomposition()
     cols <- sign_colors()
     ggplot2::scale_color_gradient2(
       low = cols[["-1"]],
@@ -125,7 +125,7 @@ discrete_palette <- function(...) {
   ggplot2::scale_color_brewer(palette = pal, ...)
 }
 
-#' Colors for negative/zero/positive contributions in glex_explain()
+#' Colors for negative/zero/positive contributions in the prediction plots
 #' Defaults follow the blue/red convention of shap/shapiq.
 #' @noRd
 #' @keywords internal

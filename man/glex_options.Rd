@@ -23,7 +23,8 @@ categorical predictors in interaction plots. Accepts a vector of colors
 the name of a \link[scico:scico]{scico} palette, or the name of an
 \link[ggplot2:scale_color_brewer]{RColorBrewer} palette.
 \item \code{glex.colors_sign} (\code{c("#008BFB", "#FF0051")}): Two colors for
-negative and positive contributions in \code{\link[=glex_explain]{glex_explain()}}, also used as
+negative and positive contributions in \code{\link[=plot_waterfall]{plot_waterfall()}}, \code{\link[=plot_force]{plot_force()}}
+and \code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}}, also used as
 the endpoints of the default continuous gradient. The defaults
 follow the blue/red convention familiar from the Python \code{shap} and
 \code{shapiq} packages.
