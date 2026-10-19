@@ -32,6 +32,24 @@ test_that("regression rpf plot", {
   expect_s3_class(p4, "ggplot")
 })
 
+test_that("plot threshold defaults to 2.5% of the largest score", {
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
+  set.seed(1)
+  rp <- rpf(mpg ~ ., data = mtcars, max_interaction = 3)
+  vi <- glex_vi(glex(rp, mtcars))
+
+  n_bars <- function(p) nrow(ggplot2::layer_data(p))
+  n_kept <- sum(vi$m > 0.025 * max(vi$m))
+  expect_lt(n_kept, nrow(vi))
+  expect_identical(n_bars(plot(vi)), n_kept + 1L)
+  expect_identical(n_bars(plot(vi, threshold = 0)), nrow(vi))
+  # No "Remaining terms" degree when summing by degree
+  expect_identical(
+    n_bars(plot(vi, by_degree = TRUE)),
+    data.table::uniqueN(vi$degree)
+  )
+})
+
 
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {

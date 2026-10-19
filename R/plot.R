@@ -29,8 +29,11 @@ plot.glex <- function(x, predictors, ...) {
 #'  for all main effects, all second-order interactions, etc.
 #' @param scale (`"absolute"`) Plot average absolute contributions (default) or the same value but scaled by the
 #' average prediction (`"relative"`).
-#' @param threshold (`numeric(1)`: 0) Optional threshold to filter output to include only importance scores greater
-#'   than this value. Refers to the chosen `scale`.
+#' @param threshold (`numeric(1): NULL`) Terms with an importance score at or
+#'   below this are aggregated under a `"Remaining terms"` label. Refers to the
+#'   chosen `scale`. The default `NULL` uses 2.5% of the largest score (per class
+#'   for multiclass objects), so negligible terms do not crowd the plot, and `0`
+#'   with `by_degree = TRUE`. Set `0` to show all terms.
 #' @param max_interaction (`integer(1): NULL`) Optionally filter plot to show terms up to the specified
 #' degree of interaction. Similar to `threshold`, all other terms will be aggregated under a
 #' `"Remaining terms"` label.
@@ -51,14 +54,14 @@ plot.glex <- function(x, predictors, ...) {
 plot.glex_vi <- function(
   x,
   by_degree = FALSE,
-  threshold = 0,
+  threshold = NULL,
   max_interaction = NULL,
   scale = "absolute",
   ...
 ) {
   object <- data.table::copy(x)
   checkmate::assert_flag(by_degree)
-  checkmate::assert_number(threshold, lower = 0, finite = TRUE)
+  checkmate::assert_number(threshold, lower = 0, finite = TRUE, null.ok = TRUE)
   checkmate::assert_number(
     max_interaction,
     lower = 1,
@@ -84,21 +87,29 @@ plot.glex_vi <- function(
     paste(rng, collapse = "-")
   }
 
+  # Degree sums already summarize small terms
+  if (is.null(threshold) && by_degree) {
+    threshold <- 0
+  }
+  if (is.null(threshold)) {
+    group <- if (is.null(object[["class"]])) 1L else object[["class"]]
+    threshold <- 0.025 * stats::ave(abs(object[[score]]), group, FUN = max)
+  }
+  is_rest <- object$degree > max_interaction | abs(object[[score]]) <= threshold
+
   # If max_interaction or threshold would select any observations, we summarize accordingly
-  if (any(object$degree > max_interaction | abs(object[[score]]) <= threshold)) {
+  if (any(is_rest)) {
     # Sanity check that we're aggregating correctly by keeping track of the sums
     old_sum <- sum(object[[score]])
 
     # Keep rows not above max_interaction and scores above threshold
-    keep <- object[
-      degree <= max_interaction & abs(object[[score]]) > threshold,
-    ]
+    keep <- object[!is_rest, ]
 
     # Depending on whether we have a "class" col in multiclass, we need to summarize by that
     # I thought there was a neater way but by = NULL is not a great idea it turns out.
     if (is.null(object[["class"]])) {
       reduced <- object[
-        degree > max_interaction | abs(object[[score]]) <= threshold,
+        is_rest,
         list(
           m = sum(m),
           m_rel = sum(m_rel),
@@ -108,7 +119,7 @@ plot.glex_vi <- function(
       ]
     } else {
       reduced <- object[
-        degree > max_interaction | abs(object[[score]]) <= threshold,
+        is_rest,
         list(
           m = sum(m),
           m_rel = sum(m_rel),

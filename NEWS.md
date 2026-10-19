@@ -10,7 +10,7 @@
 
 * New `plot_waterfall()` and `plot_force()` show how a single prediction is built from the components of the decomposition, one bar or segment per main or interaction term, from E[f] to f(x). Small terms are aggregated via `max_terms`, `threshold` and `max_interaction`; constrained decompositions end with a remainder bar (#49).
 
-* `plot_waterfall()`, `plot_force()` and `plot_shap_decomposition()` aggregate terms smaller than 2.5% of the largest one by default (`threshold = NULL`), so negligible components no longer crowd the plot; `threshold = 0` shows all terms. Value labels are rounded to the precision the plotted range allows, and labels of values that round to zero are omitted while their bars are still drawn.
+* `plot_waterfall()`, `plot_force()`, `plot_shap_decomposition()` and `plot()` for `glex_vi()` aggregate terms smaller than 2.5% of the largest one by default (`threshold = NULL`), so negligible components no longer crowd the plot; `threshold = 0` shows all terms. Value labels are rounded to the precision the plotted range allows, and labels of values that round to zero are omitted while their bars are still drawn.
 
 * `plot()` methods replace the `autoplot()` methods for `glex` and `glex_vi` objects, so plotting no longer needs ggplot2 attached: `plot(gl, "hp")` picks `plot_main_effect()`, `plot_twoway_effects()` or `plot_threeway_effects()` by the number of predictors, and `plot(glex_vi(gl))` plots importances. The `autoplot()` methods are removed. The `plot_*()` functions remain the explicit interface.
 
