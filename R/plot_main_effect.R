@@ -31,6 +31,9 @@
 #' # Main effects ----
 #' plot_main_effect(components, "wt")
 #' plot_main_effect(components, "cyl")
+#'
+#' # plot() picks the plot by the number of predictors ----
+#' plot(components, c("wt", "hp"))
 plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
   plot_main_effect_impl(object, predictor, pdp = FALSE, ...)
 }

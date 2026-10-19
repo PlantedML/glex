@@ -58,6 +58,13 @@ test_that("rows are drawn top to bottom in plotting order, SHAP at the bottom", 
   }
 })
 
+test_that("value label precision follows the plotted range", {
+  expect_identical(format_contribution(c(1.234, -0.5, 20), 4), c("+1.23", "-0.5", "+20"))
+  expect_identical(format_contribution(c(0.01234, 0.0004), 0.05), c("+0.0123", "+0.0004"))
+  expect_identical(format_contribution(c(-0.004, 2), 10), c("", "+2"))
+  expect_identical(format_contribution(0.5, 0), "+0.5")
+})
+
 test_that("narrow facets get more room for value labels", {
   labels <- c("+0.21", "-0.00516")
   expect_gt(label_expansion(labels, n_panels = 3)[1], label_expansion(labels)[1])

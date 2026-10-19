@@ -40,7 +40,7 @@ test_that("multiclass rpf", {
   p <- plot_twoway_effects(gl, c("x4", "x5"))
   expect_s3_class(p, "ggplot")
 
-  expect_identical(p, autoplot(gl, c("x4", "x5")))
+  expect_identical(p, plot(gl, c("x4", "x5")))
 })
 
 # Missing term ----------------------------------------------------------------------------------------------------

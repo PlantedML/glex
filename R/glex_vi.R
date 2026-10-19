@@ -23,7 +23,7 @@
 #'
 #' \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
 #'
-#' @seealso [autoplot.glex_vi]
+#' @seealso [plot.glex_vi()]
 #' @examplesIf requireNamespace("xgboost", quietly = TRUE)
 #' set.seed(1)
 #'
@@ -38,9 +38,8 @@
 #' glex_xgb <- glex(xg, x[27:32, ])
 #' vi_xgb <- glex_vi(glex_xgb)
 #'
-#' library(ggplot2)
-#' autoplot(vi_xgb)
-#' autoplot(vi_xgb, by_degree = TRUE)
+#' plot(vi_xgb)
+#' plot(vi_xgb, by_degree = TRUE)
 glex_vi <- function(object, ...) {
   checkmate::assert_class(object, classes = "glex")
 

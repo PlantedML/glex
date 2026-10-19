@@ -12,6 +12,19 @@
 #' caption states how many are not. Use `max_terms` or `threshold` to aggregate
 #' small terms instead.
 #'
+#' The layout follows the force plots introduced by Lundberg et al. (2018) in the
+#' Python 'shap' library, also available in the R package 'shapviz', which show
+#' SHAP values (one segment per feature) rather than the terms of a functional
+#' decomposition.
+#'
+#' @references
+#' Lundberg, S. M., Nair, B., Vavilala, M. S., et al. (2018). Explainable
+#' machine-learning predictions for the prevention of hypoxaemia during surgery.
+#' *Nature Biomedical Engineering*, 2, 749--760. \doi{10.1038/s41551-018-0304-0}
+#'
+#' Mayer, M. (2026). shapviz: SHAP Visualizations. R package.
+#' <https://CRAN.R-project.org/package=shapviz>
+#'
 #' @returns A [ggplot][ggplot2::ggplot] object.
 #' @export
 #' @family Visualization functions
@@ -25,7 +38,7 @@
 plot_force <- function(
   object,
   id,
-  threshold = 0,
+  threshold = NULL,
   max_terms = 10L,
   max_interaction = NULL,
   class = NULL
@@ -38,7 +51,7 @@ plot_force <- function(
   }
 
   d$mid <- (d$start + d$end) / 2
-  d$text <- paste0(d$label, "\n", format_contribution(d$m))
+  d$text <- paste0(d$label, "\n", format_contribution(d$m, xrange))
   d <- place_force_labels(d, xrange)
   d$y <- d$dir * (0.55 + 0.8 * d$tier)
   d$vjust <- ifelse(d$dir == 1, 0, 1)

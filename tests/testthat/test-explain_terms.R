@@ -1,6 +1,6 @@
 test_that("terms run from the intercept to the prediction", {
   gl <- fake_glex()
-  et <- explain_terms(gl, id = 2)
+  et <- explain_terms(gl, id = 2, threshold = 0)
   expect_equal(et$intercept, 19.56)
   expect_equal(et$prediction, 19.56 + sum(unlist(gl$m[2, ])))
   expect_equal(et$terms$start[1], et$intercept)
@@ -24,6 +24,13 @@ test_that("max_terms keeps the largest terms and aggregates the rest", {
   expect_identical(et$n_other, 5L)
 })
 
+test_that("the default threshold aggregates terms below 2.5% of the largest", {
+  et <- explain_terms(fake_glex(), id = 2)
+  # 0.04 and 0.03 are below 0.025 * 1.74
+  expect_identical(et$n_other, 2L)
+  expect_equal(et$terms$m[et$terms$type == "other"], 0.04 - 0.03)
+})
+
 test_that("threshold and max_interaction aggregate terms", {
   gl <- fake_glex()
   et <- explain_terms(gl, id = 2, threshold = 0.1)
@@ -42,7 +49,7 @@ test_that("edge cases of the selection keep the sum exact", {
   et <- explain_terms(gl, id = 2, threshold = 10)
   expect_identical(et$terms$term, "7 other terms")
   expect_equal(et$prediction, full$prediction)
-  expect_identical(explain_terms(gl, id = 2, max_terms = 6)$terms$term[7], "1 other term")
+  expect_identical(explain_terms(gl, id = 2, threshold = 0, max_terms = 6)$terms$term[7], "1 other term")
 
   gl$m[3, (names(gl$m)) := 0]
   et <- explain_terms(gl, id = 3)

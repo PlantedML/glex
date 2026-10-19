@@ -103,8 +103,8 @@ for (col in names(xg_glex$x)) {
 }
 
 library(ggplot2)
-autoplot(xg_glex, "hr")
-autoplot(xg_glex, "holiday")
-autoplot(xg_glex, "weathersit.clear")
+plot(xg_glex, "hr")
+plot(xg_glex, "holiday")
+plot(xg_glex, "weathersit.clear")
 
 usethis::use_data(bike_xg, overwrite = TRUE)

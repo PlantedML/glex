@@ -8,7 +8,7 @@
 plot_shap_decomposition(
   object,
   id,
-  threshold = 0,
+  threshold = NULL,
   max_interaction = NULL,
   predictors = NULL,
   class = NULL,
@@ -23,8 +23,10 @@ data to be explained.}
 
 \item{id}{(\code{integer(1)}) Row ID of the observation to be explained in \code{object$x}.}
 
-\item{threshold}{(\code{numeric(1): 0}) Terms whose contribution is at or below
-this are aggregated under a \code{"Remaining terms"} label.}
+\item{threshold}{(\code{numeric(1): NULL}) Terms whose contribution is at or below
+this are aggregated under a \code{"Remaining terms"} label. The default \code{NULL}
+uses 2.5\% of the largest absolute contribution in each panel; set \code{0} to
+show all terms.}
 
 \item{max_interaction}{(\code{integer(1): NULL}) Terms of a higher degree are
 aggregated under the \code{"Remaining terms"} label.}
@@ -65,8 +67,8 @@ plot_shap_decomposition(glex_rpf, id = 3, predictors = "hp", threshold = 0.01)
 }
 \seealso{
 Other Visualization functions:
-\code{\link[=autoplot.glex]{autoplot.glex()}},
-\code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
+\code{\link[=plot.glex]{plot.glex()}},
+\code{\link[=plot.glex_vi]{plot.glex_vi()}},
 \code{\link[=plot_force]{plot_force()}},
 \code{\link[=plot_pdp]{plot_pdp()}},
 \code{\link[=plot_waterfall]{plot_waterfall()}}

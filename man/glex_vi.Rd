@@ -50,11 +50,10 @@ xg <- xgboost(x[1:26, ], y[1:26],
 glex_xgb <- glex(xg, x[27:32, ])
 vi_xgb <- glex_vi(glex_xgb)
 
-library(ggplot2)
-autoplot(vi_xgb)
-autoplot(vi_xgb, by_degree = TRUE)
+plot(vi_xgb)
+plot(vi_xgb, by_degree = TRUE)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\link{autoplot.glex_vi}
+\code{\link[=plot.glex_vi]{plot.glex_vi()}}
 }

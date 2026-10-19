@@ -7,7 +7,7 @@
 plot_force(
   object,
   id,
-  threshold = 0,
+  threshold = NULL,
   max_terms = 10L,
   max_interaction = NULL,
   class = NULL
@@ -18,8 +18,10 @@ plot_force(
 
 \item{id}{(\code{integer(1)}) Row of \code{object$x} to explain.}
 
-\item{threshold}{(\code{numeric(1): 0}) Terms with an absolute value at or below
-this are aggregated into one "other terms" bar.}
+\item{threshold}{(\code{numeric(1): NULL}) Terms with an absolute value at or
+below this are aggregated into one "other terms" bar. The default \code{NULL}
+uses 2.5\% of the largest absolute term, so negligible terms do not crowd
+the plot; set \code{0} to show all terms.}
 
 \item{max_terms}{(\code{integer(1): 10}) Maximum number of terms shown
 individually, keeping the largest in absolute value. The rest are aggregated.}
@@ -44,6 +46,11 @@ f(x).
 Only segments at least 5\% as wide as the plotted range are labeled; the
 caption states how many are not. Use \code{max_terms} or \code{threshold} to aggregate
 small terms instead.
+
+The layout follows the force plots introduced by Lundberg et al. (2018) in the
+Python 'shap' library, also available in the R package 'shapviz', which show
+SHAP values (one segment per feature) rather than the terms of a functional
+decomposition.
 }
 \examples{
 \dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
@@ -55,10 +62,18 @@ gl <- glex(rp, mtcars[27:32, ])
 plot_force(gl, id = 3, max_terms = 6)
 \dontshow{\}) # examplesIf}
 }
+\references{
+Lundberg, S. M., Nair, B., Vavilala, M. S., et al. (2018). Explainable
+machine-learning predictions for the prevention of hypoxaemia during surgery.
+\emph{Nature Biomedical Engineering}, 2, 749--760. \doi{10.1038/s41551-018-0304-0}
+
+Mayer, M. (2026). shapviz: SHAP Visualizations. R package.
+\url{https://CRAN.R-project.org/package=shapviz}
+}
 \seealso{
 Other Visualization functions:
-\code{\link[=autoplot.glex]{autoplot.glex()}},
-\code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
+\code{\link[=plot.glex]{plot.glex()}},
+\code{\link[=plot.glex_vi]{plot.glex_vi()}},
 \code{\link[=plot_pdp]{plot_pdp()}},
 \code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}},
 \code{\link[=plot_waterfall]{plot_waterfall()}}

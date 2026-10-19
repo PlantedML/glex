@@ -23,7 +23,7 @@
 #'   follow the blue/red convention familiar from the Python `shap` and
 #'   `shapiq` packages.
 #' * `glex.color_line` (`"#194155"`): Color for main effect lines and
-#'   columns drawn by `autoplot()` and [plot_pdp()].
+#'   columns drawn by [plot.glex()] and [plot_pdp()].
 #'
 #' @examples
 #' # Use a scico palette for continuous effects instead of the default gradient

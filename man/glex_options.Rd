@@ -29,7 +29,7 @@ the endpoints of the default continuous gradient. The defaults
 follow the blue/red convention familiar from the Python \code{shap} and
 \code{shapiq} packages.
 \item \code{glex.color_line} (\code{"#194155"}): Color for main effect lines and
-columns drawn by \code{autoplot()} and \code{\link[=plot_pdp]{plot_pdp()}}.
+columns drawn by \code{\link[=plot.glex]{plot.glex()}} and \code{\link[=plot_pdp]{plot_pdp()}}.
 }
 }
 \examples{

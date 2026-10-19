@@ -13,13 +13,13 @@ explain_terms <- function(
   object,
   id,
   class = NULL,
-  threshold = 0,
+  threshold = NULL,
   max_terms = 10L,
   max_interaction = NULL
 ) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_int(id, lower = 1, upper = nrow(object$x))
-  checkmate::assert_number(threshold, lower = 0, finite = TRUE)
+  checkmate::assert_number(threshold, lower = 0, finite = TRUE, null.ok = TRUE)
   checkmate::assert_int(max_terms, lower = 1)
   checkmate::assert_int(max_interaction, lower = 1, null.ok = TRUE)
   check_class_arg(object, class)
@@ -36,6 +36,9 @@ explain_terms <- function(
   m <- m[m != 0]
   degree <- get_degree(names(m))
 
+  if (is.null(threshold)) {
+    threshold <- 0.025 * max(abs(m), 0)
+  }
   drop <- abs(m) <= threshold
   if (!is.null(max_interaction)) {
     drop <- drop | degree > max_interaction

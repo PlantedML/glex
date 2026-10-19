@@ -8,8 +8,10 @@
 #'
 #' @param object Object of class [`glex`].
 #' @param id (`integer(1)`) Row of `object$x` to explain.
-#' @param threshold (`numeric(1): 0`) Terms with an absolute value at or below
-#'   this are aggregated into one "other terms" bar.
+#' @param threshold (`numeric(1): NULL`) Terms with an absolute value at or
+#'   below this are aggregated into one "other terms" bar. The default `NULL`
+#'   uses 2.5% of the largest absolute term, so negligible terms do not crowd
+#'   the plot; set `0` to show all terms.
 #' @param max_terms (`integer(1): 10`) Maximum number of terms shown
 #'   individually, keeping the largest in absolute value. The rest are aggregated.
 #' @param max_interaction (`integer(1): NULL`) Terms of a higher degree are
@@ -22,6 +24,18 @@
 #' constrained decompositions (see [glex()]), what the dropped terms account for
 #' is shown as a final "remainder (constrained)" bar, so the plot still ends at
 #' the model's prediction.
+#'
+#' The layout follows the waterfall plots of the Python 'shap' library and of
+#' the R package 'shapviz', which show SHAP values (one bar per feature) rather
+#' than the terms of a functional decomposition.
+#'
+#' @references
+#' Lundberg, S. M. & Lee, S.-I. (2017). A unified approach to interpreting model
+#' predictions. *Advances in Neural Information Processing Systems 30*.
+#' <https://proceedings.neurips.cc/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html>
+#'
+#' Mayer, M. (2026). shapviz: SHAP Visualizations. R package.
+#' <https://CRAN.R-project.org/package=shapviz>
 #'
 #' @returns A [ggplot][ggplot2::ggplot] object.
 #' @export
@@ -37,7 +51,7 @@
 plot_waterfall <- function(
   object,
   id,
-  threshold = 0,
+  threshold = NULL,
   max_terms = 10L,
   max_interaction = NULL,
   class = NULL
@@ -50,7 +64,8 @@ plot_waterfall <- function(
   d$row <- seq_len(n)
   d$sign <- as.character(sign(d$m))
   d$alpha <- degree_alpha(d$degree)
-  d$value <- format_contribution(d$m)
+  xrange <- diff(range(c(d$start, d$end, et$intercept, et$prediction)))
+  d$value <- format_contribution(d$m, xrange)
   d$xlab <- ifelse(d$m >= 0, pmax(d$start, d$end), pmin(d$start, d$end))
   d$hjust <- ifelse(d$m >= 0, -0.15, 1.15)
 
@@ -59,7 +74,6 @@ plot_waterfall <- function(
     y = d$row[-n] + barheight / 2,
     yend = d$row[-1] - barheight / 2
   )
-  xrange <- diff(range(c(d$start, d$end, et$intercept, et$prediction)))
 
   ggplot(d) +
     geom_vline(

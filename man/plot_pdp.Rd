@@ -45,8 +45,8 @@ plot_pdp(components, "cyl")
 \code{\link[=plot_main_effect]{plot_main_effect()}}
 
 Other Visualization functions:
-\code{\link[=autoplot.glex]{autoplot.glex()}},
-\code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
+\code{\link[=plot.glex]{plot.glex()}},
+\code{\link[=plot.glex_vi]{plot.glex_vi()}},
 \code{\link[=plot_force]{plot_force()}},
 \code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}},
 \code{\link[=plot_waterfall]{plot_waterfall()}}

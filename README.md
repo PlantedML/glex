@@ -309,7 +309,7 @@ with terms below the threshold aggregated into one labelled “Remaining
 terms”:
 
 ``` r
-autoplot(vi_xgb, threshold = .05)
+plot(vi_xgb, threshold = .05)
 ```
 
 <img src="man/figures/README-glex_vi-plot-1.png" alt="" width="100%" />
@@ -320,7 +320,7 @@ interactions above a certain degree to not be particularly relevant for
 a given model.
 
 ``` r
-autoplot(vi_xgb, by_degree = TRUE)
+plot(vi_xgb, by_degree = TRUE)
 ```
 
 <img src="man/figures/README-glex_vi-plot-by-degree-1.png" alt="" width="100%" />
@@ -332,14 +332,14 @@ which admittedly produces more interesting output with larger, more
 interesting datasets.
 
 ``` r
-autoplot(glex_xgb, "hp") + labs(title = "Main effect for 'hp'")
+plot(glex_xgb, "hp") + labs(title = "Main effect for 'hp'")
 ```
 
 <img src="man/figures/README-plot_components-1.png" alt="" width="100%" />
 
 ``` r
 
-autoplot(glex_xgb, c("hp", "wt")) + labs(title = "Two-way effects for 'hp' and 'wt'")
+plot(glex_xgb, c("hp", "wt")) + labs(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
 <img src="man/figures/README-plot_components-2.png" alt="" width="100%" />

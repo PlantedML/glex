@@ -1,7 +1,8 @@
 #' @rdname plot_components
+#' @param x Object of class [`glex`].
 #' @export
 #' @family Visualization functions
-autoplot.glex <- function(object, predictors, ...) {
+plot.glex <- function(x, predictors, ...) {
   np <- length(predictors)
 
   if (np < 1 | np > 3) {
@@ -9,13 +10,13 @@ autoplot.glex <- function(object, predictors, ...) {
   }
 
   if (np == 1) {
-    p <- plot_main_effect(object, predictors, ...)
+    p <- plot_main_effect(x, predictors, ...)
   }
   if (np == 2) {
-    p <- plot_twoway_effects(object, predictors, ...)
+    p <- plot_twoway_effects(x, predictors, ...)
   }
   if (np == 3) {
-    p <- plot_threeway_effects(object, predictors, ...)
+    p <- plot_threeway_effects(x, predictors, ...)
   }
 
   p
@@ -23,7 +24,7 @@ autoplot.glex <- function(object, predictors, ...) {
 
 #' Plot glex Variable Importances
 #'
-#' @param object Object of class `glex_vi`, see [`glex_vi()`].
+#' @param x Object of class `glex_vi`, see [`glex_vi()`].
 #' @param by_degree (`logical(1): FALSE`) Optionally sum values by degree of interaction, resulting in one contribution score
 #'  for all main effects, all second-order interactions, etc.
 #' @param scale (`"absolute"`) Plot average absolute contributions (default) or the same value but scaled by the
@@ -39,14 +40,23 @@ autoplot.glex <- function(object, predictors, ...) {
 #' @export
 #' @seealso [glex_vi]
 #' @family Visualization functions
-autoplot.glex_vi <- function(
-  object,
+#' @examplesIf requireNamespace("xgboost", quietly = TRUE)
+#' library(xgboost)
+#' x <- as.matrix(mtcars[, -1])
+#' xg <- xgboost(x, mtcars$mpg, max_depth = 3, nrounds = 10, nthreads = 1)
+#' vi <- glex_vi(glex(xg, x))
+#'
+#' plot(vi, threshold = 0.05)
+#' plot(vi, by_degree = TRUE)
+plot.glex_vi <- function(
+  x,
   by_degree = FALSE,
   threshold = 0,
   max_interaction = NULL,
   scale = "absolute",
   ...
 ) {
+  object <- data.table::copy(x)
   checkmate::assert_flag(by_degree)
   checkmate::assert_number(threshold, lower = 0, finite = TRUE)
   checkmate::assert_number(
@@ -60,7 +70,6 @@ autoplot.glex_vi <- function(
   }
   checkmate::assert_subset(scale, choices = c("absolute", "relative"))
 
-  object <- data.table::copy(object)
   by_what <- ifelse(by_degree, "Degree", "Term")
   score <- switch(scale, absolute = "m", relative = "m_rel")
 

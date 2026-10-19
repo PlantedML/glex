@@ -150,10 +150,22 @@ degree_alpha <- function(degree) {
 }
 
 #' Signed contribution label, e.g. "+0.21"
+#'
+#' Precision follows the plotted range, not each value, so labels in one panel
+#' are rounded alike; trailing zeros are dropped. Returns `""` for values too small to label; their bars
+#' are still drawn.
+#' @param m Contributions.
+#' @param xrange (`numeric(1)`) Width of the plotted x range.
 #' @noRd
 #' @keywords internal
-format_contribution <- function(m) {
-  sprintf("%+.3g", m)
+format_contribution <- function(m, xrange) {
+  if (!is.finite(xrange) || xrange <= 0) {
+    xrange <- max(abs(m), 1)
+  }
+  # Resolution of 0.1-1% of the range
+  digits <- max(0L, ceiling(-log10(0.01 * xrange)))
+  label <- sub("\\.$", "", sub("(\\.[0-9]*?)0+$", "\\1", sprintf("%+.*f", digits, m)))
+  ifelse(round(m, digits) == 0, "", label)
 }
 
 #' X expansion leaving room for value labels placed outside bar ends

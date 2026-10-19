@@ -21,7 +21,7 @@ test_that("binary rpf", {
   p <- plot_main_effect(gl, "x1")
   expect_s3_class(p, "ggplot")
 
-  expect_identical(p, autoplot(gl, "x1"))
+  expect_identical(p, plot(gl, "x1"))
 })
 
 

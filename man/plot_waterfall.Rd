@@ -7,7 +7,7 @@
 plot_waterfall(
   object,
   id,
-  threshold = 0,
+  threshold = NULL,
   max_terms = 10L,
   max_interaction = NULL,
   class = NULL
@@ -18,8 +18,10 @@ plot_waterfall(
 
 \item{id}{(\code{integer(1)}) Row of \code{object$x} to explain.}
 
-\item{threshold}{(\code{numeric(1): 0}) Terms with an absolute value at or below
-this are aggregated into one "other terms" bar.}
+\item{threshold}{(\code{numeric(1): NULL}) Terms with an absolute value at or
+below this are aggregated into one "other terms" bar. The default \code{NULL}
+uses 2.5\% of the largest absolute term, so negligible terms do not crowd
+the plot; set \code{0} to show all terms.}
 
 \item{max_terms}{(\code{integer(1): 10}) Maximum number of terms shown
 individually, keeping the largest in absolute value. The rest are aggregated.}
@@ -45,6 +47,10 @@ Bars of interaction terms are more transparent the higher their degree. For
 constrained decompositions (see \code{\link[=glex]{glex()}}), what the dropped terms account for
 is shown as a final "remainder (constrained)" bar, so the plot still ends at
 the model's prediction.
+
+The layout follows the waterfall plots of the Python 'shap' library and of
+the R package 'shapviz', which show SHAP values (one bar per feature) rather
+than the terms of a functional decomposition.
 }
 \examples{
 \dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
@@ -57,10 +63,18 @@ plot_waterfall(gl, id = 3)
 plot_waterfall(gl, id = 3, max_terms = 5)
 \dontshow{\}) # examplesIf}
 }
+\references{
+Lundberg, S. M. & Lee, S.-I. (2017). A unified approach to interpreting model
+predictions. \emph{Advances in Neural Information Processing Systems 30}.
+\url{https://proceedings.neurips.cc/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html}
+
+Mayer, M. (2026). shapviz: SHAP Visualizations. R package.
+\url{https://CRAN.R-project.org/package=shapviz}
+}
 \seealso{
 Other Visualization functions:
-\code{\link[=autoplot.glex]{autoplot.glex()}},
-\code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
+\code{\link[=plot.glex]{plot.glex()}},
+\code{\link[=plot.glex_vi]{plot.glex_vi()}},
 \code{\link[=plot_force]{plot_force()}},
 \code{\link[=plot_pdp]{plot_pdp()}},
 \code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}}

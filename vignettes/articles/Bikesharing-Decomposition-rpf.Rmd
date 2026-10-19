@@ -151,25 +151,25 @@ Iterating over `vars` (`r paste0(vars, collapse = ", ")`), and passing each to `
 wrap_plots(lapply(vars, plot_main_effect, object = components))
 ```
 
-From here we use `autoplot` for convenience. Internally it just passes its arguments on to the specialized `plot_*` functions, depending on the number of predictors supplied.
+From here we use `plot()` for convenience. Internally it just passes its arguments on to the specialized `plot_*` functions, depending on the number of predictors supplied.
 
 ```{r}
-autoplot(components, c("season", "workingday"))
-autoplot(components, c("season", "hr"))
-autoplot(components, c("season", "weathersit"))
-autoplot(components, c("weathersit", "temp"))
-autoplot(components, c("hum", "temp"))
+plot(components, c("season", "workingday"))
+plot(components, c("season", "hr"))
+plot(components, c("season", "weathersit"))
+plot(components, c("weathersit", "temp"))
+plot(components, c("hum", "temp"))
 ```
 
 
 3rd degree interactions can be tricky, if they have any effect at all.
 
 ```{r}
-autoplot(components, c("season", "hr", "weathersit"))
-autoplot(components, c("workingday", "hr", "season"))
+plot(components, c("season", "hr", "weathersit"))
+plot(components, c("workingday", "hr", "season"))
 # Hard to interpret
-autoplot(components, c("workingday", "hr", "weathersit"))
+plot(components, c("workingday", "hr", "weathersit"))
 # zero effect
-autoplot(components, c("weathersit", "season", "workingday"))
+plot(components, c("weathersit", "season", "workingday"))
 ```
 

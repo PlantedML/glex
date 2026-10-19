@@ -12,8 +12,10 @@
 #' @param object Object of class [`glex`] containing prediction components and
 #'   data to be explained.
 #' @param id (`integer(1)`) Row ID of the observation to be explained in `object$x`.
-#' @param threshold (`numeric(1): 0`) Terms whose contribution is at or below
-#'   this are aggregated under a `"Remaining terms"` label.
+#' @param threshold (`numeric(1): NULL`) Terms whose contribution is at or below
+#'   this are aggregated under a `"Remaining terms"` label. The default `NULL`
+#'   uses 2.5% of the largest absolute contribution in each panel; set `0` to
+#'   show all terms.
 #' @param max_interaction (`integer(1): NULL`) Terms of a higher degree are
 #'   aggregated under the `"Remaining terms"` label.
 #' @param predictors (`character: NULL`) Vector of column names in `$x` to
@@ -36,7 +38,7 @@
 plot_shap_decomposition <- function(
   object,
   id,
-  threshold = 0,
+  threshold = NULL,
   max_interaction = NULL,
   predictors = NULL,
   class = NULL,
@@ -45,7 +47,7 @@ plot_shap_decomposition <- function(
   checkmate::assert_class(object, "glex")
   checkmate::assert_int(id, lower = 1, upper = nrow(object$x))
   checkmate::assert_int(max_interaction, lower = 1, null.ok = TRUE)
-  checkmate::assert_number(threshold, lower = 0)
+  checkmate::assert_number(threshold, lower = 0, null.ok = TRUE)
   checkmate::assert_subset(predictors, names(object$x), empty.ok = TRUE)
   checkmate::assert_subset(class, object$target_levels, empty.ok = TRUE)
 
@@ -86,7 +88,12 @@ plot_shap_decomposition <- function(
   xdf <- data.table::rbindlist(
     lapply(names(x_subset), function(main_term) {
       mtemp <- mlong_id[find_term_matches(main_term, term), ]
-      rest <- abs(mtemp$m_scaled) <= threshold
+      cutoff <- if (is.null(threshold)) {
+        0.025 * stats::ave(abs(mtemp$m_scaled), mtemp$class, FUN = max)
+      } else {
+        threshold
+      }
+      rest <- abs(mtemp$m_scaled) <= cutoff
       if (!is.null(max_interaction)) {
         rest <- rest | mtemp$degree > max_interaction
       }
@@ -134,7 +141,10 @@ plot_shap_decomposition <- function(
   xdf[, ykey := paste(reference_term, class, pos, sep = "\r")]
   xdf[, ykey := factor(ykey, levels = ykey[order(-pos)])]
   xdf[, sign := as.character(sign(m_scaled))]
-  xdf[, value := format_contribution(m_scaled)]
+  xdf[,
+    value := format_contribution(m_scaled, diff(range(c(xleft, xright)))),
+    by = c("reference_term", "class")
+  ]
   xdf[, xlab := ifelse(m_scaled >= 0, pmax(xleft, xright), pmin(xleft, xright))]
   xdf[, hjust := ifelse(m_scaled >= 0, -0.15, 1.15)]
 
