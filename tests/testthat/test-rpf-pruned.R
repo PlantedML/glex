@@ -400,8 +400,11 @@ test_that("prediction plots of pruned classification models: binary, and three c
   for (loss in c("L2", "logit", "exponential")) {
     pk <- randomPlantedForest::rpf(x, yk, max_interaction = 3, n_families = 20, n_splits = 30, loss = loss)
     gk <- glex(pk, x)
-    # with logit the first class is the reference and has no score
-    expect_identical(gk$target_levels, if (loss == "logit") c("b", "c") else c("a", "b", "c"))
+    # one score per class with every loss; randomPlantedForest builds before
+    # PlantedML/randomPlantedForest#115 gave logit's first class no score
+    expected <- c("a", "b", "c")
+    if (loss == "logit" && length(gk$target_levels) == 2) expected <- c("b", "c")
+    expect_identical(gk$target_levels, expected)
     expect_named(gk$intercept, gk$target_levels)
     expect_error(plot_force(gk, id = 1), "`class` is required")
     for (level in gk$target_levels) {

@@ -60,9 +60,9 @@ error. \code{m_rel} is \code{m} over the variance of the prediction at \code{x} 
 any), its share of the variance of the prediction. For the components of a purified decomposition (mean zero), \code{m}
 is the variance of the term. For multiclass models, \code{m} and the variance of the prediction are summed over the
 classes' scores (one row per term). This is the size by which randomPlantedForest's \code{prune_components()} ranks and
-prunes the components, except that it measures it on the training rows, and for classification with
-\code{loss = "logit"} or \code{"exponential"} centres the scores across the classes first: for the \code{glex()} object of a
-pruned model, \code{measure = "share"} gives the pruning's own numbers.
+prunes the components, except that it measures it on the training rows: for the \code{glex()} object of a pruned
+model, \code{measure = "share"} gives the pruning's own numbers. (For classification with \code{loss = "logit"} or
+\code{"exponential"}, randomPlantedForest reports the scores centred across the classes, as the pruning measures them.)
 
 \strong{\code{measure = "share"}.} For the \code{glex()} object of a pruned Random Planted Forest: \code{m} and \code{m_rel} are both the
 pruning's share of the variance of the prediction on the training rows, as in \code{object$pruned$components}.
