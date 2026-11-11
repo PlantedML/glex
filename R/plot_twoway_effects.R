@@ -1,24 +1,30 @@
 #' @rdname plot_components
+#' @param resolution (`integer(1): 100`) Models of class `rpf_pruned` only: the most cells of a heat map along each
+#'   predictor, see Details.
 #' @export
 #' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
 #' # 2-degree interaction effects ----
-#' # 2d continuous, scatterplot of arbitrary orientation
-#' plot_twoway_effects(components, c("wt", "drat"))
-#' # flipped: plot_twoway_effects(components, c("drat", "wt"))
+#' # 2d continuous
+#' plot_twoway_effects(components, c("hr", "temp"))
 #'
-#' # continuous + categorical (forces continuous on x axis, colors by categorical)
-#' plot_twoway_effects(components, c("wt", "cyl"))
-#' # identical: plot_twoway_effects(components, c("cyl", "wt"))
-#'
-#' # 2d categorical, heatmap of arbitrary orientation
-#' plot_twoway_effects(components, c("vs", "cyl"))
-#' plot_twoway_effects(components, c("cyl", "vs"))
-plot_twoway_effects <- function(object, predictors, rug_sides = "b", ...) {
+#' # continuous + categorical
+#' plot_twoway_effects(components, c("hr", "workingday"))
+plot_twoway_effects <- function(
+  object,
+  predictors,
+  rug_sides = "b",
+  resolution = 100L,
+  ...
+) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_character(predictors, len = 2, unique = TRUE)
   checkmate::assert_subset(predictors, names(object$x))
+  if (is_pruned_glex(object)) {
+    checkmate::assert_int(resolution, lower = 2)
+    return(plot_pruned_pair(object, predictors, resolution = resolution))
+  }
 
   x_types <- get_x_types(object, predictors)
   xdf <- assemble_components(object, predictors)

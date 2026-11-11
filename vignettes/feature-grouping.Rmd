@@ -184,6 +184,5 @@ the effect plots are not available for that group, but term importances and
 SHAP values aggregate as usual:
 
 ```{r semantic-vi, fig.height=4}
-library(ggplot2)
-autoplot(glex_vi(weather), threshold = 0.5)
+plot(glex_vi(weather), threshold = 0.5)
 ```

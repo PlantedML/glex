@@ -18,18 +18,11 @@ print.glex <- function(x, ...) {
   n <- nrow(x$x)
   n_m <- ncol(x$m)
   max_deg <- max(get_degree(names(x$m)))
-  max_deg_lab <- switch(as.character(max_deg), "1" = "degree", "degrees")
 
   cat("glex object of subclass", class(x)[[2]], "\n")
-  cat(
-    "Explaining predictions of",
-    n,
-    "observations with",
-    n_m,
-    "terms of up to",
-    max_deg,
-    max_deg_lab
-  )
+  cat(as.character(cli::pluralize(
+    "Explaining predictions of {n} observation{?s} with {n_m} term{?s} of up to {max_deg} degree{?s}"
+  )))
   cat("\n")
 
   if (length(x$constrained) > 0) {

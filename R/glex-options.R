@@ -17,12 +17,13 @@
 #'   the name of a [scico][scico::scico] palette, or the name of an
 #'   [RColorBrewer][ggplot2::scale_color_brewer] palette.
 #' * `glex.colors_sign` (`c("#008BFB", "#FF0051")`): Two colors for
-#'   negative and positive contributions in [glex_explain()], also used as
+#'   negative and positive contributions in [plot_waterfall()], [plot_force()]
+#'   and [plot_shap_decomposition()], also used as
 #'   the endpoints of the default continuous gradient. The defaults
 #'   follow the blue/red convention familiar from the Python `shap` and
 #'   `shapiq` packages.
 #' * `glex.color_line` (`"#194155"`): Color for main effect lines and
-#'   columns drawn by `autoplot()` and [plot_pdp()].
+#'   columns drawn by [plot.glex()] and [plot_pdp()].
 #'
 #' @examples
 #' # Use a scico palette for continuous effects instead of the default gradient
@@ -35,6 +36,9 @@
 #' options(glex.palette_discrete = "okabe-ito")
 #' options(glex.palette_discrete = "batlow")
 #' options(glex.palette_discrete = c("#E69F00", "#56B4E9", "#009E73"))
+#'
+#' # Restore the default
+#' options(glex.palette_discrete = NULL)
 #'
 #' @name glex_options
 NULL

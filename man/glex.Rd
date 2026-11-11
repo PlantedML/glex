@@ -4,6 +4,7 @@
 \alias{glex}
 \alias{glex.default}
 \alias{glex.rpf}
+\alias{glex.rpf_pruned}
 \alias{glex.xgb.Booster}
 \alias{glex.ranger}
 \title{Global explanations for tree-based models.}
@@ -13,6 +14,8 @@ glex(object, x, max_interaction = NULL, features = NULL, ...)
 \method{glex}{default}(object, ...)
 
 \method{glex}{rpf}(object, x, max_interaction = NULL, features = NULL, ...)
+
+\method{glex}{rpf_pruned}(object, x, max_interaction = NULL, features = NULL, ...)
 
 \method{glex}{xgb.Booster}(
   object,
@@ -70,15 +73,13 @@ A \code{list} with elements:
 decomposition is complete: if it is constrained (see \code{constrained}), the components
 no longer sum to the full model prediction and the SHAP efficiency property cannot
 hold, so \code{shap} is a scalar \code{NA} (with a warning) while \code{m} remains valid.
-For multiclass models, columns are class-specific like those of \code{m}. Note that
-\code{randomPlantedForest} models report a single \code{intercept} for all classes, so for
-multiclass models \code{intercept + rowSums(shap)} reconstructs the predicted class
-scores only approximately.
+For multiclass models, columns are class-specific like those of \code{m}.
 \item \code{m}: Functional decomposition into all main and interaction
 components in the model, up to the degree specified by \code{max_interaction}.
 The variable names correspond to the original variable names,
 with \code{:} separating interaction terms as one would specify in a \code{\link{formula}} interface.
-\item \code{intercept}: Intercept term, the expected value of the prediction.
+\item \code{intercept}: Intercept term, the expected value of the prediction. For multiclass
+models a named vector with one value per class.
 \item \code{constrained}: Character vector naming the arguments that constrained the
 decomposition (\code{"max_interaction"}, \code{"features"}), or \code{character(0)} if it is
 complete. Use \code{length(x$constrained) > 0} to check whether \code{shap} is valid.
@@ -110,19 +111,48 @@ q-interaction SHAP for all values of q for tree-based models such as xgboost.
 For parallel execution using \code{xgboost} models, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
 
+\strong{Random Planted Forests of class \code{rpf_pruned}.} \code{rpf()} of randomPlantedForest (from version 0.6) returns by
+default a model of class \code{rpf_pruned} with few components (see \code{randomPlantedForest::prune_components()}), each
+stored in the form it predicts with (scaled by its coefficient). \code{glex()} of such a model returns their values at
+\code{x}, which with the intercept sum to the model's prediction, and SHAP values derived from them as for the other
+models. Components the model does not have are absent from \code{m}, not zero columns. The result also carries \code{pruned}
+(see Value), which \code{\link[=plot.glex]{plot.glex()}}, \code{\link[=plot_twoway_effects]{plot_twoway_effects()}} and \code{\link[=plot_threeway_effects]{plot_threeway_effects()}} use to draw the model
+exactly as it predicts, and which \code{\link[=glex_vi]{glex_vi()}} uses for \code{measure = "share"}. A forest fitted with \code{prune = FALSE}
+(class \code{rpf}) is also supported: \code{glex()} then decomposes the whole forest.
+
 The different weighting methods are described in detail in Liu et al. (2025). The default
 method is \code{"fastpd"} as it consistently estimates the correct partial dependence function.
 }
+\section{Value for models of class \code{rpf_pruned}}{
+
+The list has one more element, \code{pruned}, a list with
+\itemize{
+\item \code{components}: a \code{data.frame} of the model's components, with columns \code{term}, \code{degree}, \code{share} (the share of the
+variance of the prediction that \code{prune_components()} measured on the training rows, before the coefficients),
+\code{beta} (the coefficient), \code{form} and \code{heat_maps} (see \code{randomPlantedForest::prune_components()});
+\item \code{coarse} and \code{asis}: for each component of three or more predictors, the predictors \code{C} its heat maps are split by
+and their cut points \code{cuts};
+\item \code{max_panels}, \code{intercept}, \code{mode} and \code{loss} of the model, and the model itself (\code{model}), which the plots
+evaluate on grids.
+}
+}
+
 \examples{
 \dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 
 # Random Planted Forest -----
 library(randomPlantedForest)
 
+set.seed(1)
 rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 
 glex_rpf <- glex(rp, mtcars[27:32, ])
 str(glex_rpf, list.len = 5)
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE) && "prune_components" \%in\% getNamespaceExports("randomPlantedForest")) withAutoprint(\{ # examplesIf}
+
+# rpf() above returned a pruned model (randomPlantedForest >= 0.6): its components
+glex_rpf$pruned$components
 \dontshow{\}) # examplesIf}
 \dontshow{if (requireNamespace("xgboost", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 # xgboost -----

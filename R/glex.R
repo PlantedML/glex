@@ -33,15 +33,13 @@
 #'   decomposition is complete: if it is constrained (see `constrained`), the components
 #'   no longer sum to the full model prediction and the SHAP efficiency property cannot
 #'   hold, so `shap` is a scalar `NA` (with a warning) while `m` remains valid.
-#'   For multiclass models, columns are class-specific like those of `m`. Note that
-#'   `randomPlantedForest` models report a single `intercept` for all classes, so for
-#'   multiclass models `intercept + rowSums(shap)` reconstructs the predicted class
-#'   scores only approximately.
+#'   For multiclass models, columns are class-specific like those of `m`.
 #' * `m`: Functional decomposition into all main and interaction
 #'   components in the model, up to the degree specified by `max_interaction`.
 #'   The variable names correspond to the original variable names,
 #'   with `:` separating interaction terms as one would specify in a [`formula`] interface.
-#' * `intercept`: Intercept term, the expected value of the prediction.
+#' * `intercept`: Intercept term, the expected value of the prediction. For multiclass
+#'   models a named vector with one value per class.
 #' * `constrained`: Character vector naming the arguments that constrained the
 #'   decomposition (`"max_interaction"`, `"features"`), or `character(0)` if it is
 #'   complete. Use `length(x$constrained) > 0` to check whether `shap` is valid.
@@ -84,6 +82,7 @@ glex.default <- function(object, ...) {
 #' # Random Planted Forest -----
 #' library(randomPlantedForest)
 #'
+#' set.seed(1)
 #' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
 #'
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
@@ -116,50 +115,123 @@ glex.rpf <- function(object, x, max_interaction = NULL, features = NULL, ...) {
     model_features = model_features
   )
 
-  # SHAP values are derived from the components, like in the other methods.
-  # For multiclass models `$shap` mirrors the class-suffixed columns of `$m`.
-  if (is.null(ret$target_levels)) {
-    shap <- shap_from_components(ret$m, names(ret$x))
-  } else {
-    term_class <- split_names(names(ret$m), "__class:", target_index = 2)
-
-    shap <- do.call(
-      cbind,
-      lapply(ret$target_levels, function(level) {
-        m_class <- ret$m[, names(ret$m)[term_class == level], with = FALSE]
-        data.table::setnames(
-          m_class,
-          split_names(names(m_class), "__class:", target_index = 1)
-        )
-
-        shap_class <- shap_from_components(m_class, names(ret$x))
-        colnames(shap_class) <- paste0(
-          colnames(shap_class),
-          "__class:",
-          level
-        )
-        shap_class
-      })
-    )
-  }
-
-  ret$shap <- data.table::setDT(as.data.frame(shap))
+  ret$shap <- rpf_shap(ret)
 
   # rpf decomposes the raw score, which is what `type = "numeric"` returns. The default
   # for classification is `type = "prob"`, which applies rpf's response function: a clamp
   # to [0, 1] for `loss = "L2"`, the inverse link for `"logit"` and `"exponential"`.
   # Comparing against that would confound the dropped terms with the back-transformation
   # (and, for binary models, silently compare against the wrong class).
-  #
-  # Multiclass rpf models report a single intercept for all classes, so the components
-  # only reconstruct the class scores approximately and the numeric confirmation is not
-  # reliable: the structural verdict is final there, and rpf supplies `$remainder` itself.
+  pred <- stats::predict(object, x, type = "numeric")
   target <- if (is.null(ret$target_levels)) {
-    stats::predict(object, x, type = "numeric")[[1]]
+    pred[[1]]
+  } else {
+    # One score per class, named by level to match the `__class:<level>` terms
+    stats::setNames(
+      as.list(pred[paste0(".pred_", ret$target_levels)]),
+      ret$target_levels
+    )
   }
   ret <- confirm_constrained(ret, target = target)
 
   # class(ret) <- c("glex", "rpf_components", class(ret))
+  ret
+}
+
+#' @rdname glex
+#' @export
+#' @details
+#' **Random Planted Forests of class `rpf_pruned`.** `rpf()` of randomPlantedForest (from version 0.6) returns by
+#' default a model of class `rpf_pruned` with few components (see `randomPlantedForest::prune_components()`), each
+#' stored in the form it predicts with (scaled by its coefficient). `glex()` of such a model returns their values at
+#' `x`, which with the intercept sum to the model's prediction, and SHAP values derived from them as for the other
+#' models. Components the model does not have are absent from `m`, not zero columns. The result also carries `pruned`
+#' (see Value), which [plot.glex()], [plot_twoway_effects()] and [plot_threeway_effects()] use to draw the model
+#' exactly as it predicts, and which [glex_vi()] uses for `measure = "share"`. A forest fitted with `prune = FALSE`
+#' (class `rpf`) is also supported: `glex()` then decomposes the whole forest.
+#'
+#' @section Value for models of class `rpf_pruned`:
+#' The list has one more element, `pruned`, a list with
+#' * `components`: a `data.frame` of the model's components, with columns `term`, `degree`, `share` (the share of the
+#'   variance of the prediction that `prune_components()` measured on the training rows, before the coefficients),
+#'   `beta` (the coefficient), `form` and `heat_maps` (see `randomPlantedForest::prune_components()`);
+#' * `coarse` and `asis`: for each component of three or more predictors, the predictors `C` its heat maps are split by
+#'   and their cut points `cuts`;
+#' * `max_panels`, `intercept`, `mode` and `loss` of the model, and the model itself (`model`), which the plots
+#'   evaluate on grids.
+#' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE) && "prune_components" %in% getNamespaceExports("randomPlantedForest")
+#'
+#' # rpf() above returned a pruned model (randomPlantedForest >= 0.6): its components
+#' glex_rpf$pruned$components
+glex.rpf_pruned <- function(
+  object,
+  x,
+  max_interaction = NULL,
+  features = NULL,
+  ...
+) {
+  chkDots(...)
+  if (!requireNamespace("randomPlantedForest", quietly = TRUE)) {
+    stop(paste0(
+      "randomPlantedForest needs to be installed: ",
+      "remotes::install_github(\"PlantedML/randomPlantedForest\")"
+    ))
+  }
+  model_features <- names(object$fit$blueprint$ptypes$predictors)
+  checkmate::assert_int(max_interaction, lower = 1, null.ok = TRUE)
+  checkmate::assert_subset(features, model_features)
+
+  # All kept components, then the ones asked for: selecting here by the components' names keeps factor predictors
+  # (which the model may store in another column order) right
+  full <- randomPlantedForest::predict_components(object = object, new_data = x)
+  kept <- names(object$beta)
+  term_vars <- strsplit(kept, ":", fixed = TRUE)
+  degree <- lengths(term_vars)
+  use <- rep(TRUE, length(kept))
+  if (!is.null(max_interaction)) {
+    use <- use & degree <= max_interaction
+  }
+  if (!is.null(features)) {
+    use <- use & vapply(term_vars, function(v) all(v %in% features), logical(1))
+  }
+  col_term <- split_names(names(full$m), "__class:", target_index = 1)
+  use_col <- col_term %in% kept[use]
+
+  ret <- list(
+    m = full$m[, use_col, with = FALSE],
+    intercept = full$intercept,
+    x = full$x[, if (is.null(features)) model_features else features, with = FALSE]
+  )
+  ret$target_levels <- full$target_levels
+
+  # Constrained if a kept component is left out: the predictors and orders of the kept components are the model's
+  max_order <- if (is.null(max_interaction)) Inf else max_interaction
+  ret$constrained <- character(0)
+  if (any(!use & degree > max_order)) {
+    ret$constrained <- c(ret$constrained, "max_interaction")
+  }
+  if (!is.null(features) && any(!use & degree <= max_order)) {
+    ret$constrained <- c(ret$constrained, "features")
+  }
+  ret$shap <- rpf_shap(ret)
+  # The pruned model's prediction is the intercept plus all kept components (the raw score for classification), so
+  # the dropped ones are inert exactly if they are zero at x; the remainder is what they sum to. Multiclass: one
+  # prediction per class, named by level, as for the forest.
+  target <- if (is.null(full$target_levels)) {
+    full$intercept + rowSums(full$m)
+  } else {
+    full_class <- split_names(names(full$m), "__class:", target_index = 2)
+    stats::setNames(
+      lapply(full$target_levels, function(level) {
+        class_intercept(full, level) + rowSums(as.matrix(full$m[, full_class == level, with = FALSE]))
+      }),
+      full$target_levels
+    )
+  }
+  ret <- confirm_constrained(ret, target = target)
+
+  ret$pruned <- pruned_info(object, full$x)
+  class(ret) <- class(full)
   ret
 }
 
@@ -840,10 +912,12 @@ constrained_by <- function(
 #' one carries no remainder.
 #' @param res `glex` object with `$m`, `$shap`, `$intercept` and `$constrained`.
 #'   For `rpf` models `$remainder` may already be set by
-#'   `randomPlantedForest::predict_components()`; it is only overwritten where `target`
-#'   lets us compute it ourselves, which keeps the multiclass remainder rpf provides.
+#'   `randomPlantedForest::predict_components()`; it is overwritten wherever `target` is
+#'   given.
 #' @param target Model predictions on the scale of the decomposition, or `NULL` to skip
-#'   the numeric confirmation and treat the structural verdict as final.
+#'   the numeric confirmation and treat the structural verdict as final. For multiclass
+#'   objects a list with one prediction vector per class, named by target level; the
+#'   remainder is then a `data.table` with one column per class.
 #' @keywords internal
 #' @noRd
 confirm_constrained <- function(res, target = NULL) {
@@ -855,15 +929,25 @@ confirm_constrained <- function(res, target = NULL) {
   constrained_labels <- paste0("`", res$constrained, "`", collapse = " and ")
 
   if (!is.null(target)) {
-    reconstruction <- res$intercept + rowSums(res$m)
-    res$remainder <- unname(target - reconstruction)
+    res$remainder <- if (is.null(res$target_levels)) {
+      unname(target - (res$intercept + rowSums(res$m)))
+    } else {
+      term_class <- split_names(names(res$m), "__class:", target_index = 2)
+      data.table::as.data.table(stats::setNames(
+        lapply(res$target_levels, function(level) {
+          m_class <- as.matrix(res$m[, term_class == level, with = FALSE])
+          unname(target[[level]] - (class_intercept(res, level) + rowSums(m_class)))
+        }),
+        res$target_levels
+      ))
+    }
 
     # The dropped terms are inert only if they are *numerically zero*, which is what the
     # remainder measures directly. Judge it elementwise: `all.equal()` reports the mean
     # relative difference, which averages a discrepancy concentrated in a few observations
     # away to nothing and lets a genuinely non-zero term pass as "all zero" -- and this
     # verdict decides whether `$shap` is trustworthy or `NA`, so it must not be fuzzy.
-    inert <- max(abs(res$remainder)) <= 1e-8 * max(1, max(abs(unname(target))))
+    inert <- max(abs(unlist(res$remainder))) <= 1e-8 * max(1, max(abs(unlist(target))))
 
     if (inert) {
       message(
@@ -1148,4 +1232,38 @@ calc_components <- function(
   )
   class(ret) <- c("glex", "xgb_components", class(ret))
   ret
+}
+
+#' SHAP values from the components of a randomPlantedForest decomposition
+#'
+#' For multiclass models `$shap` mirrors the class-suffixed columns of `$m`.
+#' @param ret A list with `m`, `x` and, for multiclass models, `target_levels`.
+#' @keywords internal
+#' @noRd
+rpf_shap <- function(ret) {
+  if (is.null(ret$target_levels)) {
+    shap <- shap_from_components(ret$m, names(ret$x))
+  } else {
+    term_class <- split_names(names(ret$m), "__class:", target_index = 2)
+
+    shap <- do.call(
+      cbind,
+      lapply(ret$target_levels, function(level) {
+        m_class <- ret$m[, names(ret$m)[term_class == level], with = FALSE]
+        data.table::setnames(
+          m_class,
+          split_names(names(m_class), "__class:", target_index = 1)
+        )
+
+        shap_class <- shap_from_components(m_class, names(ret$x))
+        colnames(shap_class) <- paste0(
+          colnames(shap_class),
+          "__class:",
+          level
+        )
+        shap_class
+      })
+    )
+  }
+  data.table::setDT(as.data.frame(shap))
 }

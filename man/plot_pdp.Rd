@@ -32,9 +32,9 @@ library(randomPlantedForest)
 mtcars$cyl <- factor(mtcars$cyl)
 mtcars$vs <- factor(mtcars$vs)
 
-# Fit forest, get components
+# Fit the model, get components
 set.seed(12)
-rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3)
 components <- glex(rpfit, mtcars)
 
 plot_pdp(components, "wt")
@@ -45,8 +45,10 @@ plot_pdp(components, "cyl")
 \code{\link[=plot_main_effect]{plot_main_effect()}}
 
 Other Visualization functions:
-\code{\link[=autoplot.glex]{autoplot.glex()}},
-\code{\link[=autoplot.glex_vi]{autoplot.glex_vi()}},
-\code{\link[=glex_explain]{glex_explain()}}
+\code{\link[=plot.glex]{plot.glex()}},
+\code{\link[=plot.glex_vi]{plot.glex_vi()}},
+\code{\link[=plot_force]{plot_force()}},
+\code{\link[=plot_shap_decomposition]{plot_shap_decomposition()}},
+\code{\link[=plot_waterfall]{plot_waterfall()}}
 }
 \concept{Visualization functions}

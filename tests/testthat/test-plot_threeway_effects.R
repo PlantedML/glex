@@ -4,9 +4,9 @@
 
 # Regression / rpf ------------------------------------------------------------------------------------------------
 test_that("regression rpf", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   mtcars$cyl <- factor(mtcars$cyl)
-  rp <- rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
+  rp <- rpf_forest(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
   gl <- glex(rp, mtcars)
 
   p <- plot_threeway_effects(gl, c("wt", "hp", "cyl"))
@@ -15,8 +15,8 @@ test_that("regression rpf", {
 
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
+  rp <- rpf_forest(y ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   p <- plot_threeway_effects(gl, c("x4", "x2", "x3"))
@@ -32,8 +32,8 @@ test_that("binary rpf", {
 
 # Multiclass / rpf ------------------------------------------------------------------------------------------------
 test_that("multiclass rpf", {
-  skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(yk ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
+  skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
+  rp <- rpf_forest(yk ~ x1 + x2 + x3 + x4 + x5 + x6, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   p <- plot_threeway_effects(gl, c("x4", "x2", "x3"))
@@ -45,5 +45,5 @@ test_that("multiclass rpf", {
   p <- plot_threeway_effects(gl, c("x4", "x5", "x6"))
   expect_s3_class(p, "ggplot")
 
-  expect_identical(p, autoplot(gl, c("x4", "x5", "x6")))
+  expect_identical(p, plot(gl, c("x4", "x5", "x6")))
 })

@@ -64,14 +64,14 @@ install.packages("glex", repos = "https://plantedml.r-universe.dev")
 
 `glex` currently provides methods for the model classes below.
 
-|                           | `xgboost`                                                                                                                                                                                                                                                                                                       | `randomPlantedForest`                                                              | `ranger`                                                                                                                                                                                                                                 |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Model class               | `xgb.Booster`                                                                                                                                                                                                                                                                                                   | `rpf`                                                                              | `ranger`                                                                                                                                                                                                                                 |
-| Regression                | Yes                                                                                                                                                                                                                                                                                                             | Yes                                                                                | Yes                                                                                                                                                                                                                                      |
-| Binary classification     | Yes\*                                                                                                                                                                                                                                                                                                           | Yes                                                                                | Yes\* (probability forests)                                                                                                                                                                                                              |
-| Multiclass classification | Not yet fully supported                                                                                                                                                                                                                                                                                         | Yes                                                                                | Not yet supported                                                                                                                                                                                                                        |
-| Link function(s)          | Built-in objectives define the link (e.g., identity, logistic/logit, log-link).                                                                                                                                                                                                                                 | Not applicable                                                                     | Not applicable                                                                                                                                                                                                                           |
-| Notes                     | \* `x` must be a numeric matrix, or a `data.frame` with factor columns for models fit on categorical features (factor levels must match the training data in order, as for `predict()`). `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. | \* Requires `node.stats = TRUE`. Factor features work under any `respect.unordered.factors` option; pass `x` as a `data.frame`, as for `predict()`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
+|                           | `xgboost`                                                                                                                                                                                                                                                                                                       | `randomPlantedForest`                                                              | `ranger`                                                                                                                                                                                                                                                                                                                                                    |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Model class               | `xgb.Booster`                                                                                                                                                                                                                                                                                                   | `rpf`, `rpf_pruned`                                                                | `ranger`                                                                                                                                                                                                                                                                                                                                                    |
+| Regression                | Yes                                                                                                                                                                                                                                                                                                             | Yes                                                                                | Yes                                                                                                                                                                                                                                                                                                                                                         |
+| Binary classification     | Yes\*                                                                                                                                                                                                                                                                                                           | Yes                                                                                | Yes\* (probability forests)                                                                                                                                                                                                                                                                                                                                 |
+| Multiclass classification | Not yet fully supported                                                                                                                                                                                                                                                                                         | Yes                                                                                | Not yet supported                                                                                                                                                                                                                                                                                                                                           |
+| Link function(s)          | Built-in objectives define the link (e.g., identity, logistic/logit, log-link).                                                                                                                                                                                                                                 | Not applicable                                                                     | Not applicable                                                                                                                                                                                                                                                                                                                                              |
+| Notes                     | \* `x` must be a numeric matrix, or a `data.frame` with factor columns for models fit on categorical features (factor levels must match the training data in order, as for `predict()`). `glex()` decomposes predictions on the raw margin scale; apply the inverse link to recover response-scale predictions. | Native support for multiclass terms in plotting and variable importance workflows. Pruned models (`rpf_pruned`, the default of `rpf()` from randomPlantedForest 0.6) are drawn as they predict: `plot()` shows all kept components, interactions as heat maps. | \* Requires `node.stats = TRUE`. Factor features work under any `respect.unordered.factors` option; pass `x` as a `data.frame`, as for `predict()`. For classification, fit with `probability = TRUE`; ranger predicts class probabilities directly from class frequencies in terminal nodes (no inverse link needed). Multiclass is currently unsupported. |
 
 More tree-based frameworks may be added in future releases. If you have
 a suggestion, please open an issue on our GitHub repository.
@@ -220,6 +220,13 @@ example; `ranger` and
 [`randomPlantedForest`](http://plantedml.com/randomPlantedForest/)
 models are also supported and work analogously, as described in the
 [Supported Models](#supported-models) section above.
+For a Random Planted Forest, which `rpf()` prunes to few components,
+`plot(glex(model, x))` draws the whole model in one figure: main effects
+as curves, pairs as heat maps, and components of three or more
+predictors as the heat maps of the model’s display.
+`glex_vi(x, measure = "variance")` ranks components by their share of
+the variance of the prediction, as the pruning does (`measure = "share"`
+gives the pruning’s own numbers).
 
 ``` r
 # Install xgboost from CRAN
@@ -309,7 +316,7 @@ with terms below the threshold aggregated into one labelled “Remaining
 terms”:
 
 ``` r
-autoplot(vi_xgb, threshold = .05)
+plot(vi_xgb, threshold = .05)
 ```
 
 <img src="man/figures/README-glex_vi-plot-1.png" alt="" width="100%" />
@@ -320,7 +327,7 @@ interactions above a certain degree to not be particularly relevant for
 a given model.
 
 ``` r
-autoplot(vi_xgb, by_degree = TRUE)
+plot(vi_xgb, by_degree = TRUE)
 ```
 
 <img src="man/figures/README-glex_vi-plot-by-degree-1.png" alt="" width="100%" />
@@ -332,14 +339,14 @@ which admittedly produces more interesting output with larger, more
 interesting datasets.
 
 ``` r
-autoplot(glex_xgb, "hp") + labs(title = "Main effect for 'hp'")
+plot(glex_xgb, "hp") + labs(title = "Main effect for 'hp'")
 ```
 
 <img src="man/figures/README-plot_components-1.png" alt="" width="100%" />
 
 ``` r
 
-autoplot(glex_xgb, c("hp", "wt")) + labs(title = "Two-way effects for 'hp' and 'wt'")
+plot(glex_xgb, c("hp", "wt")) + labs(title = "Two-way effects for 'hp' and 'wt'")
 ```
 
 <img src="man/figures/README-plot_components-2.png" alt="" width="100%" />
@@ -359,14 +366,33 @@ plot_pdp(glex_xgb, "hp")
 
 ### Decomposition of Individual Predictions
 
-Finally, we can explore the prediction for a single observation by
-displaying its individual prediction components. The SHAP value is the
-sum of all of these components and serves as a reference value. For
-compactness, we only plot one feature and collapse all interaction terms
-above the second degree into one as their combined effect is very small.
+Finally, we can explore the prediction for a single observation. A
+waterfall plot builds it up from the average prediction E\[f\], one bar
+per main or interaction term, aggregating the smaller terms:
 
 ``` r
-glex_explain(glex_xgb, id = 2, predictors = "hp", max_interaction = 2)
+plot_waterfall(glex_xgb, id = 2, max_terms = 8)
 ```
 
-<img src="man/figures/README-glex_explain-1.png" alt="" width="100%" />
+<img src="man/figures/README-plot_waterfall-1.png" alt="" width="100%" />
+
+A force plot shows the same terms more compactly, pushing the prediction
+up from one side and down from the other:
+
+``` r
+plot_force(glex_xgb, id = 2, max_terms = 8)
+```
+
+<img src="man/figures/README-plot_force-1.png" alt="" width="100%" />
+
+To see how a single feature’s SHAP value is assembled,
+`plot_shap_decomposition()` shows the components involving that feature,
+with interaction terms split evenly among their features. Here we plot
+only `hp` and collapse interaction terms above the second degree, whose
+combined effect is small:
+
+``` r
+plot_shap_decomposition(glex_xgb, id = 2, predictors = "hp", max_interaction = 2)
+```
+
+<img src="man/figures/README-plot_shap_decomposition-1.png" alt="" width="100%" />

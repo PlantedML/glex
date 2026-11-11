@@ -1,4 +1,4 @@
-# glex 0.7.0.9000 (development version
+# glex 0.7.0.9000 (development version)
 
 * `glex()` supports `ranger` models with factor features under every `respect.unordered.factors` option.
  Pass the training-style `data.frame` as `x`: factors are encoded as in `predict()`, including the    response-based level order of `"order"`, `"partition"` splits are evaluated as level sets, and `$x` keeps the factor columns. 
@@ -7,6 +7,42 @@
 * `glex()` methods warn about arguments they do not use instead of silently ignoring them, e.g. `glex(rp, x, weighting_method = "fastpd")` for an `rpf` model, which has no weighting method, or a misspelled `weighting_methd` for `xgboost` and `ranger`.
 
 * Multiclass terms such as `mpg__class:4` no longer count the class suffix as an interaction, so `print()` reports the correct maximum degree for multiclass `rpf` models.
+
+* New `plot_waterfall()` and `plot_force()` show how a single prediction is built from the components of the decomposition, one bar or segment per main or interaction term, from E[f] to f(x). Small terms are aggregated via `max_terms`, `threshold` and `max_interaction`; constrained decompositions end with a remainder bar (#49).
+
+* `plot_waterfall()`, `plot_force()`, `plot_shap_decomposition()` and `plot()` for `glex_vi()` aggregate terms smaller than 2.5% of the largest one by default (`threshold = NULL`), so negligible components no longer crowd the plot; `threshold = 0` shows all terms. Value labels are rounded to the precision the plotted range allows, and labels of values that round to zero are omitted while their bars are still drawn.
+
+* `plot()` methods replace the `autoplot()` methods for `glex` and `glex_vi` objects, so plotting no longer needs ggplot2 attached: `plot(gl, "hp")` picks `plot_main_effect()`, `plot_twoway_effects()` or `plot_threeway_effects()` by the number of predictors, and `plot(glex_vi(gl))` plots importances. The `autoplot()` methods are removed. The `plot_*()` functions remain the explicit interface.
+
+* `glex_explain()` is renamed to `plot_shap_decomposition()`, which says what it shows: how each feature's SHAP value is assembled from the components it is part of. `glex_explain()` still works but is deprecated. The plot no longer clips labels, places values beside the bars and the SHAP value in its own bottom row, drops empty rows in facets, and keeps "Remaining terms" directly above the SHAP value.
+
+* Multiclass `rpf` models now carry one intercept per class (fixed upstream in randomPlantedForest), and `glex_vi()`, `plot_shap_decomposition()`, `plot_waterfall()` and `plot_force()` use each class's intercept. Constraints on multiclass `rpf` decompositions are now confirmed against the model's predictions like for other models, so a constraint that only drops zero terms keeps the SHAP values, and `$remainder` is computed by glex for each class. `print()` and the plot captions now use singular forms where appropriate ("1 observation", "1 term").
+
+* `glex()` supports the models that `rpf()` of randomPlantedForest returns by default from version 0.6 (class
+  `rpf_pruned`): `glex(model, x)` returns the model's components at `x` as it predicts (each scaled by its coefficient),
+  summing with the intercept to the prediction, with SHAP values and `max_interaction` / `features` constraints as for
+  the other models, so `plot_waterfall()`, `plot_force()` and `plot_shap_decomposition()` work on it as for a
+  forest. It also carries `$pruned`, the model's description of its components (coefficients, the cells of
+  those of three or more predictors). Every glex function works on it. `glex.rpf()` is unchanged; fit with
+  `prune = FALSE` for the whole forest.
+
+* Plots of such models show the model as it predicts: `plot_twoway_effects()` draws a pair as a heat map on a grid of
+  the data's values (`resolution` cells per predictor), `plot_threeway_effects()` (and `plot()` for any number of
+  predictors) a component of three or more predictors as heat maps, one per cell of its other predictors, each
+  labelled by its cell, and `plot_main_effect()` main effects as step curves. For multiclass models every plot has one
+  panel (set) per class.
+
+* `plot()` of a `glex` object without `predictors` draws the whole model in one figure (with patchwork), each
+  component titled by its name and importance at `x` (`measure`: share of the variance of the prediction, or mean
+  absolute value in units of the prediction), the most important first: for a model of class `rpf_pruned` every
+  component, for other models the main effects and pairs (`max_components`, default 12). New arguments `measure`,
+  `max_components`, `ncol` and `resolution`.
+
+* `glex_vi()` gains `measure`: `"mean_abs"` (the default, unchanged: the mean absolute value, how far a term moves a
+  typical prediction), `"variance"` (the mean square, what dropping the term costs in squared error, and in `m_rel` its
+  share of the variance of the prediction; summed over classes for multiclass models) and, for models of class
+  `rpf_pruned`, `"share"` (the share `prune_components()` measured on the training rows, before the coefficients). `plot()` of a `glex_vi()` object labels its axis
+  by the measure; its default `threshold` (2.5% of the largest score) applies to the chosen measure.
 
 # glex 0.7.0
 
