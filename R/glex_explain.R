@@ -35,8 +35,9 @@
 #' # Random Planted Forest -----
 #' library(randomPlantedForest)
 #'
-#' # randomPlantedForest from version 0.6 returns a pruned model by default; prune = FALSE keeps the whole forest
-#' forest <- if ("prune_components" %in% getNamespaceExports("randomPlantedForest")) list(prune = FALSE)
+#' # rpf() prunes by default from randomPlantedForest 0.6; prune = FALSE keeps the forest
+#' new_rpf <- "prune_components" %in% getNamespaceExports("randomPlantedForest")
+#' forest <- if (new_rpf) list(prune = FALSE)
 #' rp <- do.call(rpf, c(list(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2), forest))
 #'
 #' glex_rpf <- glex(rp, mtcars[27:32, ])

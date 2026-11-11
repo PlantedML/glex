@@ -1,5 +1,34 @@
 # glex 0.7.0.9000 (development version
 
+* `glex()` supports the models that `rpf()` of randomPlantedForest returns by default from version 0.6 (class
+  `rpf_pruned`): `glex(model, x)` returns the model's components at `x` as it predicts (each scaled by its coefficient),
+  summing with the intercept to the prediction, with SHAP values and `max_interaction` / `features` constraints as for
+  the other models. It also carries `$pruned`, the model's description of its components (coefficients, the cells of
+  those of three or more predictors). Every glex function works on it. `glex.rpf()` is unchanged; fit with
+  `prune = FALSE` for the whole forest.
+
+* Plots of such models show the model as it predicts: `plot_twoway_effects()` draws a pair as a heat map on a grid of
+  the data's values (`resolution` cells per predictor), `plot_threeway_effects()` (and `autoplot()` for any number of
+  predictors) a component of three or more predictors as heat maps, one per cell of its other predictors, each
+  labelled by its cell, and `plot_main_effect()` main effects as step curves. For multiclass models every plot has one
+  panel (set) per class.
+
+* `autoplot()` of a `glex` object without `predictors` draws the whole model in one figure (with patchwork), each
+  component titled by its name and importance at `x` (`measure`: share of the variance of the prediction, or mean
+  absolute value in units of the prediction), the most important first: for a model of class `rpf_pruned` every
+  component, for other models the main effects and pairs (`max_components`, default 12). New arguments `measure`,
+  `max_components`, `ncol` and `resolution`.
+
+* `glex_vi()` gains `measure`: `"mean_abs"` (the default, unchanged: the mean absolute value, how far a term moves a
+  typical prediction), `"variance"` (the mean square, what dropping the term costs in squared error, and in `m_rel` its
+  share of the variance of the prediction; summed over classes for multiclass models) and, for models of class
+  `rpf_pruned`, `"share"` (the share `prune_components()` measured on the training rows, before the coefficients). `autoplot.glex_vi()` labels its axis by
+  the measure.
+
+* Multiclass models with one intercept per class (randomPlantedForest's current models): `glex_explain()` anchors each
+  class at its own intercept (it errored), and `glex_vi()`'s `m_rel` divides by the class's intercept (it recycled the
+  vector).
+
 * `glex()` supports `ranger` models with factor features under every `respect.unordered.factors` option.
  Pass the training-style `data.frame` as `x`: factors are encoded as in `predict()`, including the    response-based level order of `"order"`, `"partition"` splits are evaluated as level sets, and `$x` keeps the factor columns. 
  Previously, factor columns errored and `"partition"` models failed. `weighting_method = "empirical"` errors on `"partition"` splits.

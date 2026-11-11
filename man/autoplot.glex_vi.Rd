@@ -26,8 +26,10 @@ than this value. Refers to the chosen \code{scale}.}
 degree of interaction. Similar to \code{threshold}, all other terms will be aggregated under a
 \code{"Remaining terms"} label.}
 
-\item{scale}{(\code{"absolute"}) Plot average absolute contributions (default) or the same value but scaled by the
-average prediction (\code{"relative"}).}
+\item{scale}{(\code{"absolute"}) Plot \code{m} (default) or \code{m_rel} (\code{"relative"}) of \code{\link[=glex_vi]{glex_vi()}}: for its default
+\code{measure = "mean_abs"}, the average absolute contributions or the same value scaled by the average prediction; for
+\code{"variance"}, the mean square or its share of the variance of the prediction; for \code{"share"}, the pruning's share
+either way.}
 
 \item{...}{(Unused)}
 }

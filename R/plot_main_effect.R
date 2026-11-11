@@ -25,7 +25,13 @@
 #'
 #' # Fit forest, get components
 #' set.seed(12)
-#' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+#' # rpf() prunes by default from randomPlantedForest 0.6; prune = FALSE keeps the forest
+#' new_rpf <- "prune_components" %in% getNamespaceExports("randomPlantedForest")
+#' forest <- if (new_rpf) list(prune = FALSE)
+#' rpfit <- do.call(rpf, c(
+#'   list(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3),
+#'   forest
+#' ))
 #' components <- glex(rpfit, mtcars)
 #'
 #' # Main effects ----
@@ -58,7 +64,13 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #'
 #' # Fit forest, get components
 #' set.seed(12)
-#' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+#' # rpf() prunes by default from randomPlantedForest 0.6; prune = FALSE keeps the forest
+#' new_rpf <- "prune_components" %in% getNamespaceExports("randomPlantedForest")
+#' forest <- if (new_rpf) list(prune = FALSE)
+#' rpfit <- do.call(rpf, c(
+#'   list(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3),
+#'   forest
+#' ))
 #' components <- glex(rpfit, mtcars)
 #'
 #' plot_pdp(components, "wt")
@@ -100,12 +112,26 @@ plot_main_effect_impl <- function(
         y = .data[["m"]]
       )
     )
-    p <- p +
-      ggplot2::geom_line(
-        linewidth = 1.2,
-        key_glyph = "rect",
-        color = main_effect_color()
-      )
+    if (is_pruned_glex(object)) {
+      # a Random Planted Forest's component is constant between its cut points: a step through its values at x
+      p <- p +
+        ggplot2::geom_step(
+          linewidth = 1.2,
+          key_glyph = "rect",
+          color = main_effect_color()
+        )
+      if (data.table::uniqueN(xdf[[predictor]]) <= 20) {
+        # few values: mark them, so that the last one shows
+        p <- p + ggplot2::geom_point(size = 2, color = main_effect_color())
+      }
+    } else {
+      p <- p +
+        ggplot2::geom_line(
+          linewidth = 1.2,
+          key_glyph = "rect",
+          color = main_effect_color()
+        )
+    }
     if (rug_sides != "none") {
       p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
     }

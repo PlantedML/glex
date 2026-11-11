@@ -2,10 +2,20 @@
 #' @export
 #' @examples
 #' # plot_threeway_effects(components, c("hr", "temp", "workingday"))
-plot_threeway_effects <- function(object, predictors, rug_sides = "b", ...) {
+plot_threeway_effects <- function(
+  object,
+  predictors,
+  rug_sides = "b",
+  resolution = 100L,
+  ...
+) {
   checkmate::assert_class(object, "glex")
   checkmate::assert_character(predictors, len = 3, unique = TRUE)
   checkmate::assert_subset(predictors, names(object$x), empty.ok = FALSE)
+  if (is_pruned_glex(object)) {
+    checkmate::assert_int(resolution, lower = 2)
+    return(plot_pruned_panels(object, predictors, resolution = resolution))
+  }
 
   # Create look-up table for predictors and their types
   x_types <- get_x_types(object, predictors)

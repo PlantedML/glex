@@ -18,7 +18,13 @@
 #'
 #' # Fit forest, get components
 #' set.seed(12)
-#' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+#' # rpf() prunes by default from randomPlantedForest 0.6; prune = FALSE keeps the forest
+#' new_rpf <- "prune_components" %in% getNamespaceExports("randomPlantedForest")
+#' forest <- if (new_rpf) list(prune = FALSE)
+#' rpfit <- do.call(rpf, c(
+#'   list(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3),
+#'   forest
+#' ))
 #' components <- glex(rpfit, mtcars)
 #'
 #' # Get component object with only "hp" and its interactions

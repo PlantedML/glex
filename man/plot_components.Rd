@@ -8,18 +8,57 @@
 \alias{plot_twoway_effects}
 \title{Plot Prediction Components}
 \usage{
-\method{autoplot}{glex}(object, predictors, ...)
+\method{autoplot}{glex}(
+  object,
+  predictors = NULL,
+  ...,
+  measure = NULL,
+  max_components = NULL,
+  ncol = NULL,
+  resolution = 100L
+)
 
 plot_main_effect(object, predictor, rug_sides = "b", ...)
 
-plot_threeway_effects(object, predictors, rug_sides = "b", ...)
+plot_threeway_effects(
+  object,
+  predictors,
+  rug_sides = "b",
+  resolution = 100L,
+  ...
+)
 
-plot_twoway_effects(object, predictors, rug_sides = "b", ...)
+plot_twoway_effects(
+  object,
+  predictors,
+  rug_sides = "b",
+  resolution = 100L,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of class \code{\link{glex}}.}
 
 \item{...}{Used for future expansion.}
+
+\item{measure}{(\code{character(1) | NULL: NULL}) Without \code{predictors}: the importance of each component, given in its
+title and ordering the plots, computed from the components at \code{x} (see \code{\link[=glex_vi]{glex_vi()}}):
+\itemize{
+\item \code{"variance"}: its mean square as a share of the variance of the prediction at \code{x}, in percent;
+\item \code{"mean_abs"}: its mean absolute value, in units of the prediction (\code{y} for regression).
+}
+
+\code{NULL} uses \code{"variance"} for a Random Planted Forest from \code{rpf()} of randomPlantedForest 0.6 or later (class
+\code{rpf_pruned}) and \code{"mean_abs"} otherwise.}
+
+\item{max_components}{(\code{integer(1) | NULL: NULL}) Without \code{predictors}: the most components to draw, the most
+important first. \code{NULL} draws all components of a model of class \code{rpf_pruned} and at most 12 otherwise.}
+
+\item{ncol}{(\code{integer(1) | NULL: NULL}) Without \code{predictors}: the number of columns of main effects and pairs. A
+component with several panels spans a row of its own. \code{NULL} uses up to 4.}
+
+\item{resolution}{(\code{integer(1): 100}) Models of class \code{rpf_pruned} only: the most cells of a heat map along each
+predictor, see Details.}
 
 \item{predictor, predictors}{\code{(character)} vector of predictor names, e.g. \code{"x1"} to plot
 main effect of \code{x1}, and \code{c("x1", "x2")} to plot the interaction term \code{x1:x2}.}
@@ -34,6 +73,32 @@ A \code{ggplot2} object.
 Plotting the main effects among the prediction components is effectively
 identical to a partial dependence plot, centered to 0.
 }
+\details{
+\code{autoplot()} without \code{predictors} draws the model's components in one figure (with the patchwork package), the most
+important first by \code{measure}, each titled by its name and importance, e.g. \verb{x2:x3 (24\%)}: main effects and two-way
+interactions for any model, and for a model of class \code{rpf_pruned} (what \code{rpf()} returns from randomPlantedForest
+0.6 on) all of its components, including those of three or more predictors.
+
+\strong{Models of class \code{rpf_pruned}.} Such a model has few components, each stored in the form it predicts with. The
+plots show each component as it enters the prediction:
+\itemize{
+\item a main effect as a step curve through its values at \code{x};
+\item a two-way interaction as a heat map, evaluated on a grid of the values of its predictors in \code{x}: at most
+\code{resolution} cells along each predictor, the distinct values if there are at most \code{resolution}, otherwise the
+values at the quantiles \code{(i - 0.5) / resolution}, each cell reaching halfway to its neighbours (a factor: one cell
+per level);
+\item a component of three or more predictors as heat maps over two of its predictors, one per cell of the others (the
+cells the model stores for it), each labelled by its cell, on one colour scale. The heat maps are exact in the
+other predictors: the component is constant on each cell. \code{plot_threeway_effects()} draws them for three
+predictors, \code{autoplot()} for any number; the order of \code{predictors} does not matter. (A model from an earlier
+randomPlantedForest that does not store the cells gets one heat map, the other predictors at their values in the
+first row of \code{x}, with a message.)
+}
+
+For multiclass models every plot has one panel (or set of heat maps) per class. The grids need the model, which the
+glex object keeps: a model saved to a file and restored without \code{randomPlantedForest::rpf_unmarshal()} can't be
+evaluated.
+}
 \examples{
 \dontshow{if (requireNamespace("randomPlantedForest", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(randomPlantedForest)
@@ -44,7 +109,13 @@ mtcars$vs <- factor(mtcars$vs)
 
 # Fit forest, get components
 set.seed(12)
-rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+# rpf() prunes by default from randomPlantedForest 0.6; prune = FALSE keeps the forest
+new_rpf <- "prune_components" \%in\% getNamespaceExports("randomPlantedForest")
+forest <- if (new_rpf) list(prune = FALSE)
+rpfit <- do.call(rpf, c(
+  list(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3),
+  forest
+))
 components <- glex(rpfit, mtcars)
 
 # Main effects ----
