@@ -58,6 +58,8 @@ head(bike)
 Next we can fit a Random Planted Forest on the `bikers` variable, using a subset of the available predictors.
 We limit the model's complexity by setting `max_interaction = 3`, as we are only going to visualize interactions up to the third degree, and using a higher value here might only marginally improve predictive performance at the cost of a longer runtime.
 For our example here, a smaller model with merely 30 trees suffices.
+`rpf()` returns a pruned model by default (a few of the forest's components, which `autoplot(glex(model, x))` draws
+whole); `prune = FALSE` keeps the forest, whose decomposition we look at here.
 We also `purify` the forest to enable the desired decomposition.
 This step is not required for global predictions and may take some time, which is why it is implemented as a separate step.
 
@@ -70,20 +72,21 @@ t1 <- Sys.time()
 rp <- rpf(
   bikers ~ day + hr + temp + windspeed + workingday + hum + weathersit + season,
   data = bike,
-  max_interaction = 3, ntrees = 50, splits = 100, t_try = 0.9, split_try = 5
+  max_interaction = 3, n_families = 50, n_splits = 100, share_candidates = 0.9, n_try_split_points = 5,
+  prune = FALSE
 )
 
 purify(rp)
 ```
 
-We select the predictors of interest and use `glex()` to retrieve all predictive components that include them,
+We select the predictors of interest and use `glex()` to retrieve all predictive components made of them,
 from main effects to 3rd degree interactions.
 The resulting object also contains the original data as `x`, which we need for later visualization.
 
 ```{r extract-components}
 vars <- c("hr", "temp", "workingday", "hum", "weathersit", "season")
 
-components <- glex(rp, bike, predictors = vars)
+components <- glex(rp, bike, features = vars)
 
 # There's a lot of components...
 str(components$m, list.len = 8)
