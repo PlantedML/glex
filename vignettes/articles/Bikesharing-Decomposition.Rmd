@@ -70,9 +70,9 @@ labels <- c(rpf = "Random Planted Forest", xgboost = "xgboost")
 ### Random Planted Forest
 
 We limit the model's complexity with `max_interaction = 3`, as we are only going to visualize interactions up to the third degree, and a higher value would only marginally improve predictive performance at the cost of a longer runtime.
-A model with 50 trees suffices here.
-We also `purify()` the forest, which the decomposition requires.
-Purification is not needed for predictions and may take some time, which is why it is a separate step.
+A model with 50 tree families suffices here.
+`rpf()` fits the forest and keeps the few of its components that matter, each refitted with one coefficient (see `randomPlantedForest::prune_components()`).
+These components are the model, so `glex()` takes them as they are.
 
 ```{r fit-rpf, message=FALSE}
 library(randomPlantedForest)
@@ -81,14 +81,19 @@ rp <- rpf(
   bikers ~ hr + temp + workingday + hum + weathersit + season,
   data = bike,
   max_interaction = 3,
-  ntrees = 50,
-  splits = 100,
-  t_try = 0.9,
-  split_try = 5
+  n_families = 50,
+  n_splits = 100,
+  share_candidates = 0.9,
+  n_try_split_points = 5
 )
-purify(rp)
 
-components$rpf <- glex(rp, bike, features = vars)
+components$rpf <- glex(rp, bike)
+```
+
+Having few components, the model can be drawn whole: `plot()` without predictors shows its components as the model predicts with them, the largest first, each titled by its share of the variance of the prediction; `max_components` keeps the plot to the largest.
+
+```{r rpf-overview, fig.height=6, fig.width=10}
+plot(components$rpf, max_components = 6)
 ```
 
 ### xgboost
@@ -118,7 +123,7 @@ components$xgboost <- glex(xg, x)
 ## What `glex()` Returns
 
 Every `glex` object holds the decomposition `m` (one column per term), the SHAP values derived from it and the data `x` used for plotting.
-The number of terms differs by model, since a term exists only for feature subsets the model actually splits on together:
+The number of terms differs by model: for `xgboost` a term exists for every feature subset the model splits on together, for the Random Planted Forest only for the components it keeps:
 
 ```{r term-counts}
 sapply(components, function(gl) ncol(gl$m))
@@ -148,7 +153,7 @@ tabs <- function(plot_fun) {
 tabs(function(gl) {
   plot_main_effect(gl, "temp") +
     plot_main_effect(gl, "hr") +
-    plot_main_effect(gl, "workingday") +
+    plot_main_effect(gl, "season") +
     plot_layout(widths = c(.3, .3, .4))
 })
 ```
@@ -169,6 +174,8 @@ tabs(function(gl) {
 ```
 
 ## 3-Way Interaction {.tabset}
+
+The Random Planted Forest's component of three predictors is drawn as heat maps over two of them, one per cell of the third.
 
 ```{r threeway-effects, results="asis", fig.height=4}
 tabs(function(gl) plot_threeway_effects(gl, c("hr", "temp", "workingday")))
@@ -199,10 +206,11 @@ wrap_plots(lapply(names(components), function(model) {
 
 ## Additional Effects {.tabset}
 
-All main effects, by iterating over `vars` (`r paste0(vars, collapse = ", ")`) and collecting the plots with `patchwork::wrap_plots()`:
+All main effects, by iterating over the predictors in `vars` (`r paste0(vars, collapse = ", ")`) that have one and collecting the plots with `patchwork::wrap_plots()`.
+The Random Planted Forest has no main effect of `workingday`: in it, working days matter only through interactions, above all the one with the hour.
 
 ```{r all-main-effects, results="asis", fig.width=10, fig.height=6}
-tabs(function(gl) wrap_plots(lapply(vars, plot_main_effect, object = gl)))
+tabs(function(gl) wrap_plots(lapply(intersect(vars, names(gl$m)), plot_main_effect, object = gl)))
 ```
 
 ## More Interactions {.tabset}
@@ -210,10 +218,18 @@ tabs(function(gl) wrap_plots(lapply(vars, plot_main_effect, object = gl)))
 `plot()` passes its arguments on to the specialized `plot_*` functions, depending on the number of predictors supplied.
 Third degree interactions can be tricky to interpret, if they have any effect at all.
 
-```{r more-interactions, results="asis", fig.height=4}
+```{r more-interactions, results="asis", fig.height=10}
 tabs(function(gl) {
-  (plot(gl, c("season", "workingday")) | plot(gl, c("season", "hr"))) /
-    (plot(gl, c("weathersit", "temp")) | plot(gl, c("hum", "temp"))) /
+  (plot(gl, c("season", "temp")) | plot(gl, c("season", "hr"))) /
+    (plot(gl, c("weathersit", "hr")) | plot(gl, c("hum", "temp"))) /
     plot(gl, c("workingday", "hr", "season"))
 })
+```
+
+## One Prediction {.tabset}
+
+The terms of one prediction, from the intercept to the model's prediction, the largest first:
+
+```{r waterfall, results="asis", fig.height=4}
+tabs(function(gl) plot_waterfall(gl, id = 1))
 ```
