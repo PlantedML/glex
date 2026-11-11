@@ -91,10 +91,12 @@ prediction are summed over the classes' scores (one row per term). This
 is the size by which randomPlantedForest's
 [`prune_components()`](https://plantedml.com/randomPlantedForest/reference/prune_components.html)
 ranks and prunes the components, except that it measures it on the
-training rows, and for classification with `loss = "logit"` or
-`"exponential"` centres the scores across the classes first: for the
+training rows: for the
 [`glex()`](https://plantedml.com/glex/reference/glex.md) object of a
-pruned model, `measure = "share"` gives the pruning's own numbers.
+pruned model, `measure = "share"` gives the pruning's own numbers. (For
+classification with `loss = "logit"` or `"exponential"`,
+randomPlantedForest reports the scores centred across the classes, as
+the pruning measures them.)
 
 **`measure = "share"`.** For the
 [`glex()`](https://plantedml.com/glex/reference/glex.md) object of a

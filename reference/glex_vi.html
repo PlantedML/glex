@@ -97,9 +97,9 @@ error. <code>m_rel</code> is <code>m</code> over the variance of the prediction 
 any), its share of the variance of the prediction. For the components of a purified decomposition (mean zero), <code>m</code>
 is the variance of the term. For multiclass models, <code>m</code> and the variance of the prediction are summed over the
 classes' scores (one row per term). This is the size by which randomPlantedForest's <code><a href="https://plantedml.com/randomPlantedForest/reference/prune_components.html" class="external-link">prune_components()</a></code> ranks and
-prunes the components, except that it measures it on the training rows, and for classification with
-<code>loss = "logit"</code> or <code>"exponential"</code> centres the scores across the classes first: for the <code><a href="glex.html">glex()</a></code> object of a
-pruned model, <code>measure = "share"</code> gives the pruning's own numbers.</p>
+prunes the components, except that it measures it on the training rows: for the <code><a href="glex.html">glex()</a></code> object of a pruned
+model, <code>measure = "share"</code> gives the pruning's own numbers. (For classification with <code>loss = "logit"</code> or
+<code>"exponential"</code>, randomPlantedForest reports the scores centred across the classes, as the pruning measures them.)</p>
 <p><strong><code>measure = "share"</code>.</strong> For the <code><a href="glex.html">glex()</a></code> object of a pruned Random Planted Forest: <code>m</code> and <code>m_rel</code> are both the
 pruning's share of the variance of the prediction on the training rows, as in <code>object$pruned$components</code>.</p>
 <p>The two measures can rank terms differently: a term that is large on a few observations and zero elsewhere ranks
