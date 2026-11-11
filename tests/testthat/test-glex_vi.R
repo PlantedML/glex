@@ -1,7 +1,7 @@
 # Regression / rpf ------------------------------------------------------------------------------------------------
 test_that("regression rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
+  rp <- rpf_forest(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
   gl <- glex(rp, mtcars)
 
   vi <- glex_vi(gl) |>
@@ -14,7 +14,7 @@ test_that("regression rpf", {
 
 test_that("regression rpf plot", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
+  rp <- rpf_forest(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
   gl <- glex(rp, mtcars)
 
   vi <- glex_vi(gl)
@@ -36,7 +36,7 @@ test_that("regression rpf plot", {
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   vi <- glex_vi(gl) |>
@@ -49,7 +49,7 @@ test_that("binary rpf", {
 
 test_that("binary rpf plot", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   vi <- glex_vi(gl)
@@ -70,7 +70,7 @@ test_that("binary rpf plot", {
 # Multiclass / rpf ------------------------------------------------------------------------------------------------
 test_that("multiclass rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   vi <- glex_vi(gl) |>
@@ -83,10 +83,11 @@ test_that("multiclass rpf", {
 
 test_that("multiclass rpf plot", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(
+  rp <- rpf_forest(
     yk ~ x1 + x2 + x3,
     data = xdat,
     max_interaction = 3,
+    ntrees = 1,
     deterministic = TRUE
   )
   gl <- glex(rp, xdat)

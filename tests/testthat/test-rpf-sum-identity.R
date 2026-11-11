@@ -14,7 +14,7 @@
 test_that("rpf binary: sum identity matches the predicted raw score", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     y ~ x1 + x2 + x3,
     data = xdat,
     max_interaction = 3
@@ -31,7 +31,7 @@ test_that("rpf binary: sum identity matches the predicted raw score", {
 test_that("rpf multiclass: classwise sum identity holds up to the class intercept", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     yk ~ x1 + x2 + x3,
     data = xdat,
     max_interaction = 3
@@ -39,15 +39,17 @@ test_that("rpf multiclass: classwise sum identity holds up to the class intercep
   gl <- glex::glex(rp, xdat)
   pred <- predict(rp, xdat, type = "numeric")
 
-  # Each class has its own decomposition terms ending in "__class:<level>", but rpf
-  # reports a single intercept for all classes rather than one per class. The class terms
-  # therefore reconstruct that class's raw score exactly up to an additive constant -- the
+  # Each class has its own decomposition terms ending in "__class:<level>". Older versions
+  # of rpf report a single intercept for all classes rather than one per class: the class
+  # terms then reconstruct that class's raw score exactly up to an additive constant -- the
   # class intercept we never receive. Assert exactly that: the per-observation residual is
-  # constant within a class, which is much stronger than bounding its magnitude.
+  # constant within a class, which is much stronger than bounding its magnitude. With one
+  # intercept per class (named by class), the residual is zero.
   for (level in gl$target_levels) {
     idx <- grepl(paste0("__class:", level), names(gl$m), fixed = TRUE)
+    intercept <- if (length(gl$intercept) > 1) gl$intercept[[level]] else gl$intercept
     score <- unname(
-      gl$intercept + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
+      intercept + rowSums(as.matrix(gl$m[, idx, with = FALSE]))
     )
     residual <- score - pred[[paste0(".pred_", level)]]
 
@@ -57,13 +59,16 @@ test_that("rpf multiclass: classwise sum identity holds up to the class intercep
       tolerance = 1e-8,
       info = paste("class", level)
     )
+    if (length(gl$intercept) > 1) {
+      expect_equal(residual, rep(0, length(residual)), tolerance = 1e-8, info = paste("class", level))
+    }
   }
 })
 
 test_that("rpf: shap is derived from components and satisfies efficiency", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     mpg ~ cyl + hp + wt,
     data = mtcars,
     max_interaction = 3
@@ -82,7 +87,7 @@ test_that("rpf: shap is derived from components and satisfies efficiency", {
 test_that("rpf: constrained decompositions invalidate shap", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
 
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     mpg ~ cyl + hp + wt,
     data = mtcars,
     max_interaction = 3
@@ -110,7 +115,7 @@ test_that("rpf multiclass: shap mirrors the class-suffixed structure of m", {
 
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
-  rpk <- randomPlantedForest::rpf(
+  rpk <- rpf_forest(
     cyl ~ mpg + hp + wt,
     data = mt,
     max_interaction = 2
@@ -163,7 +168,7 @@ test_that("rpf: constraints that drop only zero terms keep shap valid", {
   dat$y <- dat$x1 + dat$x2 * dat$x3 + rnorm(n, sd = 0.3)
   predictors <- dat[, c("x1", "x2", "x3", "x4")]
 
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     y ~ .,
     data = dat,
     max_interaction = 4,

@@ -153,7 +153,7 @@ test_that("rpf binary: remainder is on the raw score scale, for every loss", {
 
   for (loss in c("L2", "logit", "exponential")) {
     set.seed(1)
-    rp <- randomPlantedForest::rpf(
+    rp <- rpf_forest(
       y ~ x1 + x2 + x3,
       data = xdat,
       max_interaction = 3,
@@ -186,7 +186,7 @@ test_that("rpf binary: remainder is on the raw score scale, for every loss", {
 test_that("rpf binary: remainder does not target the response scale", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
   set.seed(1)
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     y ~ x1 + x2 + x3,
     data = xdat,
     max_interaction = 3
@@ -233,7 +233,7 @@ test_that("ranger: remainder completes a constrained decomposition", {
 test_that("rpf: remainder completes a constrained decomposition", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
   set.seed(1)
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     mpg ~ cyl + hp + wt,
     data = mtcars,
     max_interaction = 3
@@ -273,7 +273,7 @@ test_that("an inert constraint leaves no remainder", {
   dat$y <- dat$x1 + dat$x2 * dat$x3 + rnorm(n, sd = 0.3)
   predictors <- dat[, c("x1", "x2", "x3", "x4")]
 
-  rp <- randomPlantedForest::rpf(
+  rp <- rpf_forest(
     y ~ .,
     data = dat,
     max_interaction = 4,
@@ -293,7 +293,7 @@ test_that("rpf multiclass: remainder is class-wise, mirroring m", {
   set.seed(1)
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
-  rpk <- randomPlantedForest::rpf(
+  rpk <- rpf_forest(
     cyl ~ mpg + hp + wt,
     data = mt,
     max_interaction = 3

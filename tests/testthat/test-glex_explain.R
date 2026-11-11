@@ -5,7 +5,7 @@
 # Regression / rpf ------------------------------------------------------------------------------------------------
 test_that("regression rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
+  rp <- rpf_forest(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
   gl <- glex(rp, mtcars)
 
   p <- glex_explain(gl, 2, threshold = 0)
@@ -15,7 +15,7 @@ test_that("regression rpf", {
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   p <- glex_explain(gl, 2, threshold = 0)
@@ -26,7 +26,7 @@ test_that("binary rpf", {
 # Multiclass / rpf ------------------------------------------------------------------------------------------------
 test_that("multiclass rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   p <- glex_explain(gl, 2, threshold = 0)
@@ -37,7 +37,7 @@ test_that("multiclass rpf", {
 # SHAP values come from `$shap` -----------------------------------------------------------------------------------
 test_that("glex_explain plots the SHAP values stored in $shap", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   id <- 5
@@ -63,7 +63,7 @@ test_that("glex_explain plots the SHAP values stored in $shap", {
 
 test_that("glex_explain omits the SHAP bar for constrained decompositions", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
 
   gl <- glex(rp, xdat)
   gl_constrained <- suppressWarnings(glex(rp, xdat, max_interaction = 1))
@@ -81,7 +81,7 @@ test_that("glex_explain omits the SHAP bar for constrained decompositions", {
 
 test_that("glex_explain works on objects without $shap", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.3.0")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
 
   # Objects from earlier glex versions (and predict_components() output) have no
   # `$shap`: the SHAP bar is omitted rather than erroring.
