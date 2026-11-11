@@ -37,5 +37,8 @@
 #' options(glex.palette_discrete = "batlow")
 #' options(glex.palette_discrete = c("#E69F00", "#56B4E9", "#009E73"))
 #'
+#' # Restore the default
+#' options(glex.palette_discrete = NULL)
+#'
 #' @name glex_options
 NULL

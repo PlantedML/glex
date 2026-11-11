@@ -18,6 +18,32 @@
 
 * Multiclass `rpf` models now carry one intercept per class (fixed upstream in randomPlantedForest), and `glex_vi()`, `plot_shap_decomposition()`, `plot_waterfall()` and `plot_force()` use each class's intercept. Constraints on multiclass `rpf` decompositions are now confirmed against the model's predictions like for other models, so a constraint that only drops zero terms keeps the SHAP values, and `$remainder` is computed by glex for each class. `print()` and the plot captions now use singular forms where appropriate ("1 observation", "1 term").
 
+* `glex()` supports the models that `rpf()` of randomPlantedForest returns by default from version 0.6 (class
+  `rpf_pruned`): `glex(model, x)` returns the model's components at `x` as it predicts (each scaled by its coefficient),
+  summing with the intercept to the prediction, with SHAP values and `max_interaction` / `features` constraints as for
+  the other models, so `plot_waterfall()`, `plot_force()` and `plot_shap_decomposition()` work on it as for a
+  forest. It also carries `$pruned`, the model's description of its components (coefficients, the cells of
+  those of three or more predictors). Every glex function works on it. `glex.rpf()` is unchanged; fit with
+  `prune = FALSE` for the whole forest.
+
+* Plots of such models show the model as it predicts: `plot_twoway_effects()` draws a pair as a heat map on a grid of
+  the data's values (`resolution` cells per predictor), `plot_threeway_effects()` (and `plot()` for any number of
+  predictors) a component of three or more predictors as heat maps, one per cell of its other predictors, each
+  labelled by its cell, and `plot_main_effect()` main effects as step curves. For multiclass models every plot has one
+  panel (set) per class.
+
+* `plot()` of a `glex` object without `predictors` draws the whole model in one figure (with patchwork), each
+  component titled by its name and importance at `x` (`measure`: share of the variance of the prediction, or mean
+  absolute value in units of the prediction), the most important first: for a model of class `rpf_pruned` every
+  component, for other models the main effects and pairs (`max_components`, default 12). New arguments `measure`,
+  `max_components`, `ncol` and `resolution`.
+
+* `glex_vi()` gains `measure`: `"mean_abs"` (the default, unchanged: the mean absolute value, how far a term moves a
+  typical prediction), `"variance"` (the mean square, what dropping the term costs in squared error, and in `m_rel` its
+  share of the variance of the prediction; summed over classes for multiclass models) and, for models of class
+  `rpf_pruned`, `"share"` (the share `prune_components()` measured on the training rows, before the coefficients). `plot()` of a `glex_vi()` object labels its axis
+  by the measure; its default `threshold` (2.5% of the largest score) applies to the chosen measure.
+
 # glex 0.7.0
 
 ## Breaking changes

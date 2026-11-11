@@ -32,9 +32,9 @@ library(randomPlantedForest)
 mtcars$cyl <- factor(mtcars$cyl)
 mtcars$vs <- factor(mtcars$vs)
 
-# Fit forest, get components
+# Fit the model, get components
 set.seed(12)
-rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3)
 components <- glex(rpfit, mtcars)
 
 plot_pdp(components, "wt")

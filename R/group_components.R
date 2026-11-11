@@ -100,6 +100,8 @@ group_components <- function(object, groups) {
     object$shap <- regroup_terms(object$shap, label)
   }
   object$x <- regroup_x(object$x, groups, label)
+  # the terms of a pruned Random Planted Forest no longer match the grouped ones: plot them as for other models
+  object$pruned <- NULL
 
   object
 }

@@ -4,10 +4,19 @@
 \alias{glex_vi}
 \title{Variable Importance for Main and Interaction Terms}
 \usage{
-glex_vi(object, ...)
+glex_vi(object, measure = c("mean_abs", "variance", "share"), ...)
 }
 \arguments{
 \item{object}{Object of class \code{glex}.}
+
+\item{measure}{(\code{character(1): "mean_abs"}) How a term's importance is measured, see Details:
+\itemize{
+\item \code{"mean_abs"}: its mean absolute value at \code{x}.
+\item \code{"variance"}: its mean square at \code{x}, and as a share of the variance of the prediction.
+\item \code{"share"}: for the \code{glex()} object of a pruned Random Planted Forest only: the pruning's own share of the
+variance of the prediction on the training rows (\code{object$pruned$components$share}), by which the pruning
+chose the terms.
+}}
 
 \item{...}{(Unused)}
 }
@@ -17,23 +26,49 @@ A \code{\link[data.table:data.table]{data.table::data.table()}} with columns:
 \item \code{degree} (\code{integer}): Degree of interaction of the \code{term}, with \code{1} being main effects,
 \code{2} being 2-degree interactions etc.
 \item \code{term} (\code{character}): Model term, e.g. main effect \code{x1} or interaction term \code{x1:x2}, \code{x1:x3:x5} etc.
-\item \code{class} (\code{factor}): For multiclass targets only: The associated target class. Lists all classes in the
-target, not limited to the majority vote.
-\item \code{m} (\code{numeric}): Average absolute contribution of \code{term}, see Details.
-\item \code{m_rel} (\code{numeric}): \code{m} but relative to the average prediction (\code{intercept} in \code{glex()} output).
+\item \code{class} (\code{factor}): For multiclass targets and \code{measure = "mean_abs"} only: The associated target class. Lists all
+classes in the target, not limited to the majority vote.
+\item \code{m} (\code{numeric}): The importance of \code{term} by \code{measure}, see Details.
+\item \code{m_rel} (\code{numeric}): \code{m} relative to a scale, see Details.
 }
+
+The \code{measure} is stored as the attribute \code{"measure"}. Terms with \code{m} of zero are left out; the rows are sorted by
+decreasing \code{m}.
 }
 \description{
 Variable Importance for Main and Interaction Terms
 }
 \details{
-The \code{m} reported here is the average absolute value of \code{m} as reported by \code{glex()}, aggregated by \code{term}:
+\strong{\code{measure = "mean_abs"}} (the default). The \code{m} reported is the average absolute value of \code{m} as reported by
+\code{glex()}, aggregated by \code{term} (and by class for multiclass models):
 
-\deqn{\mathtt{m} = \frac{1}{n} \sum_{i = 1}^n |m| }
+\deqn{\mathtt{m} = \frac{1}{n} \sum_{i = 1}^n |m_S(x_i)| }
 
-In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (\eqn{m_0}, \code{intercept} as reported by \code{glex()}):
+In turn, \code{m_rel} rescales \code{m} by the average prediction of the model (\eqn{m_0}, \code{intercept} as reported by \code{glex()};
+its class's for models with one intercept per class):
 
 \deqn{\mathtt{m\_rel} = \frac{\mathtt{m}}{m_0}}
+
+It is in units of the prediction: how far the term moves a typical prediction.
+
+\strong{\code{measure = "variance"}.} \code{m} is the mean square of the term,
+
+\deqn{\mathtt{m} = \frac{1}{n} \sum_{i = 1}^n m_S(x_i)^2, }
+
+which is the mean squared change of the prediction if the term were dropped: what dropping it costs in squared
+error. \code{m_rel} is \code{m} over the variance of the prediction at \code{x} (the intercept plus all terms, and \code{remainder} if
+any), its share of the variance of the prediction. For the components of a purified decomposition (mean zero), \code{m}
+is the variance of the term. For multiclass models, \code{m} and the variance of the prediction are summed over the
+classes' scores (one row per term). This is the size by which randomPlantedForest's \code{prune_components()} ranks and
+prunes the components, except that it measures it on the training rows, and for classification with
+\code{loss = "logit"} or \code{"exponential"} centres the scores across the classes first: for the \code{glex()} object of a
+pruned model, \code{measure = "share"} gives the pruning's own numbers.
+
+\strong{\code{measure = "share"}.} For the \code{glex()} object of a pruned Random Planted Forest: \code{m} and \code{m_rel} are both the
+pruning's share of the variance of the prediction on the training rows, as in \code{object$pruned$components}.
+
+The two measures can rank terms differently: a term that is large on a few observations and zero elsewhere ranks
+higher by its variance than by its mean absolute value.
 }
 \examples{
 \dontshow{if (requireNamespace("xgboost", quietly = TRUE)) withAutoprint(\{ # examplesIf}
@@ -52,6 +87,9 @@ vi_xgb <- glex_vi(glex_xgb)
 
 plot(vi_xgb)
 plot(vi_xgb, by_degree = TRUE)
+
+# by the share of the variance of the prediction
+plot(glex_vi(glex_xgb, measure = "variance"), scale = "relative")
 \dontshow{\}) # examplesIf}
 }
 \seealso{

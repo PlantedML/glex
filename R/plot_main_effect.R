@@ -19,21 +19,23 @@
 #' @examplesIf requireNamespace("randomPlantedForest", quietly = TRUE)
 #' library(randomPlantedForest)
 #'
-#' # introduce factor variables to show categorical feature handling
-#' mtcars$cyl <- factor(mtcars$cyl)
-#' mtcars$vs <- factor(mtcars$vs)
+#' # Every 8th hour of the bike sharing data (see ?bike)
+#' bike_8 <- bike[seq(1, nrow(bike), by = 8), ]
 #'
-#' # Fit forest, get components
+#' # Fit the model, get components
 #' set.seed(12)
-#' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
-#' components <- glex(rpfit, mtcars)
+#' rpfit <- rpf(bikers ~ hr + temp + workingday + season, data = bike_8, max_interaction = 3)
+#' components <- glex(rpfit, bike_8)
 #'
 #' # Main effects ----
-#' plot_main_effect(components, "wt")
-#' plot_main_effect(components, "cyl")
+#' plot_main_effect(components, "temp")
+#' plot_main_effect(components, "season")
 #'
 #' # plot() picks the plot by the number of predictors ----
-#' plot(components, c("wt", "hp"))
+#' plot(components, c("hr", "temp"))
+#'
+#' # and without predictors draws the whole model ----
+#' plot(components)
 plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
   plot_main_effect_impl(object, predictor, pdp = FALSE, ...)
 }
@@ -59,9 +61,9 @@ plot_main_effect <- function(object, predictor, rug_sides = "b", ...) {
 #' mtcars$cyl <- factor(mtcars$cyl)
 #' mtcars$vs <- factor(mtcars$vs)
 #'
-#' # Fit forest, get components
+#' # Fit the model, get components
 #' set.seed(12)
-#' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+#' rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3)
 #' components <- glex(rpfit, mtcars)
 #'
 #' plot_pdp(components, "wt")
@@ -103,12 +105,26 @@ plot_main_effect_impl <- function(
         y = .data[["m"]]
       )
     )
-    p <- p +
-      ggplot2::geom_line(
-        linewidth = 1.2,
-        key_glyph = "rect",
-        color = main_effect_color()
-      )
+    if (is_pruned_glex(object)) {
+      # a Random Planted Forest's component is constant between its cut points: a step through its values at x
+      p <- p +
+        ggplot2::geom_step(
+          linewidth = 1.2,
+          key_glyph = "rect",
+          color = main_effect_color()
+        )
+      if (data.table::uniqueN(xdf[[predictor]]) <= 20) {
+        # few values: mark them, so that the last one shows
+        p <- p + ggplot2::geom_point(size = 2, color = main_effect_color())
+      }
+    } else {
+      p <- p +
+        ggplot2::geom_line(
+          linewidth = 1.2,
+          key_glyph = "rect",
+          color = main_effect_color()
+        )
+    }
     if (rug_sides != "none") {
       p <- p + ggplot2::geom_rug(sides = rug_sides, color = "#1e1e1e")
     }

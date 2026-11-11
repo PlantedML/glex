@@ -21,16 +21,18 @@ for all main effects, all second-order interactions, etc.}
 
 \item{threshold}{(\code{numeric(1): NULL}) Terms with an importance score at or
 below this are aggregated under a \code{"Remaining terms"} label. Refers to the
-chosen \code{scale}. The default \code{NULL} uses 2.5\% of the largest score (per class
-for multiclass objects), so negligible terms do not crowd the plot, and \code{0}
-with \code{by_degree = TRUE}; set \code{0} to show all terms.}
+chosen \code{scale} (and the \code{measure} of the \code{\link[=glex_vi]{glex_vi()}} object). The default \code{NULL} uses 2.5\% of the largest score
+(per class for multiclass objects), so negligible terms do not crowd the plot, and \code{0}
+with \code{by_degree = TRUE}. Set \code{0} to show all terms.}
 
 \item{max_interaction}{(\code{integer(1): NULL}) Optionally filter plot to show terms up to the specified
 degree of interaction. Similar to \code{threshold}, all other terms will be aggregated under a
 \code{"Remaining terms"} label.}
 
-\item{scale}{(\code{"absolute"}) Plot average absolute contributions (default) or the same value but scaled by the
-average prediction (\code{"relative"}).}
+\item{scale}{(\code{"absolute"}) Plot \code{m} (default) or \code{m_rel} (\code{"relative"}) of \code{\link[=glex_vi]{glex_vi()}}: for its default
+\code{measure = "mean_abs"}, the average absolute contributions or the same value scaled by the average prediction; for
+\code{"variance"}, the mean square or its share of the variance of the prediction; for \code{"share"}, the pruning's share
+either way.}
 
 \item{...}{(Unused)}
 }

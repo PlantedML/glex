@@ -3,6 +3,7 @@
 S3method(glex,default)
 S3method(glex,ranger)
 S3method(glex,rpf)
+S3method(glex,rpf_pruned)
 S3method(glex,xgb.Booster)
 S3method(plot,glex)
 S3method(plot,glex_vi)
