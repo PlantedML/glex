@@ -15,7 +15,7 @@ articles:
   desc: |
     Case studies of model explanations on real-world datasets.
   contents:
-  - articles/Bikesharing-Decomposition-rpf
+  - articles/Bikesharing-Decomposition
 
 reference:
 - title: Model explanation
