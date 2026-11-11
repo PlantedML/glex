@@ -332,3 +332,91 @@ test_that("factor predictors: heat map axes and panel cells by level", {
     expect_equal(p$data$m[rows], randomPlantedForest::predict_components(pr, z)$m[["f:x2:x3"]])
   }
 })
+
+# The prediction plots of one observation (explain_terms(), plot_waterfall(), plot_force(), plot_shap_decomposition())
+# read only $m, $intercept, $remainder, $shap and $x, so they take a pruned model's glex object as a forest's: each
+# runs from its intercept to the model's prediction (raw score for classification), the remainder included.
+expect_prediction_plots <- function(gl, model, x, ids = c(1, 7), class = NULL) {
+  pred <- predict(model, x, type = "numeric")
+  target <- pred[[if (is.null(class)) 1 else paste0(".pred_", class)]]
+  for (id in ids) {
+    et <- explain_terms(gl, id, class = class, threshold = 0, max_terms = 100L)
+    expect_equal(et$prediction, target[[id]], tolerance = 1e-10)
+    expect_equal(et$intercept, class_intercept(gl, class))
+    expect_equal(et$terms$end[nrow(et$terms)], target[[id]], tolerance = 1e-10)
+    if (length(gl$constrained) > 0) {
+      expect_identical(et$terms$type[nrow(et$terms)], "remainder")
+    } else {
+      expect_setequal(et$terms$type, "term")
+    }
+    # the defaults aggregate small terms but reach the same prediction
+    expect_equal(explain_terms(gl, id, class = class)$prediction, target[[id]], tolerance = 1e-10)
+
+    p <- plot_waterfall(gl, id = id, class = class)
+    expect_no_error(ggplot2::ggplot_build(p))
+    expect_equal(p$data$end[nrow(p$data)], target[[id]], tolerance = 1e-10)
+    expect_no_error(ggplot2::ggplot_build(plot_force(gl, id = id, class = class)))
+
+    s <- plot_shap_decomposition(gl, id = id, class = class, threshold = 0)
+    expect_no_error(ggplot2::ggplot_build(s))
+    if (length(gl$constrained) == 0) {
+      # each feature's bars sum to its SHAP value
+      bars <- s$data[s$data$kind != "shap", ]
+      shap_rows <- s$data[s$data$kind == "shap", ]
+      sums <- vapply(shap_rows$reference_term, function(f) sum(bars$m_scaled[bars$reference_term == f]), numeric(1))
+      expect_equal(unname(sums), shap_rows$m_scaled, tolerance = 1e-10)
+    }
+  }
+}
+
+test_that("prediction plots of a pruned model's observations, as of the forest's", {
+  x <- sim_pruned$x
+  for (model in list(sim_pruned$fit, sim_pruned$coarse, sim_pruned$asis)) {
+    gl <- glex(model, x)
+    expect_prediction_plots(gl, model, x)
+    # the label of a coarsened triple shows the observation's values of its predictors
+    if (inherits(model, "rpf_pruned")) {
+      et <- explain_terms(gl, 1, threshold = 0, max_terms = 100L)
+      expect_true("x2:x3:x4" %in% et$terms$term)
+      expect_match(et$terms$label[et$terms$term == "x2:x3:x4"], "^x2:x3:x4 = ")
+    }
+    gc <- suppressWarnings(glex(model, x, max_interaction = 2))
+    expect_identical(gc$constrained, "max_interaction")
+    expect_prediction_plots(gc, model, x)
+  }
+})
+
+test_that("prediction plots of pruned classification models: binary, and three classes per class and loss", {
+  x <- sim_pruned$x
+  set.seed(2)
+  score <- x$x1 + 2 * x$x2 * x$x3 + stats::rnorm(nrow(x), sd = 0.3)
+  yb <- factor(score > 0, labels = c("no", "yes"))
+  pb <- randomPlantedForest::rpf(x, yb, max_interaction = 2, n_families = 20, n_splits = 30, loss = "logit")
+  gb <- glex(pb, x)
+  expect_prediction_plots(gb, pb, x)
+  expect_error(plot_waterfall(gb, id = 1, class = "yes"), "only applies to multiclass")
+
+  yk <- cut(score, c(-Inf, -0.5, 0.5, Inf), labels = c("a", "b", "c"))
+  for (loss in c("L2", "logit", "exponential")) {
+    pk <- randomPlantedForest::rpf(x, yk, max_interaction = 3, n_families = 20, n_splits = 30, loss = loss)
+    gk <- glex(pk, x)
+    # with logit the first class is the reference and has no score
+    expect_identical(gk$target_levels, if (loss == "logit") c("b", "c") else c("a", "b", "c"))
+    expect_named(gk$intercept, gk$target_levels)
+    expect_error(plot_force(gk, id = 1), "`class` is required")
+    for (level in gk$target_levels) {
+      expect_prediction_plots(gk, pk, x, class = level)
+    }
+    expect_no_error(ggplot2::ggplot_build(plot_shap_decomposition(gk, id = 1)))
+
+    # a constraint: the remainder is computed per class, against the model's scores
+    if (any(lengths(pk$sets) > 1)) {
+      gc <- suppressWarnings(glex(pk, x, max_interaction = 1))
+      expect_identical(gc$constrained, "max_interaction")
+      expect_named(gc$remainder, gk$target_levels)
+      for (level in gk$target_levels) {
+        expect_prediction_plots(gc, pk, x, class = level)
+      }
+    }
+  }
+})
