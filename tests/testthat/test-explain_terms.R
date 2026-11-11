@@ -129,7 +129,7 @@ test_that("explain_terms reaches the model prediction for real models", {
 
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
-  rp <- rpf(mpg ~ ., data = mtcars, max_interaction = 2)
+  rp <- rpf_forest(mpg ~ ., data = mtcars, max_interaction = 2)
   target <- predict(rp, mtcars[4, ])$.pred
   expect_equal(explain_terms(glex(rp, mtcars), 4, max_terms = 3)$prediction, target, tolerance = 1e-8)
   gc <- suppressWarnings(glex(rp, mtcars, max_interaction = 1))

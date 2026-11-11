@@ -5,7 +5,7 @@
 # Regression / rpf ------------------------------------------------------------------------------------------------
 test_that("regression rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
-  rp <- rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
+  rp <- rpf_forest(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3)
   gl <- glex(rp, mtcars)
 
   p <- plot_main_effect(gl, "wt")
@@ -15,7 +15,7 @@ test_that("regression rpf", {
 # Binary / rpf ------------------------------------------------------------------------------------------------------
 test_that("binary rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
-  rp <- rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   p <- plot_main_effect(gl, "x1")
@@ -28,7 +28,7 @@ test_that("binary rpf", {
 # Multiclass / rpf ------------------------------------------------------------------------------------------------
 test_that("multiclass rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
-  rp <- rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
+  rp <- rpf_forest(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3)
   gl <- glex(rp, xdat)
 
   p <- plot_main_effect(gl, "x1")

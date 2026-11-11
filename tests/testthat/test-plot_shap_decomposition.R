@@ -2,13 +2,13 @@
 test_that("regression, binary and multiclass rpf", {
   skip_if_not_installed("randomPlantedForest", minimum_version = "0.5.0.9000")
   set.seed(1)
-  gl <- glex(rpf(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3), mtcars)
+  gl <- glex(rpf_forest(mpg ~ cyl + hp + wt, data = mtcars, max_interaction = 3), mtcars)
   expect_no_error(ggplot2::ggplot_build(plot_shap_decomposition(gl, 2)))
 
-  gl <- glex(rpf(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3), xdat)
+  gl <- glex(rpf_forest(y ~ x1 + x2 + x3, data = xdat, max_interaction = 3), xdat)
   expect_no_error(ggplot2::ggplot_build(plot_shap_decomposition(gl, 2)))
 
-  gl <- glex(rpf(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3), xdat)
+  gl <- glex(rpf_forest(yk ~ x1 + x2 + x3, data = xdat, max_interaction = 3), xdat)
   expect_no_error(ggplot2::ggplot_build(plot_shap_decomposition(gl, 2)))
   expect_no_error(ggplot2::ggplot_build(plot_shap_decomposition(gl, 2, class = "P")))
 })

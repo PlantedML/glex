@@ -98,7 +98,7 @@ test_that("multiclass class suffixes are preserved", {
 
   mt <- mtcars
   mt$cyl <- factor(mt$cyl)
-  rpk <- randomPlantedForest::rpf(
+  rpk <- rpf_forest(
     cyl ~ mpg + hp + wt,
     data = mt,
     max_interaction = 2
