@@ -45,9 +45,9 @@
 #' any), its share of the variance of the prediction. For the components of a purified decomposition (mean zero), `m`
 #' is the variance of the term. For multiclass models, `m` and the variance of the prediction are summed over the
 #' classes' scores (one row per term). This is the size by which randomPlantedForest's `prune_components()` ranks and
-#' prunes the components, except that it measures it on the training rows, and for classification with
-#' `loss = "logit"` or `"exponential"` centres the scores across the classes first: for the `glex()` object of a
-#' pruned model, `measure = "share"` gives the pruning's own numbers.
+#' prunes the components, except that it measures it on the training rows: for the `glex()` object of a pruned
+#' model, `measure = "share"` gives the pruning's own numbers. (For classification with `loss = "logit"` or
+#' `"exponential"`, randomPlantedForest reports the scores centred across the classes, as the pruning measures them.)
 #'
 #' **`measure = "share"`.** For the `glex()` object of a pruned Random Planted Forest: `m` and `m_rel` are both the
 #' pruning's share of the variance of the prediction on the training rows, as in `object$pruned$components`.
