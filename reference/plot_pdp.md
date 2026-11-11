@@ -43,9 +43,11 @@ A `ggplot2` object.
 [`plot_main_effect()`](https://plantedml.com/glex/reference/plot_components.md)
 
 Other Visualization functions:
-[`autoplot.glex()`](https://plantedml.com/glex/reference/plot_components.md),
-[`autoplot.glex_vi()`](https://plantedml.com/glex/reference/autoplot.glex_vi.md),
-[`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
+[`plot.glex()`](https://plantedml.com/glex/reference/plot_components.md),
+[`plot.glex_vi()`](https://plantedml.com/glex/reference/plot.glex_vi.md),
+[`plot_force()`](https://plantedml.com/glex/reference/plot_force.md),
+[`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md),
+[`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md)
 
 ## Examples
 
@@ -56,9 +58,9 @@ library(randomPlantedForest)
 mtcars$cyl <- factor(mtcars$cyl)
 mtcars$vs <- factor(mtcars$vs)
 
-# Fit forest, get components
+# Fit the model, get components
 set.seed(12)
-rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3)
 components <- glex(rpfit, mtcars)
 
 plot_pdp(components, "wt")

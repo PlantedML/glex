@@ -35,41 +35,35 @@ library(randomPlantedForest)
 mtcars$cyl <- factor(mtcars$cyl)
 mtcars$vs <- factor(mtcars$vs)
 
-# Fit forest, get components
+# Fit the model, get components
 set.seed(12)
-rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, ntrees = 25, max_interaction = 3)
+rpfit <- rpf(mpg ~ cyl + wt + hp + drat + vs, data = mtcars, max_interaction = 3)
 components <- glex(rpfit, mtcars)
 
 # Get component object with only "hp" and its interactions
 subset_components(components, "hp")
 #> glex object of subclass rpf_components 
-#> Explaining predictions of 32 observations with 11 terms of up to 3 degrees
+#> Explaining predictions of 32 observations with 1 term of up to 1 degree
 #> 
-#> List of 5
-#>  $ m          :Classes ‘data.table’ and 'data.frame':    32 obs. of  11 variables:
-#>   ..$ hp         : num [1:32] 0.718 0.718 0.972 0.718 -0.311 ...
-#>   ..$ cyl:hp     : num [1:32] 0.1485 0.1485 0.6333 0.1485 -0.0335 ...
-#>   ..$ hp:wt      : num [1:32] 0.0388 0.0489 0.015 0.0776 0.2166 ...
-#>   ..$ drat:hp    : num [1:32] 0.1319 0.1319 0.1997 0.0311 0.3555 ...
-#>   ..$ hp:vs      : num [1:32] -0.00516 -0.00516 0.20398 -0.03087 -0.00649 ...
-#>   .. [list output truncated]
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5579e7522a30> 
-#>  $ intercept  : num 16.7
+#> List of 6
+#>  $ m          :Classes ‘data.table’ and 'data.frame':    32 obs. of  1 variable:
+#>   ..$ hp: num [1:32] 0.287 0.287 0.984 0.287 -0.625 ...
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5dc767bb1570> 
+#>  $ intercept  : num 20.2
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    32 obs. of  1 variable:
 #>   ..$ hp: num [1:32] 110 110 93 110 175 105 245 62 95 123 ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5579e7522a30> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5dc767bb1570> 
 #>  $ constrained: chr(0) 
 #>  $ shap       :Classes ‘data.table’ and 'data.frame':    32 obs. of  5 variables:
-#>   ..$ cyl : num [1:32] 2.59 2.58 4.29 2.59 1.05 ...
-#>   ..$ wt  : num [1:32] -0.0999 -0.2674 2.3393 -0.3135 -0.8036 ...
-#>   ..$ hp  : num [1:32] 0.853 0.859 1.381 0.764 0.103 ...
-#>   ..$ drat: num [1:32] 0.245 0.247 0.172 0.236 0.341 ...
-#>   ..$ vs  : num [1:32] 0.727 0.72 0.98 0.876 0.68 ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5579e7522a30> 
+#>   ..$ cyl : num [1:32] -0.365 -0.365 1.954 -0.365 -1.531 ...
+#>   ..$ wt  : num [1:32] 0.403 -0.166 1.253 -0.528 -0.993 ...
+#>   ..$ hp  : num [1:32] 0.287 0.287 0.984 0.287 -0.625 ...
+#>   ..$ drat: num [1:32] 0.1785 0.1785 0.0332 -0.5561 -0.5172 ...
+#>   ..$ vs  : num [1:32] -0.65 -0.65 0.723 0.723 -0.65 ...
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5dc767bb1570> 
+#>   [list output truncated]
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 
 subset_component_names(components, "hp")
-#>  [1] "hp"          "cyl:hp"      "hp:wt"       "drat:hp"     "hp:vs"      
-#>  [6] "cyl:hp:wt"   "cyl:drat:hp" "cyl:hp:vs"   "drat:hp:wt"  "hp:vs:wt"   
-#> [11] "drat:hp:vs" 
+#> [1] "hp"
 ```

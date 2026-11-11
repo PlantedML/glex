@@ -11,5 +11,5 @@ Working with glex decompositions.
 
 Case studies of model explanations on real-world datasets.
 
-- [Bikesharing: Decomposition with Random Planted
-  Forest](https://plantedml.com/glex/articles/Bikesharing-Decomposition-rpf.md):
+- [Bikesharing: One Decomposition, Two Model
+  Types](https://plantedml.com/glex/articles/Bikesharing-Decomposition.md):

@@ -30,14 +30,17 @@ adjusted globally via
 
 - `glex.colors_sign` (`c("#008BFB", "#FF0051")`): Two colors for
   negative and positive contributions in
-  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md),
+  [`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md),
+  [`plot_force()`](https://plantedml.com/glex/reference/plot_force.md)
+  and
+  [`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md),
   also used as the endpoints of the default continuous gradient. The
   defaults follow the blue/red convention familiar from the Python
   `shap` and `shapiq` packages.
 
 - `glex.color_line` (`"#194155"`): Color for main effect lines and
   columns drawn by
-  [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
+  [`plot.glex()`](https://plantedml.com/glex/reference/plot_components.md)
   and [`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md).
 
 ## Examples
@@ -53,4 +56,7 @@ options(glex.palette = NULL)
 options(glex.palette_discrete = "okabe-ito")
 options(glex.palette_discrete = "batlow")
 options(glex.palette_discrete = c("#E69F00", "#56B4E9", "#009E73"))
+
+# Restore the default
+options(glex.palette_discrete = NULL)
 ```

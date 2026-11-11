@@ -247,8 +247,7 @@ importances and SHAP values aggregate as usual:
 
 ``` r
 
-library(ggplot2)
-autoplot(glex_vi(weather), threshold = 0.5)
+plot(glex_vi(weather), threshold = 0.5)
 ```
 
 ![](feature-grouping_files/figure-html/semantic-vi-1.png)

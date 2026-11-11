@@ -13,17 +13,22 @@ Functional decomposition of model predictions
 
 Visualize main and interaction terms
 
-- [`autoplot(`*`<glex>`*`)`](https://plantedml.com/glex/reference/plot_components.md)
+- [`plot(`*`<glex_vi>`*`)`](https://plantedml.com/glex/reference/plot.glex_vi.md)
+  : Plot glex Variable Importances
+- [`plot(`*`<glex>`*`)`](https://plantedml.com/glex/reference/plot_components.md)
   [`plot_main_effect()`](https://plantedml.com/glex/reference/plot_components.md)
   [`plot_threeway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
   [`plot_twoway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
   : Plot Prediction Components
+- [`plot_force()`](https://plantedml.com/glex/reference/plot_force.md) :
+  Force plot of a single prediction
 - [`plot_pdp()`](https://plantedml.com/glex/reference/plot_pdp.md) :
   Partial Dependence Plot
-- [`autoplot(`*`<glex_vi>`*`)`](https://plantedml.com/glex/reference/autoplot.glex_vi.md)
-  : Plot glex Variable Importances
-- [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
-  : Explain a single prediction
+- [`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
+  : Plot how a feature's SHAP value is assembled from components
+- [`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md)
+  : Waterfall plot of a single prediction
 - [`glex_options`](https://plantedml.com/glex/reference/glex_options.md)
   : Package options for glex plots
 

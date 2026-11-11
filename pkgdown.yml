@@ -2,10 +2,10 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
-  articles/Bikesharing-Decomposition-rpf: Bikesharing-Decomposition-rpf.html
+  articles/Bikesharing-Decomposition: Bikesharing-Decomposition.html
   feature-grouping: feature-grouping.html
   glex: glex.html
-last_built: 2026-10-09T00:17Z
+last_built: 2026-11-11T12:29Z
 urls:
   reference: https://plantedml.com/glex/reference
   article: https://plantedml.com/glex/articles

@@ -1,6 +1,6 @@
 # Changelog
 
-## glex 0.7.0.9000 (development version
+## glex 0.7.0.9000 (development version)
 
 - [`glex()`](https://plantedml.com/glex/reference/glex.md) supports
   `ranger` models with factor features under every
@@ -22,6 +22,121 @@
   suffix as an interaction, so
   [`print()`](https://rdrr.io/r/base/print.html) reports the correct
   maximum degree for multiclass `rpf` models.
+
+- New
+  [`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md)
+  and
+  [`plot_force()`](https://plantedml.com/glex/reference/plot_force.md)
+  show how a single prediction is built from the components of the
+  decomposition, one bar or segment per main or interaction term, from
+  E\[f\] to f(x). Small terms are aggregated via `max_terms`,
+  `threshold` and `max_interaction`; constrained decompositions end with
+  a remainder bar ([\#49](https://github.com/PlantedML/glex/issues/49)).
+
+- [`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md),
+  [`plot_force()`](https://plantedml.com/glex/reference/plot_force.md),
+  [`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
+  and [`plot()`](https://rdrr.io/r/graphics/plot.default.html) for
+  [`glex_vi()`](https://plantedml.com/glex/reference/glex_vi.md)
+  aggregate terms smaller than 2.5% of the largest one by default
+  (`threshold = NULL`), so negligible components no longer crowd the
+  plot; `threshold = 0` shows all terms. Value labels are rounded to the
+  precision the plotted range allows, and labels of values that round to
+  zero are omitted while their bars are still drawn.
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods
+  replace the
+  [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
+  methods for `glex` and `glex_vi` objects, so plotting no longer needs
+  ggplot2 attached: `plot(gl, "hp")` picks
+  [`plot_main_effect()`](https://plantedml.com/glex/reference/plot_components.md),
+  [`plot_twoway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
+  or
+  [`plot_threeway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
+  by the number of predictors, and `plot(glex_vi(gl))` plots
+  importances. The
+  [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
+  methods are removed. The `plot_*()` functions remain the explicit
+  interface.
+
+- [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
+  is renamed to
+  [`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md),
+  which says what it shows: how each feature’s SHAP value is assembled
+  from the components it is part of.
+  [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
+  still works but is deprecated. The plot no longer clips labels, places
+  values beside the bars and the SHAP value in its own bottom row, drops
+  empty rows in facets, and keeps “Remaining terms” directly above the
+  SHAP value.
+
+- Multiclass `rpf` models now carry one intercept per class (fixed
+  upstream in randomPlantedForest), and
+  [`glex_vi()`](https://plantedml.com/glex/reference/glex_vi.md),
+  [`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md),
+  [`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md)
+  and
+  [`plot_force()`](https://plantedml.com/glex/reference/plot_force.md)
+  use each class’s intercept. Constraints on multiclass `rpf`
+  decompositions are now confirmed against the model’s predictions like
+  for other models, so a constraint that only drops zero terms keeps the
+  SHAP values, and `$remainder` is computed by glex for each class.
+  [`print()`](https://rdrr.io/r/base/print.html) and the plot captions
+  now use singular forms where appropriate (“1 observation”, “1 term”).
+
+- [`glex()`](https://plantedml.com/glex/reference/glex.md) supports the
+  models that
+  [`rpf()`](https://plantedml.com/randomPlantedForest/reference/rpf.html)
+  of randomPlantedForest returns by default from version 0.6 (class
+  `rpf_pruned`): `glex(model, x)` returns the model’s components at `x`
+  as it predicts (each scaled by its coefficient), summing with the
+  intercept to the prediction, with SHAP values and `max_interaction` /
+  `features` constraints as for the other models, so
+  [`plot_waterfall()`](https://plantedml.com/glex/reference/plot_waterfall.md),
+  [`plot_force()`](https://plantedml.com/glex/reference/plot_force.md)
+  and
+  [`plot_shap_decomposition()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
+  work on it as for a forest. It also carries `$pruned`, the model’s
+  description of its components (coefficients, the cells of those of
+  three or more predictors). Every glex function works on it.
+  [`glex.rpf()`](https://plantedml.com/glex/reference/glex.md) is
+  unchanged; fit with `prune = FALSE` for the whole forest.
+
+- Plots of such models show the model as it predicts:
+  [`plot_twoway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
+  draws a pair as a heat map on a grid of the data’s values
+  (`resolution` cells per predictor),
+  [`plot_threeway_effects()`](https://plantedml.com/glex/reference/plot_components.md)
+  (and [`plot()`](https://rdrr.io/r/graphics/plot.default.html) for any
+  number of predictors) a component of three or more predictors as heat
+  maps, one per cell of its other predictors, each labelled by its cell,
+  and
+  [`plot_main_effect()`](https://plantedml.com/glex/reference/plot_components.md)
+  main effects as step curves. For multiclass models every plot has one
+  panel (set) per class.
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a `glex`
+  object without `predictors` draws the whole model in one figure (with
+  patchwork), each component titled by its name and importance at `x`
+  (`measure`: share of the variance of the prediction, or mean absolute
+  value in units of the prediction), the most important first: for a
+  model of class `rpf_pruned` every component, for other models the main
+  effects and pairs (`max_components`, default 12). New arguments
+  `measure`, `max_components`, `ncol` and `resolution`.
+
+- [`glex_vi()`](https://plantedml.com/glex/reference/glex_vi.md) gains
+  `measure`: `"mean_abs"` (the default, unchanged: the mean absolute
+  value, how far a term moves a typical prediction), `"variance"` (the
+  mean square, what dropping the term costs in squared error, and in
+  `m_rel` its share of the variance of the prediction; summed over
+  classes for multiclass models) and, for models of class `rpf_pruned`,
+  `"share"` (the share
+  [`prune_components()`](https://plantedml.com/randomPlantedForest/reference/prune_components.html)
+  measured on the training rows, before the coefficients).
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
+  [`glex_vi()`](https://plantedml.com/glex/reference/glex_vi.md) object
+  labels its axis by the measure; its default `threshold` (2.5% of the
+  largest score) applies to the chosen measure.
 
 ## glex 0.7.0
 
@@ -176,7 +291,7 @@
   (PlantedML/randomPlantedForest#61), so rpf tests and examples run on
   all platforms.
 
-- [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
+- [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
   now reads SHAP values from `$shap` instead of recomputing them from
   the components, so the `glex` object is the single source of truth.
   The SHAP reference bar is omitted for constrained decompositions,
@@ -200,14 +315,14 @@
   palette), `glex.palette_discrete` (palette for categorical predictors:
   a color vector, `"okabe-ito"`, a scico palette name, or a brewer
   palette name), `glex.colors_sign` (negative/positive colors in
-  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
   and gradient endpoints), and `glex.color_line` (main effect
   line/column color).
 - Default colors updated to follow the blue/red convention of the Python
   `shap`/`shapiq` packages: continuous interaction effects use a
   `#008BFB` → white → `#FF0051` gradient (previously the cyclic scico
   palette `"vikO"`), and
-  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
   uses the same blue/red for negative/positive contributions.
 
 ## glex 0.5.2
@@ -318,7 +433,7 @@
   [`ggplot2::autoplot`](https://ggplot2.tidyverse.org/reference/autoplot.html)
   method.
 - Added
-  [`glex_explain()`](https://plantedml.com/glex/reference/glex_explain.md)
+  [`glex_explain()`](https://plantedml.com/glex/reference/plot_shap_decomposition.md)
   to plot prediction components of a single observation.
 
 ## glex 0.2.0
