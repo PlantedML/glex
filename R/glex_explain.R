@@ -35,7 +35,9 @@
 #' # Random Planted Forest -----
 #' library(randomPlantedForest)
 #'
-#' rp <- rpf(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2)
+#' # randomPlantedForest from version 0.6 returns a pruned model by default; prune = FALSE keeps the whole forest
+#' forest <- if ("prune_components" %in% getNamespaceExports("randomPlantedForest")) list(prune = FALSE)
+#' rp <- do.call(rpf, c(list(mpg ~ ., data = mtcars[1:26, ], max_interaction = 2), forest))
 #'
 #' glex_rpf <- glex(rp, mtcars[27:32, ])
 #'
@@ -66,8 +68,16 @@ glex_explain <- function(
   mlong_id[, .id := NULL]
   mlong_id <- mlong_id[abs(mlong_id[["m"]]) > 0, ]
 
-  # store away the intercept because we need that a bunch
+  # store away the intercept because we need that a bunch. Multiclass models can have one per class (named by
+  # class, else in the order of `target_levels`): class_intercept() picks a class's
   avgpred <- object$intercept
+  class_intercept <- function(cls) {
+    if (length(avgpred) <= 1) {
+      return(avgpred)
+    }
+    lev <- if (is.null(names(avgpred))) object$target_levels else names(avgpred)
+    unname(avgpred[match(as.character(cls), lev)])
+  }
 
   # Get final prediction
   if (is.null(object$target_levels)) {
@@ -75,7 +85,10 @@ glex_explain <- function(
     pred <- format(pred, digits = 3, scientific = 4, justify = "none")
   } else {
     # Multiclass gets by-class pred
-    pred <- mlong_id[, list(predsum = sum(m) + avgpred), by = "class"]
+    pred <- mlong_id[,
+      list(predsum = sum(m) + class_intercept(.BY$class)),
+      by = "class"
+    ]
     pred <- as.character(pred[which.max(predsum), "class"][[1]])
   }
 
@@ -142,12 +155,12 @@ glex_explain <- function(
     # crucial part is that the intercept (avgpred) serves as reference/anchor point
     mtemp[,
       xright := c(
-        head(avgpred + cumsum(m_scaled), -1),
-        avgpred + sum(m_scaled)
+        head(class_intercept(.BY$class) + cumsum(m_scaled), -1),
+        class_intercept(.BY$class) + sum(m_scaled)
       ),
       by = "class"
     ]
-    mtemp[, xleft := c(avgpred, head(xright, -1)), by = "class"]
+    mtemp[, xleft := c(class_intercept(.BY$class), head(xright, -1)), by = "class"]
 
     mtemp[, reference_term := main_term]
     mtemp
@@ -184,8 +197,8 @@ glex_explain <- function(
     }
 
     xshap <- merge(xshap, shap_id, by = c("reference_term", "class"))
-    xshap[, xleft := avgpred + shap]
-    xshap[, xright := avgpred]
+    xshap[, xleft := class_intercept(.BY$class) + shap, by = "class"]
+    xshap[, xright := class_intercept(.BY$class), by = "class"]
   }
 
   # Subset to selected class, could be of length > 1
@@ -218,7 +231,7 @@ glex_explain <- function(
 
   # geoms
   p <- p +
-    geom_vline(xintercept = avgpred, linetype = "6161") +
+    vline_intercept(avgpred, xdf, class_intercept) +
     # Draw contribution bars
     geom_segment(
       aes(
@@ -296,8 +309,17 @@ glex_explain <- function(
         pred
       ),
       subtitle = sprintf(
-        "Centered around average prediction: %1.2f%s",
-        avgpred,
+        "Centered around average prediction: %s%s",
+        if (length(avgpred) <= 1) {
+          sprintf("%1.2f", avgpred)
+        } else {
+          paste0(
+            unique(as.character(xdf[["class"]])),
+            " ",
+            sprintf("%1.2f", class_intercept(unique(xdf[["class"]]))),
+            collapse = ", "
+          )
+        },
         if (shap_valid) {
           ""
         } else {
@@ -325,4 +347,19 @@ glex_explain <- function(
   # invisible(list(components = xdf, shap = xshap, plot = p))
   p +
     theme_glex()
+}
+
+#' The vertical line at the intercept of glex_explain(): one per class if the model has one intercept per class
+#' @keywords internal
+#' @noRd
+vline_intercept <- function(avgpred, xdf, class_intercept) {
+  if (length(avgpred) <= 1) {
+    return(geom_vline(xintercept = avgpred, linetype = "6161"))
+  }
+  classes <- unique(xdf[["class"]])
+  geom_vline(
+    data = data.frame(class = classes, xintercept = class_intercept(classes)),
+    aes(xintercept = .data[["xintercept"]]),
+    linetype = "6161"
+  )
 }
