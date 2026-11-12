@@ -18,14 +18,11 @@ std::vector<std::set<unsigned int>> get_all_subsets_(std::set<unsigned int> &set
 {
   std::vector<std::set<unsigned int>> result;
   unsigned int n = set.size();
-  for (unsigned int i = 0; i < (1 << n); ++i)
-  {
+  for (unsigned int i = 0; i < (1u << n); ++i) {
     std::set<unsigned int> subset;
     auto it = set.begin();
-    for (unsigned int j = 0; j < n; ++j)
-    {
-      if (i & (1 << j))
-      {
+    for (unsigned int j = 0; j < n; ++j) {
+      if (i & (1u << j)) {
         subset.insert(*it);
       }
       it++;
@@ -39,12 +36,12 @@ void recurse_subset(
     const std::set<unsigned int> &arr,
     std::set<unsigned int> &currentSubset,
     std::vector<std::set<unsigned int>> &subsets,
-    int maxSize,
-    int index)
+    unsigned int maxSize,
+    size_t index
+)
 {
   // Add the current subset to the result if it's within the maxSize limit
-  if (currentSubset.size() <= maxSize)
-  {
+  if (currentSubset.size() <= maxSize) {
     subsets.push_back(currentSubset);
   }
 
@@ -54,8 +51,7 @@ void recurse_subset(
 
   // Recursively generate subsets starting from the current index
   auto it = std::next(arr.begin(), index);
-  do
-  {
+  do {
     currentSubset.insert(*it);
     recurse_subset(arr, currentSubset, subsets, maxSize, ++index);
     currentSubset.erase(*it);
@@ -63,9 +59,7 @@ void recurse_subset(
   } while (index < arr.size());
 }
 
-std::vector<std::set<unsigned int>> get_all_subsets(
-    std::set<unsigned int> &arr,
-    unsigned int maxSize = UINT_MAX)
+std::vector<std::set<unsigned int>> get_all_subsets(std::set<unsigned int> &arr, unsigned int maxSize = UINT_MAX)
 {
   std::vector<std::set<unsigned int>> subsets = {};
   std::set<unsigned int> currentSubset = {};
@@ -79,8 +73,7 @@ Rcpp::List get_all_subsets_cpp(Rcpp::IntegerVector x, unsigned int maxSize)
   std::set<unsigned int> arr(x.begin(), x.end());
   std::vector<std::set<unsigned int>> subsets = get_all_subsets(arr, maxSize);
   Rcpp::List result(subsets.size());
-  for (unsigned int i = 0; i < subsets.size(); ++i)
-  {
+  for (unsigned int i = 0; i < subsets.size(); ++i) {
     result[i] = Rcpp::IntegerVector(subsets[i].begin(), subsets[i].end());
   }
   return result;
