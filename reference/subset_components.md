@@ -48,11 +48,11 @@ subset_components(components, "hp")
 #> List of 6
 #>  $ m          :Classes ‘data.table’ and 'data.frame':    32 obs. of  1 variable:
 #>   ..$ hp: num [1:32] 0.287 0.287 0.984 0.287 -0.625 ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556ee2130a30> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x56300c028a30> 
 #>  $ intercept  : num 20.2
 #>  $ x          :Classes ‘data.table’ and 'data.frame':    32 obs. of  1 variable:
 #>   ..$ hp: num [1:32] 110 110 93 110 175 105 245 62 95 123 ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556ee2130a30> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x56300c028a30> 
 #>  $ constrained: chr(0) 
 #>  $ shap       :Classes ‘data.table’ and 'data.frame':    32 obs. of  5 variables:
 #>   ..$ cyl : num [1:32] -0.365 -0.365 1.954 -0.365 -1.531 ...
@@ -60,7 +60,7 @@ subset_components(components, "hp")
 #>   ..$ hp  : num [1:32] 0.287 0.287 0.984 0.287 -0.625 ...
 #>   ..$ drat: num [1:32] 0.1785 0.1785 0.0332 -0.5561 -0.5172 ...
 #>   ..$ vs  : num [1:32] -0.65 -0.65 0.723 0.723 -0.65 ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556ee2130a30> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x56300c028a30> 
 #>   [list output truncated]
 #>  - attr(*, "class")= chr [1:3] "glex" "rpf_components" "list"
 
