@@ -11,21 +11,18 @@
 typedef std::map<std::set<unsigned int>, double> ProbsMap;
 typedef std::map<std::set<unsigned int>, std::vector<unsigned int>> PathData;
 
-struct AugmentedData
-{
+struct AugmentedData {
   std::set<unsigned int> encountered;
   PathData pathData;
 };
 
-struct LeafData
-{
+struct LeafData {
   std::set<unsigned int> all_encountered;
   std::map<unsigned int, std::set<unsigned int>> encountered;
   std::map<unsigned int, ProbsMap> leafProbs;
 };
 
-enum Index
-{
+enum Index {
   FEATURE = 0,
   SPLIT = 1,
   YES = 2,
@@ -40,8 +37,7 @@ using NodeCategories = std::vector<std::vector<int>>;
 inline NodeCategories toNodeCategories(const Rcpp::List &categories)
 {
   NodeCategories out(categories.size());
-  for (R_xlen_t i = 0; i < categories.size(); ++i)
-  {
+  for (R_xlen_t i = 0; i < categories.size(); ++i) {
     Rcpp::IntegerVector codes = categories[i];
     out[i].assign(codes.begin(), codes.end());
   }
@@ -49,16 +45,13 @@ inline NodeCategories toNodeCategories(const Rcpp::List &categories)
 }
 
 // Categorical splits are set membership, numeric splits a threshold comparison
-template <typename ComparisonPolicy>
-inline bool goesYes(double val, double split, const std::vector<int> &categories)
+template <typename ComparisonPolicy> inline bool goesYes(double val, double split, const std::vector<int> &categories)
 {
-  if (categories.empty())
-  {
+  if (categories.empty()) {
     return ComparisonPolicy::compare(val, split);
   }
   // NA levels take the `No` branch like NA values at numeric splits (casting NaN to int is undefined)
-  if (std::isnan(val))
-  {
+  if (std::isnan(val)) {
     return false;
   }
   return std::find(categories.begin(), categories.end(), static_cast<int>(val)) != categories.end();
@@ -68,13 +61,11 @@ inline bool goesYes(double val, double split, const std::vector<int> &categories
 using ExtendedMask = std::vector<uint64_t>;
 
 // Custom hash function for ExtendedMask
-struct ExtendedMaskHash
-{
+struct ExtendedMaskHash {
   std::size_t operator()(const ExtendedMask &mask) const
   {
     std::size_t seed = 0;
-    for (const auto &chunk : mask)
-    {
+    for (const auto &chunk : mask) {
       // Combine hash values (boost::hash_combine approach)
       seed ^= std::hash<uint64_t>{}(chunk) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
@@ -83,26 +74,20 @@ struct ExtendedMaskHash
 };
 
 // Custom equality function for ExtendedMask
-struct ExtendedMaskEqual
-{
-  bool operator()(const ExtendedMask &lhs, const ExtendedMask &rhs) const
-  {
-    return lhs == rhs;
-  }
+struct ExtendedMaskEqual {
+  bool operator()(const ExtendedMask &lhs, const ExtendedMask &rhs) const { return lhs == rhs; }
 };
 
 // Extended bitmask data structures
 using FeatureMask = ExtendedMask;
 typedef std::unordered_map<FeatureMask, std::vector<unsigned int>, ExtendedMaskHash, ExtendedMaskEqual> PathDataBitmask;
 
-struct AugmentedDataBitMask
-{
+struct AugmentedDataBitMask {
   FeatureMask encountered; // vector of 64-bit masks for encountered features
   PathDataBitmask pathData;
 };
 
-struct LeafDataBitMask
-{
+struct LeafDataBitMask {
   std::vector<FeatureMask> encounteredMask; // for each node
   std::vector<std::unordered_map<FeatureMask, double, ExtendedMaskHash, ExtendedMaskEqual>> leafProbs;
   FeatureMask allEncounteredMask; // union of all encountered features
@@ -133,8 +118,7 @@ inline FeatureMask setFeature(FeatureMask mask, unsigned int feature)
   unsigned int bit_pos = feature % BITS_PER_CHUNK;
 
   // Resize if needed
-  if (chunk_idx >= mask.size())
-  {
+  if (chunk_idx >= mask.size()) {
     mask.resize(chunk_idx + 1, 0ULL);
   }
 
@@ -147,8 +131,7 @@ inline FeatureMask clearFeature(FeatureMask mask, unsigned int feature)
   unsigned int chunk_idx = feature / BITS_PER_CHUNK;
   unsigned int bit_pos = feature % BITS_PER_CHUNK;
 
-  if (chunk_idx < mask.size())
-  {
+  if (chunk_idx < mask.size()) {
     mask[chunk_idx] &= ~(1ULL << bit_pos);
   }
   return mask;
@@ -160,8 +143,7 @@ inline FeatureMask bitmaskAnd(const FeatureMask &a, const FeatureMask &b)
   size_t common_size = std::min(a.size(), b.size());
   FeatureMask result(common_size, 0ULL);
 
-  for (size_t i = 0; i < common_size; i++)
-  {
+  for (size_t i = 0; i < common_size; i++) {
     result[i] = a[i] & b[i];
   }
 
@@ -172,8 +154,7 @@ inline FeatureMask bitmaskAnd(const FeatureMask &a, const FeatureMask &b)
 inline unsigned int countSetBits(const FeatureMask &mask)
 {
   unsigned int count = 0;
-  for (const auto &chunk : mask)
-  {
+  for (const auto &chunk : mask) {
     count += __builtin_popcountll(chunk);
   }
   return count;
@@ -184,14 +165,12 @@ inline FeatureMask setToBitmask(const std::set<unsigned int> &set)
 {
   // Find the max feature to determine the required mask size
   unsigned int max_feature = 0;
-  if (!set.empty())
-  {
+  if (!set.empty()) {
     max_feature = *set.rbegin(); // Largest element in the set
   }
 
   FeatureMask mask = createEmptyMask(max_feature + 1);
-  for (unsigned int feature : set)
-  {
+  for (unsigned int feature : set) {
     mask = setFeature(mask, feature);
   }
   return mask;
@@ -202,16 +181,13 @@ inline std::set<unsigned int> bitmaskToSet(const FeatureMask &mask)
 {
   std::set<unsigned int> set;
 
-  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++)
-  {
+  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++) {
     uint64_t chunk = mask[chunk_idx];
     if (chunk == 0)
       continue; // Skip empty chunks for efficiency
 
-    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++)
-    {
-      if (chunk & (1ULL << bit_pos))
-      {
+    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++) {
+      if (chunk & (1ULL << bit_pos)) {
         unsigned int feature = chunk_idx * BITS_PER_CHUNK + bit_pos;
         set.insert(feature);
       }
@@ -227,16 +203,13 @@ inline std::vector<FeatureMask> get_all_subsets_of_mask(const FeatureMask &mask,
   // 1) Gather indices of set bits
   std::vector<unsigned int> bits; // Stores the original indices of set bits in the mask
 
-  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++)
-  {
+  for (size_t chunk_idx = 0; chunk_idx < mask.size(); chunk_idx++) {
     uint64_t chunk = mask[chunk_idx];
     if (chunk == 0)
       continue; // Skip empty chunks
 
-    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++)
-    {
-      if (chunk & (1ULL << bit_pos))
-      {
+    for (unsigned int bit_pos = 0; bit_pos < BITS_PER_CHUNK; bit_pos++) {
+      if (chunk & (1ULL << bit_pos)) {
         bits.push_back(chunk_idx * BITS_PER_CHUNK + bit_pos);
       }
     }
@@ -247,13 +220,11 @@ inline std::vector<FeatureMask> get_all_subsets_of_mask(const FeatureMask &mask,
   // 2) Generate subsets by size from 0 to min(k, max_size)
   std::vector<FeatureMask> subsets; // No pre-allocation needed, or a rough estimate could be used
 
-  for (unsigned int m = 0; m <= std::min((unsigned int)k, max_size); ++m)
-  {
+  for (unsigned int m = 0; m <= std::min((unsigned int)k, max_size); ++m) {
     // Generate combinations of size m from k items (indices in 'bits')
     // Use bitmasks to represent combinations of the 'k' features.
 
-    if (m == 0)
-    {
+    if (m == 0) {
       // The only combination of size 0 is the empty set
       subsets.push_back(createEmptyMask(BITS_PER_CHUNK * mask.size()));
       continue;
@@ -267,15 +238,12 @@ inline std::vector<FeatureMask> get_all_subsets_of_mask(const FeatureMask &mask,
     size_t combination_mask = (1ULL << m) - 1; // This mask represents which of the 'k' features are selected
 
     // Iterate through all combination masks with m bits set using Gosper's Hack
-    while (combination_mask < (1ULL << k))
-    {
+    while (combination_mask < (1ULL << k)) {
 
       // Construct the FeatureMask for this subset using the original feature indices from 'bits'
       FeatureMask subset_mask = createEmptyMask(BITS_PER_CHUNK * mask.size()); // Corrected call
-      for (size_t b = 0; b < k; ++b)
-      {
-        if (combination_mask & (1ULL << b))
-        {
+      for (size_t b = 0; b < k; ++b) {
+        if (combination_mask & (1ULL << b)) {
           // If the b-th bit is set in combination_mask, include the bits[b]-th feature
           subset_mask = setFeature(subset_mask, bits[b]);
         }
@@ -301,20 +269,16 @@ inline std::vector<FeatureMask> get_all_subsets_of_mask(const FeatureMask &mask,
 inline bool isSubset(const FeatureMask &subset, const FeatureMask &superset)
 {
   // For each chunk in subset
-  for (size_t i = 0; i < subset.size() && i < superset.size(); i++)
-  {
+  for (size_t i = 0; i < subset.size() && i < superset.size(); i++) {
     // If any bit in subset is not in superset, it's not a subset
-    if ((subset[i] & ~superset[i]) != 0)
-    {
+    if ((subset[i] & ~superset[i]) != 0) {
       return false;
     }
   }
 
   // Check if subset has any bits set beyond superset's size
-  for (size_t i = superset.size(); i < subset.size(); i++)
-  {
-    if (subset[i] != 0)
-    {
+  for (size_t i = superset.size(); i < subset.size(); i++) {
+    if (subset[i] != 0) {
       return false;
     }
   }

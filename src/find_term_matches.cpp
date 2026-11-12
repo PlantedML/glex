@@ -5,11 +5,12 @@
 // interaction terms. Edge cases would be when terms include e.g. "x1" and "x12", where a simple grep-like
 // approach would look for main_term "x1" and also match "x12", hence the strong delimiter assumption feels necessary.
 // [[Rcpp::export]]
-std::vector<int> find_term_matches(std::string main_term, std::vector<std::string> terms) {
+std::vector<int> find_term_matches(std::string main_term, std::vector<std::string> terms)
+{
   // Don't know how many matches there are so can't pre-allocate
   std::vector<int> match_indices;
 
-  for (int i = 0; i < terms.size(); i++) {
+  for (size_t i = 0; i < terms.size(); i++) {
     std::string term = terms[i];
     std::size_t pos = term.find(":");
 

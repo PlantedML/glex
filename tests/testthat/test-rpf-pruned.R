@@ -403,7 +403,9 @@ test_that("prediction plots of pruned classification models: binary, and three c
     # one score per class with every loss; randomPlantedForest builds before
     # PlantedML/randomPlantedForest#115 gave logit's first class no score
     expected <- c("a", "b", "c")
-    if (loss == "logit" && length(gk$target_levels) == 2) expected <- c("b", "c")
+    if (loss == "logit" && length(gk$target_levels) == 2) {
+      expected <- c("b", "c")
+    }
     expect_identical(gk$target_levels, expected)
     expect_named(gk$intercept, gk$target_levels)
     expect_error(plot_force(gk, id = 1), "`class` is required")

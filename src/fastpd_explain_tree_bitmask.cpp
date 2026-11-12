@@ -14,22 +14,21 @@ void augmentTreeRecurseStepBitmask(
     Rcpp::NumericMatrix &tree,
     const NodeCategories &categories,
     Rcpp::NumericMatrix &dataset,
-    unsigned int node)
+    unsigned int node
+)
 {
   // Extract info for this node
   NumericMatrix::Row current_node = tree(node, _);
   const int current_feature = current_node[Index::FEATURE];
 
   // If it's a leaf node:
-  if (current_feature == -1)
-  {
+  if (current_feature == -1) {
     // Record which features were encountered on path to this leaf
     leaf_data.encounteredMask[node] = passed_down.encountered;
 
     // For each subset in pathData, store the fraction (#rows / totalRows)
     const double denom = static_cast<double>(dataset.nrow());
-    for (auto &kv : passed_down.pathData)
-    {
+    for (auto &kv : passed_down.pathData) {
       const FeatureMask &subsetMask = kv.first;
       const std::vector<unsigned int> &row_inds = kv.second;
       double fraction = row_inds.empty() ? 0.0 : (row_inds.size() / denom);
@@ -62,37 +61,29 @@ void augmentTreeRecurseStepBitmask(
   // 1) Split existing subsets if they do NOT contain current_feature.
   //    If they do contain it, we put the same row indices on both sides
   //    (this is how we treat partial-dependence "excluded" features).
-  for (auto &kv : passed_down.pathData)
-  {
+  for (auto &kv : passed_down.pathData) {
     const FeatureMask &subsetMask = kv.first;
     const std::vector<unsigned int> &row_inds = kv.second;
 
     // Check membership once
     bool feature_in_subset = hasFeature(subsetMask, current_feature);
 
-    if (feature_in_subset)
-    {
+    if (feature_in_subset) {
       // The subset already includes current_feature => no actual splitting
       passed_down_yes.pathData[subsetMask] = row_inds;
       passed_down_no.pathData[subsetMask] = row_inds;
-    }
-    else
-    {
+    } else {
       // We do threshold-based splitting
       std::vector<unsigned int> yes_vec;
       std::vector<unsigned int> no_vec;
       yes_vec.reserve(row_inds.size());
       no_vec.reserve(row_inds.size());
 
-      for (unsigned int row_id : row_inds)
-      {
+      for (unsigned int row_id : row_inds) {
         double val = dataset(row_id, current_feature);
-        if (goesYes<ComparisonPolicy>(val, split, categories[node]))
-        {
+        if (goesYes<ComparisonPolicy>(val, split, categories[node])) {
           yes_vec.push_back(row_id);
-        }
-        else
-        {
+        } else {
           no_vec.push_back(row_id);
         }
       }
@@ -106,16 +97,14 @@ void augmentTreeRecurseStepBitmask(
   //    Then we create new subsets that add the feature bit, duplicating rows
   //    (i.e., ignoring threshold for those "excluded" subsets).
   bool is_new_feature = !hasFeature(passed_down.encountered, current_feature);
-  if (is_new_feature)
-  {
+  if (is_new_feature) {
     // Mark it as encountered in these subtrees
     passed_down_yes.encountered = setFeature(passed_down_yes.encountered, current_feature);
     passed_down_no.encountered = setFeature(passed_down_no.encountered, current_feature);
 
     // Duplicate pathData with the new bit set
     // for each subset in the *original* pathData
-    for (auto &kv : passed_down.pathData)
-    {
+    for (auto &kv : passed_down.pathData) {
       const FeatureMask &old_subset = kv.first;
       const std::vector<unsigned int> &row_inds = kv.second;
 
@@ -132,10 +121,8 @@ void augmentTreeRecurseStepBitmask(
 }
 
 LeafDataBitMask augmentTreeBitmask(
-    Rcpp::NumericMatrix &tree,
-    const NodeCategories &categories,
-    Rcpp::NumericMatrix &x,
-    bool is_weak_inequality)
+    Rcpp::NumericMatrix &tree, const NodeCategories &categories, Rcpp::NumericMatrix &x, bool is_weak_inequality
+)
 {
   int n_nodes = tree.nrow();
   unsigned int n_features = x.ncol(); // Get feature count for proper mask sizing
@@ -154,8 +141,7 @@ LeafDataBitMask augmentTreeBitmask(
   {
     std::vector<unsigned int> all_rows;
     all_rows.reserve(x.nrow());
-    for (int i = 0; i < x.nrow(); i++)
-    {
+    for (int i = 0; i < x.nrow(); i++) {
       all_rows.push_back(i);
     }
     // pathData with key=empty mask, val=all rows
@@ -163,12 +149,9 @@ LeafDataBitMask augmentTreeBitmask(
   }
 
   // Recurse from node=0 (root)
-  if (is_weak_inequality)
-  {
+  if (is_weak_inequality) {
     augmentTreeRecurseStepBitmask<glex::WeakComparison>(root, leaf_data, tree, categories, x, /*node=*/0);
-  }
-  else
-  {
+  } else {
     augmentTreeRecurseStepBitmask<glex::StrictComparison>(root, leaf_data, tree, categories, x, /*node=*/0);
   }
 
@@ -182,7 +165,8 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
     const NodeCategories &categories,
     const std::vector<FeatureMask> &U,
     unsigned int node,
-    const LeafDataBitMask &leaf_data)
+    const LeafDataBitMask &leaf_data
+)
 {
   // Extract row for "node"
   NumericMatrix::ConstRow current_node = tree(node, _);
@@ -197,29 +181,25 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   NumericMatrix mat(no_init(n, n_subsets));
 
   // If leaf node
-  if (current_feature == -1)
-  {
+  if (current_feature == -1) {
     // We'll fill each column with (gain * p) for all rows,
     // where p = leafProbs[node][(encounteredMask[node] \ U[j])]
     const double gain = current_node[Index::GAIN];
 
-    for (unsigned int j = 0; j < n_subsets; ++j)
-    {
+    for (unsigned int j = 0; j < n_subsets; ++j) {
       FeatureMask intersection = bitmaskAnd(leaf_data.encounteredMask[node], U[j]);
 
       // Probability from the leafProbs map
       double p = 0.0;
       auto it = leaf_data.leafProbs[node].find(intersection);
-      if (it != leaf_data.leafProbs[node].end())
-      {
+      if (it != leaf_data.leafProbs[node].end()) {
         p = it->second;
       }
       double val = gain * p;
 
       // Fill column j with val
       double *col_out = &mat(0, j);
-      for (unsigned int i = 0; i < n; ++i)
-      {
+      for (unsigned int i = 0; i < n; ++i) {
         col_out[i] = val;
       }
     }
@@ -236,32 +216,23 @@ Rcpp::NumericMatrix recurseMarginalizeSBitmask(
   NumericMatrix mat_no = recurseMarginalizeSBitmask<ComparisonPolicy>(x, tree, categories, U, no, leaf_data);
 
   // Fill output
-  for (unsigned int j = 0; j < n_subsets; ++j)
-  {
+  for (unsigned int j = 0; j < n_subsets; ++j) {
     const double *col_yes = &mat_yes(0, j);
     const double *col_no = &mat_no(0, j);
     double *col_out = &mat(0, j);
 
-    if (!hasFeature(U[j], current_feature))
-    {
+    if (!hasFeature(U[j], current_feature)) {
       // Feature is "excluded" from the subset => combine yes & no
-      for (unsigned int i = 0; i < n; ++i)
-      {
+      for (unsigned int i = 0; i < n; ++i) {
         col_out[i] = col_yes[i] + col_no[i];
       }
-    }
-    else
-    {
+    } else {
       // Feature is "included" => row i goes left if x(i,feature)<split, else right
-      for (unsigned int i = 0; i < n; ++i)
-      {
+      for (unsigned int i = 0; i < n; ++i) {
         double val = x(i, current_feature);
-        if (goesYes<ComparisonPolicy>(val, split, categories[node]))
-        {
+        if (goesYes<ComparisonPolicy>(val, split, categories[node])) {
           col_out[i] = col_yes[i];
-        }
-        else
-        {
+        } else {
           col_out[i] = col_no[i];
         }
       }
@@ -276,45 +247,37 @@ void contributeFastPDBitmask(
     NumericMatrix &m_all,
     std::set<unsigned int> &S,
     std::vector<FeatureMask> &U,
-    unsigned int colnum,
-    unsigned int t_size)
+    unsigned int colnum
+)
 {
   // Get the maximum size needed for masks based on U's masks
   size_t max_chunks = 0;
-  for (const auto &mask : U)
-  {
+  for (const auto &mask : U) {
     max_chunks = std::max(max_chunks, mask.size());
   }
 
   // Create S_bitmask with the same size as U's masks
   FeatureMask S_bitmask = createEmptyMask(max_chunks * BITS_PER_CHUNK);
-  for (unsigned int feature : S)
-  {
+  for (unsigned int feature : S) {
     S_bitmask = setFeature(S_bitmask, feature);
   }
 
   // Get subsets and ensure they have the same size as U's masks
   std::vector<FeatureMask> Vs = get_all_subsets_of_mask(S_bitmask);
-  for (auto &V : Vs)
-  {
-    if (V.size() < max_chunks)
-    {
+  for (auto &V : Vs) {
+    if (V.size() < max_chunks) {
       V.resize(max_chunks, 0ULL); // Pad with zeros if needed
     }
   }
 
-  for (unsigned int i = 0; i < Vs.size(); ++i)
-  {
+  for (unsigned int i = 0; i < Vs.size(); ++i) {
     const FeatureMask &V = Vs[i];
     auto it = std::find(U.begin(), U.end(), V);
     unsigned int idx = std::distance(U.begin(), it);
 
-    if ((S.size() - countSetBits(V)) % 2 == 0)
-    {
+    if ((S.size() - countSetBits(V)) % 2 == 0) {
       m_all(_, colnum) = m_all(_, colnum) + mat(_, idx);
-    }
-    else
-    {
+    } else {
       m_all(_, colnum) = m_all(_, colnum) - mat(_, idx);
     }
   }
@@ -328,7 +291,8 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
     Rcpp::List &node_categories,
     Rcpp::List &to_explain_list,
     unsigned int max_interaction,
-    bool is_weak_inequality)
+    bool is_weak_inequality
+)
 {
   const NodeCategories categories = toNodeCategories(node_categories);
 
@@ -347,16 +311,14 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
   CharacterVector x_col_names = colnames(x);
 
   std::set<unsigned int> needToComputePDfunctionsFor; // The set of coords we need to compute PD functions of
-  for (unsigned int S_idx = 0; S_idx < to_explain_size; S_idx++)
-  {
+  for (unsigned int S_idx = 0; S_idx < to_explain_size; S_idx++) {
     std::set<unsigned int> S = std::set<unsigned int>(
-        as<IntegerVector>(to_explain_list[S_idx]).begin(),
-        as<IntegerVector>(to_explain_list[S_idx]).end());
+        as<IntegerVector>(to_explain_list[S_idx]).begin(), as<IntegerVector>(to_explain_list[S_idx]).end()
+    );
     to_explain.push_back(S);
 
     int k = S.size(); // Declare k here
-    if (k != 0)
-    {
+    if (k != 0) {
       auto it = S.begin();
       std::ostringstream oss;
       for (int i = 0; i < k - 1; i++, it++)
@@ -368,10 +330,8 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
     // Check if S \subset T
     FeatureMask S_mask = setToBitmask(S);
     bool is_subset = false;
-    for (const auto &U_mask : U)
-    {
-      if (isSubset(S_mask, U_mask))
-      {
+    for (const auto &U_mask : U) {
+      if (isSubset(S_mask, U_mask)) {
         is_subset = true;
         break;
       }
@@ -383,14 +343,13 @@ Rcpp::NumericMatrix explainTreeFastPDBitmask(
   }
 
   // Compute expectation of all necessary subsets using bitmask implementation
-  NumericMatrix mat = is_weak_inequality ? recurseMarginalizeSBitmask<glex::WeakComparison>(x, tree, categories, U, 0, leaf_data) : recurseMarginalizeSBitmask<glex::StrictComparison>(x, tree, categories, U, 0, leaf_data);
+  NumericMatrix mat = is_weak_inequality
+                          ? recurseMarginalizeSBitmask<glex::WeakComparison>(x, tree, categories, U, 0, leaf_data)
+                          : recurseMarginalizeSBitmask<glex::StrictComparison>(x, tree, categories, U, 0, leaf_data);
 
-  unsigned int t_size = countSetBits(all_encountered);
-
-  for (unsigned int S_idx : needToComputePDfunctionsFor)
-  {
+  for (unsigned int S_idx : needToComputePDfunctionsFor) {
     std::set<unsigned int> S = to_explain[S_idx];
-    contributeFastPDBitmask(mat, m_all, S, U, S_idx, t_size);
+    contributeFastPDBitmask(mat, m_all, S, U, S_idx);
   }
   colnames(m_all) = m_all_col_names;
 
